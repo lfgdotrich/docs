@@ -1,0 +1,70 @@
+---
+title: 开发者示例
+description: LFG.RICH 集成的合约交互示例，以及通过公共 API 获取代币、交易、K 线和协议数据的片段。
+---
+
+构建机器人、仪表盘、自定义发行页面、交易工具或钱包集成时，可以使用这些协议示例。
+
+<Card title="协议合约示例" icon="code" href="/zh/developers/protocol-examples">
+  查看用于估算、买入、卖出、借贷、borrowMore 和还款的 Viem、Ethers 与 Python/Web3.py 示例。
+</Card>
+
+<Card title="合约参考" icon="braces" href="/zh/developers/contracts">
+  查看已部署合约地址和 ABI 页面。
+</Card>
+
+<Card title="API 参考" icon="globe" href="/zh/developers/api">
+  查看代币、交易、K 线和协议配置的公共 REST API 端点。
+</Card>
+
+## 获取最新代币
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens?sort=latest&page=1&limit=20');
+const json = await res.json();
+
+if (!json.success) {
+  throw new Error('Failed to fetch tokens');
+}
+
+console.log(json.data);
+```
+
+## 获取一个代币及其交易
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const [tokenRes, tradesRes] = await Promise.all([
+  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}`),
+  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/trades?page=1&limit=25`)
+]);
+
+const token = await tokenRes.json();
+const trades = await tradesRes.json();
+
+console.log(token.data);
+console.log(trades.data);
+```
+
+## 获取 K 线
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const res = await fetch(
+  `https://lfg.rich/api/bsc/tokens/${tokenAddress}/candles?interval=5m&limit=100`
+);
+
+const json = await res.json();
+console.log(json.data);
+```
+
+## 获取协议配置
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens/config');
+const json = await res.json();
+
+console.log(json.data);
+```

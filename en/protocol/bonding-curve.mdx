@@ -1,0 +1,62 @@
+---
+title: Bonding Curve
+description: How LFG.RICH token pricing works through the bonding-curve flow.
+---
+
+Official LFG.RICH tokens trade through a bonding-curve style flow instead of a traditional creator-managed liquidity pool.
+
+The bonding curve determines the relationship between BNB entering or leaving the system and the amount of tokens bought or sold.
+
+## Buys
+
+When a user buys an official LFG.RICH token:
+
+<Steps>
+  <Step title="BNB enters the trade">
+    The user sends BNB into the buy transaction.
+  </Step>
+  <Step title="The hook estimates output">
+    The hook calculates how many tokens the user receives after applying the token's trading fee.
+  </Step>
+  <Step title="Fees are split">
+    The fixed platform fee and the floor boost portion are separated automatically.
+  </Step>
+  <Step title="Token state updates">
+    Price, reserves, floor-related values, volume, and trade history are updated after the transaction confirms.
+  </Step>
+</Steps>
+
+## Sells
+
+When a user sells an official LFG.RICH token:
+
+<Steps>
+  <Step title="Tokens enter the sell transaction">
+    The user sells token amount through the LFG.RICH swap router.
+  </Step>
+  <Step title="The hook estimates BNB output">
+    The hook calculates the BNB amount based on the bonding curve and protocol state.
+  </Step>
+  <Step title="Floor protection applies">
+    The protocol is designed so sells do not price the token below its floor.
+  </Step>
+  <Step title="User receives BNB">
+    The user receives the sell output after applicable fees.
+  </Step>
+</Steps>
+
+## Estimates
+
+The hook exposes estimate functions that integrations can use before sending transactions:
+
+```solidity
+function estimateBuy(bytes32 poolId, uint256 ethIn)
+  view
+  returns (uint256 tokensOut, uint256 platformFee, uint256 floorBoostFee);
+
+function estimateSell(bytes32 poolId, uint256 tokenAmount)
+  view
+  returns (uint256 ethOut, uint256 platformFee, uint256 floorBoostFee);
+```
+
+Use these estimates together with slippage checks before sending real transactions.

@@ -1,0 +1,40 @@
+---
+title: Floor Price Protection
+description: How LFG.RICH floor price mechanics protect official token launches.
+---
+
+Every official LFG.RICH token has protocol-managed floor price logic.
+
+The floor is the protocol's minimum pricing level for the token. It is designed to move upward as the token grows and to protect against the price falling below the token's floor.
+
+## What the floor does
+
+The floor price acts as a baseline for token sells.
+
+LFG.RICH uses this mechanic to make launches more resistant to traditional liquidity rug risks. Token creators do not manage or remove LP tokens; official launches use protocol-managed reserves and floor logic.
+
+## How the floor can rise
+
+The floor can be influenced by:
+
+- The token's all-time high bonding-curve price.
+- The protocol's floor ratio logic.
+- The token's floor boost pool.
+- Reserve and solvency checks.
+
+The result is a floor system designed around protocol state instead of external promises.
+
+## Floor boost pool
+
+Part of each token's trading fee can flow into the floor boost pool.
+
+For example, if a token has a **5%** total trading fee:
+
+- **0.3%** is the platform fee.
+- **4.7%** goes to the floor boost portion.
+
+The floor boost portion strengthens the token's floor mechanics over time.
+
+## Important note
+
+The floor is a protocol mechanic, not a guarantee from a company, market maker, or token creator. Users should still understand smart contract risk, chain risk, wallet risk, routing risk, and market risk before trading.

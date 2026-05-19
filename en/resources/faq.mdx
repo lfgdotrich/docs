@@ -1,0 +1,46 @@
+---
+title: FAQ
+description: Common questions about LFG.RICH.
+---
+
+<AccordionGroup>
+  <Accordion title="Can the token price go to zero?">
+    Official LFG.RICH tokens use protocol-enforced floor price logic designed to prevent the price from falling below the token's floor while reserve conditions support that floor.
+  </Accordion>
+
+  <Accordion title="Can the creator remove liquidity?">
+    No. LFG.RICH is designed around protocol-managed reserves and bonding-curve trading, not creator-managed LP tokens.
+  </Accordion>
+
+  <Accordion title="Do I need BNB?">
+    Yes. BNB is used for gas and trading on BNB Smart Chain.
+  </Accordion>
+
+  <Accordion title="Is token creation free?">
+    Token creation is currently free at the protocol level, but users still need BNB for gas.
+  </Accordion>
+
+  <Accordion title="What fees can creators choose?">
+    Creators can choose a permanent trading fee between 1% and 10%.
+  </Accordion>
+
+  <Accordion title="What is the fixed platform fee?">
+    The fixed platform fee is 0.3% of buy and sell activity.
+  </Accordion>
+
+  <Accordion title="What happens to the rest of the trading fee?">
+    The remaining part of the creator-selected trading fee goes to the token's floor boost mechanics.
+  </Accordion>
+
+  <Accordion title="What is the borrow fee?">
+    Borrowing has a fixed one-time 3% fee. This fee is used to increase floor price support.
+  </Accordion>
+
+  <Accordion title="Can I repay partially?">
+    Yes. Partial repayment unlocks a proportional amount of collateral. Full repayment unlocks the remaining collateral.
+  </Accordion>
+
+  <Accordion title="Can developers integrate directly with the contracts?">
+    Yes. Developers can use the Factory, Uniswap V4 Hook, Token, and Swap Router ABIs in the developer section.
+  </Accordion>
+</AccordionGroup>

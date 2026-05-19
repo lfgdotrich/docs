@@ -1,0 +1,148 @@
+---
+title: Swap Router ABI
+description: 通过协议路由器买入和卖出 LFG.RICH 代币的运行时 ABI。
+---
+
+将此 ABI 作为可直接复制的 JavaScript/TypeScript 常量，用于 Viem、Ethers、机器人、仪表盘和自定义集成。
+
+<Note>
+这是连接已部署 Swap Router 合约的运行时 ABI。针对已经部署的合约创建 `ethers.Contract`、`viem` 调用或 Web3.py 合约对象时，不需要 constructor 条目。
+</Note>
+
+```ts
+export const SWAP_ROUTER_ABI = [
+  {
+    "type": "function",
+    "name": "poolManager",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "buy",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "minTokensOut",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "sell",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "tokenAmount",
+        "type": "uint256"
+      },
+      {
+        "name": "minEthOut",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "unlockCallback",
+    "inputs": [
+      {
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "error",
+    "name": "NotPoolManager",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SlippageBuy",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SlippageSell",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroAmount",
+    "inputs": []
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  }
+] as const;
+```

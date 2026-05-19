@@ -1,0 +1,83 @@
+---
+title: Uniswap V4 Hook Architecture
+description: How LFG.RICH uses a hook-based architecture for trading, floor protection, fees, and borrowing.
+---
+
+LFG.RICH uses a Uniswap V4 hook architecture to make official token launches protocol-managed from the start.
+
+The hook is the core protocol contract. It handles bonding-curve trades, reserve accounting, floor-price logic, floor-boost accounting, collateral borrowing, and repay flows.
+
+## Contract roles
+
+| Contract role | Purpose |
+| --- | --- |
+| Factory | Creates official LFG.RICH tokens and registers them with the hook. |
+| Uniswap V4 Hook | Handles pricing, floors, reserves, fees, collateral, borrowing, and hook callbacks. |
+| Swap Router | Provides simple `buy` and `sell` functions for users and integrations. |
+| Token | ERC20-compatible token contract created by the Factory. |
+| Pool Manager | Uniswap V4 Pool Manager used by the hook and router flow. |
+
+## BNB Smart Chain addresses
+
+| Contract | Address |
+| --- | --- |
+| Factory | `0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66` |
+| Uniswap V4 Hook | `0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888` |
+| Swap Router | `0x092043364f39f7f57C4E1D32116f453BfaE37440` |
+| Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
+
+## How official tokens are registered
+
+When a creator launches a token:
+
+<Steps>
+  <Step title="Factory deploys the token">
+    The Factory creates a new ERC20-compatible token using the selected name and symbol.
+  </Step>
+  <Step title="Factory locks the token hook">
+    The Factory calls `setHook(address)` on the token. This can only happen once.
+  </Step>
+  <Step title="Factory creates the pool key">
+    The Factory builds the Uniswap V4 pool key for native BNB and the new token.
+  </Step>
+  <Step title="Hook registers the token">
+    The Factory calls `registerToken(token, poolId, totalFeeBps)` on the hook.
+  </Step>
+  <Step title="Pool is initialized">
+    The Factory initializes the Uniswap V4 pool using the protocol's initial square-root price.
+  </Step>
+</Steps>
+
+## Hook responsibilities
+
+The hook is responsible for:
+
+- Buy and sell calculations.
+- Minting tokens on buys.
+- Burning tokens on sells.
+- Charging the creator-selected trading fee.
+- Sending the fixed platform fee to the Factory.
+- Allocating the remaining trading fee to floor boost.
+- Tracking `realETH`, `virtualETH`, `floorPrice`, `floorBoostPool`, and total reserve data.
+- Locking collateral for borrowing.
+- Unlocking collateral on repayment.
+- Updating floor and all-time-high price accounting.
+
+## Why liquidity additions are blocked
+
+LFG.RICH does not use creator-managed liquidity positions for official launches.
+
+The hook rejects normal external liquidity additions so that official token mechanics remain controlled by the protocol's bonding-curve, reserve, and floor logic.
+
+## Developer references
+
+Use the contract reference and examples pages when integrating directly:
+
+<CardGroup cols={2}>
+  <Card title="Contract Reference" icon="code" href="/en/developers/contracts">
+    Addresses, ABI pages, and core contract functions.
+  </Card>
+  <Card title="Protocol Examples" icon="terminal" href="/en/developers/protocol-examples">
+    Node.js and Python examples for estimates, buy, sell, borrow, and repay.
+  </Card>
+</CardGroup>

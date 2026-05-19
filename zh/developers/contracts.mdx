@@ -1,0 +1,180 @@
+---
+title: 合约参考
+description: LFG.RICH 主要合约地址、集成说明和可读 ABI 字符串常量。
+---
+
+## BNB Smart Chain 地址
+
+| 合约 | 地址 |
+| --- | --- |
+| Factory | `0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66` |
+| Uniswap V4 Hook | `0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888` |
+| Swap Router | `0x092043364f39f7f57C4E1D32116f453BfaE37440` |
+| Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
+| 官方代币 | 每个由 Factory 创建的代币都有自己的代币地址。 |
+
+## ABI 格式
+
+下面的 ABI 常量使用 human-readable 字符串格式，并且只包含 **函数和事件**。这是集成示例中最容易阅读的格式，也可以直接用于 **Ethers**。自定义错误保留在完整 JSON ABI 文件中，但这里故意省略，让页面更容易浏览。
+
+```ts
+const contract = new ethers.Contract(address, FACTORY_ABI, signerOrProvider);
+```
+
+Viem 在使用 `parseAbi` 时也接受 human-readable ABI 字符串：
+
+```ts
+import { parseAbi } from 'viem';
+
+const abi = parseAbi(FACTORY_ABI);
+const owner = await publicClient.readContract({
+  address: FACTORY_ADDRESS,
+  abi,
+  functionName: 'owner',
+});
+```
+
+如果开发者更喜欢标准 JSON ABI 格式，或需要包含自定义错误的完整 ABI，也可以继续使用 `/abis/*.abi.json` 文件。
+
+
+## 完整 ABI 页面
+
+<CardGroup cols={2}>
+  <Card title="Factory ABI" icon="braces" href="/zh/developers/abis/factory">
+    用于代币创建、代币查询、pool key 和 Factory 事件的完整 JSON ABI 参考。
+  </Card>
+  <Card title="Uniswap V4 Hook ABI" icon="braces" href="/zh/developers/abis/uniswap-v4-hook">
+    用于协议状态、估算、借贷、还款和 Hook 回调的完整 JSON ABI 参考。
+  </Card>
+  <Card title="Token ABI" icon="braces" href="/zh/developers/abis/token">
+    Full JSON ABI reference for official LFG.RICH token contracts.
+  </Card>
+  <Card title="Swap Router ABI" icon="braces" href="/zh/developers/abis/swap-router">
+    用于用户买入和卖出执行的完整 JSON ABI 参考。
+  </Card>
+</CardGroup>
+
+## Factory
+
+The Factory creates official LFG.RICH tokens and stores token metadata, creator information, pool IDs, and pool keys.
+
+```ts
+export const FACTORY_ABI = [
+  "function owner() view returns (address)",
+  "function poolManager() view returns (address)",
+  "function hook() view returns (address)",
+  "function creationFee() view returns (uint256)",
+  "function POOL_FEE() view returns (uint24)",
+  "function TICK_SPACING() view returns (int24)",
+  "function INIT_SQRT_PRICE() view returns (uint160)",
+  "function allTokens(uint256 index) view returns (address)",
+  "function tokenToCreator(address token) view returns (address)",
+  "function tokenInfoMap(address token) view returns (address tokenAddress, uint256 tokenId, address creator, string name, string symbol, bytes32 poolId)",
+  "function createToken(string name, string symbol, uint256 totalFeeBps) payable returns (address token, bytes32 poolId)",
+  "function setCreationFee(uint256 newFee)",
+  "function transferOwnership(address newOwner)",
+  "function withdrawAll(address to)",
+  "function totalTokens() view returns (uint256)",
+  "function isOfficialToken(address token) view returns (bool)",
+  "function getTokenInfo(address token) view returns (tuple(address tokenAddress, uint256 tokenId, address creator, string name, string symbol, bytes32 poolId))",
+  "function getUserTokens(address user) view returns (address[])",
+  "function getPoolKey(address token) view returns (tuple(address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks))",
+  "event TokenCreated(address indexed token, uint256 indexed tokenId, address indexed creator, string name, string symbol, bytes32 poolId)",
+  "event CreationFeeUpdated(uint256 oldFee, uint256 newFee)",
+  "event Withdrawn(address indexed to, uint256 amount)",
+] as const;
+```
+
+## Uniswap V4 Hook
+
+The Hook contains the protocol mechanics for registration, pricing, buy/sell accounting, floor support, borrowing, and repayment.
+
+```ts
+export const UNISWAP_V4_HOOK_ABI = [
+  "function BPS_DENOMINATOR() view returns (uint256)",
+  "function PLATFORM_FEE_BPS() view returns (uint256)",
+  "function BORROW_FEE_BPS() view returns (uint256)",
+  "function BASE_FLOOR_RATIO_BPS() view returns (uint256)",
+  "function FLOOR_RESERVE_MAX_BPS() view returns (uint256)",
+  "function COLLATERAL_RATIO_BPS() view returns (uint256)",
+  "function MAX_SUPPLY() view returns (uint256)",
+  "function DUST_THRESHOLD() view returns (uint256)",
+  "function TARGET_ETH() view returns (uint256)",
+  "function SQRT_TARGET_ETH() view returns (uint256)",
+  "function MIN_SWEEP_AMOUNT() view returns (uint256)",
+  "function POOL_FEE() view returns (uint24)",
+  "function POOL_MANAGER() view returns (address)",
+  "function FACTORY() view returns (address)",
+  "function K() view returns (uint256)",
+  "function tokenStates(bytes32 poolId) view returns (address token, uint256 totalFeeBps, uint256 floorPrice, uint256 realETH, uint256 virtualETH, uint256 totalBorrowedETH, uint256 collateralSupply, uint256 floorBoostPool, uint256 totalReserveAccumulated, uint256 allTimeHighPrice, bool initialized)",
+  "function tokenToPoolId(address token) view returns (bytes32)",
+  "function borrowedETH(bytes32 poolId, address user) view returns (uint256)",
+  "function collateralBalance(bytes32 poolId, address user) view returns (uint256)",
+  "function totalPurchasedETH(address user) view returns (uint256)",
+  "function registerToken(address token, bytes32 poolId, uint256 totalFeeBps)",
+  "function effectiveETH(bytes32 poolId) view returns (uint256)",
+  "function getEffectivePrice(bytes32 poolId) view returns (uint256)",
+  "function circulatingSupply(bytes32 poolId) view returns (uint256)",
+  "function estimateBuy(bytes32 poolId, uint256 ethIn) view returns (uint256 tokensOut, uint256 platformFee, uint256 floorBoostFee)",
+  "function estimateSell(bytes32 poolId, uint256 tokenAmount) view returns (uint256 ethOut, uint256 platformFee, uint256 floorBoostFee)",
+  "function estimateBorrowMore(bytes32 poolId, address user) view returns (uint256 additionalEth, uint256 fee)",
+  "function getHookPermissions() pure returns (tuple(bool beforeInitialize, bool afterInitialize, bool beforeAddLiquidity, bool afterAddLiquidity, bool beforeRemoveLiquidity, bool afterRemoveLiquidity, bool beforeSwap, bool afterSwap, bool beforeDonate, bool afterDonate, bool beforeSwapReturnDelta, bool afterSwapReturnDelta, bool afterAddLiquidityReturnDelta, bool afterRemoveLiquidityReturnDelta))",
+  "function borrow(bytes32 poolId, uint256 amount)",
+  "function borrowMore(bytes32 poolId)",
+  "function repay(bytes32 poolId) payable",
+  "function beforeInitialize(address, tuple(address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks) key, uint160) returns (bytes4)",
+  "function beforeAddLiquidity(address, tuple(address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks), tuple(int24 tickLower, int24 tickUpper, int256 liquidityDelta, bytes32 salt), bytes) returns (bytes4)",
+  "function beforeSwap(address, tuple(address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks) key, tuple(bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96) params, bytes hookData) returns (bytes4 selector, int256 delta, uint24 lpFeeOverride)",
+  "event TokenRegistered(address indexed token, bytes32 indexed poolId, uint256 totalFeeBps)",
+  "event Buy(bytes32 indexed poolId, address indexed buyer, uint256 ethIn, uint256 tokensOut, uint256 newPrice)",
+  "event Sell(bytes32 indexed poolId, address indexed seller, uint256 tokensIn, uint256 ethOut, uint256 newPrice)",
+  "event FloorRaised(bytes32 indexed poolId, uint256 oldFloor, uint256 newFloor)",
+  "event ATHUpdated(bytes32 indexed poolId, uint256 oldATH, uint256 newATH)",
+  "event Borrow(bytes32 indexed poolId, address indexed user, uint256 tokensLocked, uint256 ethBorrowed, uint256 fee)",
+  "event BorrowMore(bytes32 indexed poolId, address indexed user, uint256 additionalEth, uint256 fee)",
+  "event Repay(bytes32 indexed poolId, address indexed user, uint256 ethRepaid, uint256 tokensUnlocked)",
+  "event Sweep(bytes32 indexed poolId, uint256 amount)",
+  "event DustCollected(bytes32 indexed poolId, uint256 amount)",
+] as const;
+```
+
+## Token
+
+Each official LFG.RICH token follows the same token ABI. The Hook is the only contract allowed to mint and burn protocol tokens after the Factory locks the Hook address.
+
+```ts
+export const TOKEN_ABI = [
+  "function FACTORY() view returns (address)",
+  "function hook() view returns (address)",
+  "function hookLocked() view returns (bool)",
+  "function setHook(address _hook)",
+  "function mint(address to, uint256 amount)",
+  "function burn(address from, uint256 amount)",
+  "function increaseAllowance(address spender, uint256 addedValue) returns (bool)",
+  "function decreaseAllowance(address spender, uint256 subtractedValue) returns (bool)",
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)",
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)",
+] as const;
+```
+
+## Swap Router
+
+The Swap Router is the user-facing contract for triggering LFG.RICH buys and sells through the protocol PoolKey.
+
+```ts
+export const SWAP_ROUTER_ABI = [
+  "function poolManager() view returns (address)",
+  "function buy(tuple(address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks) key, uint256 minTokensOut) payable",
+  "function sell(tuple(address currency0, address currency1, uint24 fee, int24 tickSpacing, address hooks) key, uint256 tokenAmount, uint256 minEthOut)",
+  "function unlockCallback(bytes data) returns (bytes)",
+] as const;
+```

@@ -1,0 +1,40 @@
+---
+title: Developer Overview
+description: Build bots, dashboards, analytics, and integrations around LFG.RICH.
+---
+
+Developers can integrate with LFG.RICH through the public API and on-chain contracts.
+
+<CardGroup cols={2}>
+  <Card title="Use the public API" icon="server" href="/en/developers/api">
+    Fetch token lists, token details, trades, candles, balances, native price, and contract config.
+  </Card>
+  <Card title="Call contracts directly" icon="code" href="/en/developers/contracts">
+    Read protocol state, estimate trades, and build on-chain integrations using BSC RPC.
+  </Card>
+  <Card title="Protocol examples" icon="terminal" href="/en/developers/protocol-examples">
+    Use Node.js and Python examples for estimates, buy, sell, borrow, borrowMore, and repay.
+  </Card>
+  <Card title="ABI reference" icon="braces" href="/en/developers/abis/factory">
+    Copy the Factory, Hook, Token, and Swap Router ABIs used by integrations.
+  </Card>
+</CardGroup>
+
+## Common integration use cases
+
+- Token launch dashboards.
+- Buy/sell quoting tools.
+- Telegram and Discord buybots.
+- Portfolio and collateral dashboards.
+- Borrow position tracking.
+- Protocol analytics.
+- Custom trading interfaces.
+
+## Main integration contracts
+
+| Contract | Purpose |
+| --- | --- |
+| Factory | Find official tokens, token info, pool IDs, and pool keys. |
+| Uniswap V4 Hook | Read protocol state and estimate buys, sells, and borrowMore. |
+| Swap Router | Execute buys and sells through simple user-facing methods. |
+| Token | ERC20 token interactions, approvals, balances, and collateral approvals. |

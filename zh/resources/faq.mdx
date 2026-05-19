@@ -1,0 +1,46 @@
+---
+title: 常见问题
+description: 关于 LFG.RICH 的常见问题。
+---
+
+<AccordionGroup>
+  <Accordion title="代币价格会归零吗？">
+    官方 LFG.RICH 代币使用协议执行的地板价逻辑，目标是在储备条件支持地板时，防止价格跌破代币地板。
+  </Accordion>
+
+  <Accordion title="创作者可以移除流动性吗？">
+    不可以。LFG.RICH 围绕协议管理的储备和 bonding-curve 交易设计，而不是创作者管理的 LP 代币。
+  </Accordion>
+
+  <Accordion title="我需要 BNB 吗？">
+    是的。BNB 用于 BNB Smart Chain 上的 Gas 和交易。
+  </Accordion>
+
+  <Accordion title="创建代币免费吗？">
+    当前协议层面的代币创建是免费的，但用户仍需要 BNB 支付 Gas。
+  </Accordion>
+
+  <Accordion title="创作者可以选择什么手续费？">
+    创作者可以选择 1% 到 10% 之间的永久交易手续费。
+  </Accordion>
+
+  <Accordion title="固定平台手续费是多少？">
+    固定平台手续费是买入和卖出活动的 0.3%。
+  </Accordion>
+
+  <Accordion title="剩余交易手续费会发生什么？">
+    创作者选择的交易手续费中剩余部分会进入代币的 floor boost 机制。
+  </Accordion>
+
+  <Accordion title="借贷手续费是什么？">
+    借贷有固定一次性 3% 手续费。该费用用于增加地板价支撑。
+  </Accordion>
+
+  <Accordion title="我可以部分还款吗？">
+    可以。部分还款会按比例解锁抵押品。全额还款会解锁剩余抵押品。
+  </Accordion>
+
+  <Accordion title="开发者可以直接集成合约吗？">
+    可以。开发者可以在开发者部分使用 Factory、Uniswap V4 Hook、Token 和 Swap Router ABI。
+  </Accordion>
+</AccordionGroup>

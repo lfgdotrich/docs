@@ -1,0 +1,125 @@
+---
+title: API Reference
+description: Public LFG.RICH API endpoints for tokens, trades, candles, portfolios, and config.
+---
+
+The LFG.RICH API exposes read endpoints under:
+
+```txt
+https://lfg.rich/api/bsc/tokens
+```
+
+Responses generally use this shape:
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+## List tokens
+
+```http
+GET /api/bsc/tokens?sort=volume&page=1&limit=20
+```
+
+Query parameters:
+
+| Parameter | Values |
+| --- | --- |
+| `sort` | `volume`, `active`, `latest`, `gainers` |
+| `page` | Page number |
+| `limit` | Results per page |
+| `search` | Search by name, symbol, or address |
+| `verified` | `1` or `true` to return verified tokens only |
+
+## Get token details
+
+```http
+GET /api/bsc/tokens/:address
+```
+
+Returns token metadata and protocol state, including fields such as:
+
+- `name`
+- `symbol`
+- `logo_url`
+- `current_price`
+- `floor_price`
+- `real_eth`
+- `market_cap`
+- `volume_24h`
+- `trades_24h`
+- `holders`
+- `pool_id`
+
+## Get token trades
+
+```http
+GET /api/bsc/tokens/:address/trades?page=1&limit=50
+```
+
+Returns recent trade history for a token.
+
+Trade types include:
+
+- `buy`
+- `sell`
+- `borrow`
+- `borrowmore`
+- `repay`
+
+## Get chart candles
+
+```http
+GET /api/bsc/tokens/:address/candles?interval=1h&limit=200
+```
+
+Returns generated candle data and floor data for charting.
+
+## Get token balance
+
+```http
+GET /api/bsc/tokens/:address/balance/:wallet
+```
+
+Reads a wallet's token balance from chain.
+
+## Get portfolio tokens
+
+```http
+GET /api/bsc/tokens/portfolio/:wallet
+```
+
+Returns LFG.RICH tokens held by a wallet, including calculated portfolio statistics when available.
+
+## Get portfolio borrows
+
+```http
+GET /api/bsc/tokens/portfolio/:wallet/borrows
+```
+
+Returns active borrow-related token data for a wallet.
+
+## Get native BNB/USD price
+
+```http
+GET /api/bsc/tokens/config/native-price
+```
+
+Returns the native BNB/USD price used by the app.
+
+## Get contract config and ABIs
+
+```http
+GET /api/bsc/tokens/config/contracts
+```
+
+Returns current contract addresses and ABI fragments used by LFG.RICH.
+
+## Write endpoints
+
+The public developer API is read-focused.
+
+App write flows such as metadata upload, token creation helpers, and sync triggers are reserved for the LFG.RICH app unless they are explicitly documented as public integration endpoints.

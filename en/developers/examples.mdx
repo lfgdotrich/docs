@@ -1,0 +1,70 @@
+---
+title: Developer Examples
+description: Contract interaction examples for LFG.RICH integrations, snippets for fetching tokens, trades, candles, and protocol data from the public API.
+---
+
+Use the protocol examples when building bots, dashboards, custom launch pages, trading tools, or wallet integrations.
+
+<Card title="Protocol Contract Examples" icon="code" href="/en/developers/protocol-examples">
+  See Viem, Ethers, and Python/Web3.py examples for estimates, buys, sells, borrowing, borrowMore, and repay.
+</Card>
+
+<Card title="Contract Reference" icon="braces" href="/en/developers/contracts">
+  View deployed contract addresses and ABI pages.
+</Card>
+
+<Card title="API Reference" icon="globe" href="/en/developers/api">
+  Review the public REST API endpoints for tokens, trades, candles, and protocol configuration.
+</Card>
+
+## Fetch latest tokens
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens?sort=latest&page=1&limit=20');
+const json = await res.json();
+
+if (!json.success) {
+  throw new Error('Failed to fetch tokens');
+}
+
+console.log(json.data);
+```
+
+## Fetch a token and its trades
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const [tokenRes, tradesRes] = await Promise.all([
+  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}`),
+  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/trades?page=1&limit=25`)
+]);
+
+const token = await tokenRes.json();
+const trades = await tradesRes.json();
+
+console.log(token.data);
+console.log(trades.data);
+```
+
+## Fetch candles
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const res = await fetch(
+  `https://lfg.rich/api/bsc/tokens/${tokenAddress}/candles?interval=5m&limit=100`
+);
+
+const json = await res.json();
+console.log(json.data);
+```
+
+## Fetch protocol config
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens/config');
+const json = await res.json();
+
+console.log(json.data);
+```

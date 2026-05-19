@@ -1,0 +1,137 @@
+---
+title: Telegram BuyBot
+description: Add the official LFG.RICH BuyBot to your Telegram group and track live buys, borrows, prices, and token information.
+---
+
+The official LFG.RICH BuyBot helps communities follow live activity for LFG.RICH tokens directly inside Telegram groups.
+
+Bot username:
+
+```txt
+@lfgdotrich_buybot
+```
+
+The bot tracks official LFG.RICH tokens on **BNB Smart Chain** and can post live alerts when a tracked token receives new buy or borrow activity.
+
+## Add the bot to your group
+
+1. Open Telegram and search for `@lfgdotrich_buybot`.
+2. Add the bot to your Telegram group. This must be done by the group owner or by an admin who has permission to add admins.
+3. Make sure the bot is allowed to send messages in the group by granting admin rights to the bot.
+4. Run `/settoken` in the group.
+5. Choose the group language.
+6. Send the LFG.RICH token contract address when the bot asks for it.
+
+The token address must be a valid BSC contract address and must belong to a token created on LFG.RICH.
+
+<Info>
+Group setup must be completed by the group owner or by a group admin who has permission to add admins, because the bot needs admin rights to send alerts in the group. If Telegram does not show the bot's commands in your group, you can also use the command with the bot username, for example `/settoken@lfgdotrich_buybot`.
+</Info>
+
+## Track a token
+
+Run:
+
+```txt
+/settoken
+```
+
+The bot will ask you to choose a language, then it will ask for the token contract address.
+
+Example token address:
+
+```txt
+0x29Ede1E1254419Fe5a3c803fC2b015042075A49A
+```
+
+After the token is added, the bot starts tracking new activity for that token in the group.
+
+## Commands
+
+| Command | Who can use it | What it does |
+| --- | --- | --- |
+| `/start` | Anyone | Shows the welcome message. |
+| `/help` | Anyone | Shows the list of available commands. |
+| `/settoken` | Group admins | Adds a LFG.RICH token tracker to the group. |
+| `/deltoken` | Group admins | Removes a tracked token from the group. |
+| `/tokens` | Anyone | Lists the tokens currently tracked in the group. |
+| `/price` | Anyone | Shows current price, floor price, and 24h change for tracked tokens. |
+| `/info` | Anyone | Shows detailed token information for tracked tokens. |
+| `/lang` | Group admins | Changes the bot language for the group. |
+
+## Live alerts
+
+When a tracked token receives new activity, the bot can post alerts in the group.
+
+Buy alerts include:
+
+- BNB amount.
+- Token amount.
+- Buyer wallet shortcut.
+- Current token price.
+- Market cap.
+- Pool amount.
+- Transaction link.
+- LFG.RICH token page link.
+
+Borrow alerts include:
+
+- Borrowed BNB amount.
+- Collateral token amount.
+- Borrower wallet shortcut.
+- Transaction link.
+- LFG.RICH token page link.
+
+## Price information
+
+Use:
+
+```txt
+/price
+```
+
+The bot shows price information for every tracked token in the group, including:
+
+- Current token price in USD and BNB.
+- Floor price.
+- 24h price change.
+
+## Detailed token information
+
+Use:
+
+```txt
+/info
+```
+
+The bot shows detailed information for every tracked token in the group, including:
+
+- Price.
+- Floor price.
+- Market cap.
+- Pool amount.
+- 24h volume.
+- 24h trades.
+- Holder count.
+- 24h price change.
+- Token page chart link.
+
+## Remove a token
+
+Run:
+
+```txt
+/deltoken
+```
+
+The bot will show the currently tracked tokens and let a group admin choose which one to remove.
+
+## Language
+
+Run:
+
+```txt
+/lang
+```
+
+The bot currently supports English and Chinese group messages.

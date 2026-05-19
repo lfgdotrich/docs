@@ -1,0 +1,69 @@
+---
+title: Borrowing
+description: Borrow BNB by locking LFG.RICH tokens as collateral.
+---
+
+LFG.RICH includes collateral borrowing for official tokens.
+
+Users can lock tokens as collateral and borrow BNB against the token's floor value. Borrowing is based on the token's protocol floor, not temporary market spikes.
+
+## Key properties
+
+- Borrowing power is based on floor value.
+- Locked collateral is removed from circulating supply while the borrow position is active.
+- Borrowing has no liquidation mechanism.
+- Borrowing has no ongoing interest.
+- A fixed one-time **3% borrow fee** is deducted upfront.
+- The 3% fee is used to support and increase the token's floor.
+- Partial repayment unlocks a proportional amount of collateral.
+- Full repayment unlocks the remaining collateral.
+
+## Borrowing flow
+
+<Steps>
+  <Step title="Choose collateral">
+    The user chooses how many tokens to lock.
+  </Step>
+  <Step title="Approve the hook">
+    The user approves the Uniswap V4 Hook to transfer the selected token amount.
+  </Step>
+  <Step title="Borrow">
+    The user calls `borrow(poolId, amount)`.
+  </Step>
+  <Step title="Collateral is locked">
+    The hook transfers the selected tokens into collateral accounting.
+  </Step>
+  <Step title="BNB is sent to the borrower">
+    The borrower receives the net BNB amount after the fixed 3% fee.
+  </Step>
+</Steps>
+
+## Repayment flow
+
+Users repay by sending BNB to:
+
+```solidity
+repay(bytes32 poolId)
+```
+
+If the repayment is partial, the protocol unlocks a proportional amount of collateral.
+
+If the repayment closes the debt, the remaining collateral is unlocked.
+
+## Borrow more
+
+If the floor rises after a borrow position is opened, the user's existing collateral may support additional borrowing.
+
+Developers can estimate this with:
+
+```solidity
+estimateBorrowMore(bytes32 poolId, address user)
+```
+
+and then call:
+
+```solidity
+borrowMore(bytes32 poolId)
+```
+
+when additional value is available.

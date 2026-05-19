@@ -1,0 +1,40 @@
+---
+title: 开发者概览
+description: 围绕 LFG.RICH 构建机器人、仪表盘、分析和集成。
+---
+
+开发者可以通过公共 API 和链上合约集成 LFG.RICH。
+
+<CardGroup cols={2}>
+  <Card title="使用公共 API" icon="server" href="/zh/developers/api">
+    获取代币列表、代币详情、交易、K 线、余额、原生币价格和合约配置。
+  </Card>
+  <Card title="直接调用合约" icon="code" href="/zh/developers/contracts">
+    读取协议状态、估算交易，并使用 BSC RPC 构建链上集成。
+  </Card>
+  <Card title="协议示例" icon="terminal" href="/zh/developers/protocol-examples">
+    使用 Node.js 和 Python 示例完成估算、买入、卖出、借贷、borrowMore 和还款。
+  </Card>
+  <Card title="ABI 参考" icon="braces" href="/zh/developers/abis/factory">
+    复制集成中使用的 Factory、Hook、Token 和 Swap Router ABI。
+  </Card>
+</CardGroup>
+
+## 常见集成场景
+
+- 代币发行仪表盘。
+- 买入/卖出报价工具。
+- Telegram 和 Discord BuyBot。
+- 投资组合和抵押品仪表盘。
+- 借贷仓位追踪。
+- 协议分析。
+- 自定义交易界面。
+
+## 主要集成合约
+
+| 合约 | 用途 |
+| --- | --- |
+| Factory | 查找官方代币、代币信息、pool ID 和 pool key。 |
+| Uniswap V4 Hook | 读取协议状态并估算买入、卖出和 borrowMore。 |
+| Swap Router | 通过简单面向用户的方法执行买入和卖出。 |
+| Token | ERC20 交互、授权、余额和抵押品授权。 |

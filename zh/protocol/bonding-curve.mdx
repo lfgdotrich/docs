@@ -1,0 +1,62 @@
+---
+title: Bonding Curve
+description: LFG.RICH 代币如何通过 bonding-curve 流程定价。
+---
+
+官方 LFG.RICH 代币通过 bonding-curve 风格的流程交易，而不是传统的创作者管理流动性池。
+
+Bonding curve 决定进入或离开系统的 BNB 与买入或卖出代币数量之间的关系。
+
+## 买入
+
+当用户买入官方 LFG.RICH 代币时：
+
+<Steps>
+  <Step title="BNB 进入交易">
+    用户在买入交易中发送 BNB。
+  </Step>
+  <Step title="Hook 估算输出">
+    Hook 在应用代币交易手续费后，计算用户可以收到多少代币。
+  </Step>
+  <Step title="手续费自动拆分">
+    固定平台手续费和 floor boost 部分会自动分离。
+  </Step>
+  <Step title="代币状态更新">
+    交易确认后，价格、储备、地板相关数值、成交量和交易历史都会更新。
+  </Step>
+</Steps>
+
+## 卖出
+
+当用户卖出官方 LFG.RICH 代币时：
+
+<Steps>
+  <Step title="代币进入卖出交易">
+    用户通过 LFG.RICH Swap Router 卖出指定数量的代币。
+  </Step>
+  <Step title="Hook 估算 BNB 输出">
+    Hook 根据 bonding curve 和协议状态计算可获得的 BNB 数量。
+  </Step>
+  <Step title="应用地板保护">
+    协议设计目标是让卖出不会把代币价格打到地板价以下。
+  </Step>
+  <Step title="用户收到 BNB">
+    用户在扣除适用手续费后收到卖出输出。
+  </Step>
+</Steps>
+
+## 估算
+
+Hook 暴露了估算函数，集成方可以在发送交易前使用：
+
+```solidity
+function estimateBuy(bytes32 poolId, uint256 ethIn)
+  view
+  returns (uint256 tokensOut, uint256 platformFee, uint256 floorBoostFee);
+
+function estimateSell(bytes32 poolId, uint256 tokenAmount)
+  view
+  returns (uint256 ethOut, uint256 platformFee, uint256 floorBoostFee);
+```
+
+发送真实交易前，请将这些估算与滑点检查一起使用。

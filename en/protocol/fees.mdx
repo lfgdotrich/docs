@@ -1,0 +1,67 @@
+---
+title: Fee Structure
+description: Creation, trading, platform, floor boost, and borrowing fees.
+---
+
+LFG.RICH fees are handled automatically by the protocol.
+
+## Token creation fee
+
+Token creation is currently free at the protocol level: `0 BNB`.
+
+Creators still need BNB for gas.
+
+## Trading fees
+
+Each official LFG.RICH token has a permanent trading fee chosen by the creator during launch.
+
+Supported range: **1% to 10%**.
+
+The total trading fee is split into two parts:
+
+| Fee part | Purpose |
+| --- | --- |
+| Platform fee | Fixed LFG.RICH platform portion. |
+| Floor boost | Remaining fee portion that strengthens the token's floor boost pool. |
+
+The platform fee is **0.3%**.
+
+## Trading fee examples
+
+| Creator-selected total fee | Platform fee | Floor boost portion |
+| --- | --- | --- |
+| 1% | 0.3% | 0.7% |
+| 3% | 0.3% | 2.7% |
+| 5% | 0.3% | 4.7% |
+| 10% | 0.3% | 9.7% |
+
+## Borrowing fee
+
+Borrowing has a fixed one-time **3% fee**.
+
+The borrow fee is separate from the creator-selected trading fee. The creator-selected fee applies to buys and sells. The fixed borrow fee applies only when a user borrows against locked collateral.
+
+The borrow fee is deducted upfront from the gross borrow value.
+
+Example:
+
+```txt
+Gross borrow value: 1.00 BNB
+Borrow fee:         0.03 BNB
+Borrower receives:  0.97 BNB
+Debt recorded:      1.00 BNB
+```
+
+## How the borrow fee is used
+
+The **3% borrow fee is 100% used to increase floor price support**.
+
+The fee remains inside the token's protocol reserve accounting and contributes to the floor boost system. It is not an extra creator fee and it is not the same as the fixed platform fee.
+
+## Residual BNB and floor cleanup
+
+When a token falls to its floor and trading activity becomes very small, tiny residual BNB amounts can remain because of 18-decimal precision, rounding, and floor-price limits.
+
+The protocol includes cleanup logic for these tiny residual amounts so BNB is not permanently stuck when a token effectively dies out.
+
+This cleanup is not part of the normal trading-fee or borrow-fee flow. The borrow fee is used to support and increase the token's floor.

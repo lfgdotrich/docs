@@ -1,0 +1,87 @@
+---
+title: API 参考
+description: 用于代币、交易、K 线、投资组合和配置的 LFG.RICH 公共 API 端点。
+---
+
+LFG.RICH API 在以下路径下提供只读端点：
+
+```txt
+https://lfg.rich/api/bsc/tokens
+```
+
+响应通常使用以下结构：
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+## 代币列表
+
+```http
+GET /api/bsc/tokens?sort=volume&page=1&limit=20
+```
+
+查询参数：
+
+| 参数 | 值 |
+| --- | --- |
+| `sort` | `volume`, `active`, `latest`, `gainers` |
+| `page` | 页码 |
+| `limit` | 每页结果数量 |
+| `search` | 按名称、符号或地址搜索 |
+| `verified` | `1` 或 `true`，只返回已验证代币 |
+
+## 获取代币详情
+
+```http
+GET /api/bsc/tokens/:address
+```
+
+返回代币元数据和协议状态，包括：
+
+- `name`
+- `symbol`
+- `logo_url`
+- `current_price`
+- `floor_price`
+- `real_eth`
+- `market_cap`
+- `volume_24h`
+- `trades_24h`
+- `holders`
+- `pool_id`
+
+## 获取代币交易
+
+```http
+GET /api/bsc/tokens/:address/trades?page=1&limit=50
+```
+
+返回代币最近交易历史。
+
+交易类型包括：
+
+- `buy`
+- `sell`
+- `borrow`
+- `borrowmore`
+- `repay`
+
+## 获取图表 K 线
+
+```http
+GET /api/bsc/tokens/:address/candles?interval=1h&limit=200
+```
+
+返回用于图表的 K 线数据和地板数据。
+
+## 获取协议配置
+
+```http
+GET /api/bsc/tokens/config
+```
+
+返回协议配置、原生币价格、合约地址和链信息。

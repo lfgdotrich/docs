@@ -1,0 +1,1125 @@
+---
+title: Uniswap V4 Hook ABI
+description: 用于估算、借贷、池状态与协议回调的 Hook 运行时 ABI。
+---
+
+将此 ABI 作为可直接复制的 JavaScript/TypeScript 常量，用于 Viem、Ethers、机器人、仪表盘和自定义集成。
+
+<Note>
+这是连接已部署 Uniswap V4 Hook 合约的运行时 ABI。针对已经部署的合约创建 `ethers.Contract`、`viem` 调用或 Web3.py 合约对象时，不需要 constructor 条目。
+</Note>
+
+```ts
+export const UNISWAP_V4_HOOK_ABI = [
+  {
+    "type": "function",
+    "name": "BPS_DENOMINATOR",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PLATFORM_FEE_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "BORROW_FEE_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "BASE_FLOOR_RATIO_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FLOOR_RESERVE_MAX_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "COLLATERAL_RATIO_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_SUPPLY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "DUST_THRESHOLD",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "TARGET_ETH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "SQRT_TARGET_ETH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MIN_SWEEP_AMOUNT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "POOL_FEE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint24"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "POOL_MANAGER",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FACTORY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "K",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenStates",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "name": "totalFeeBps",
+        "type": "uint256"
+      },
+      {
+        "name": "floorPrice",
+        "type": "uint256"
+      },
+      {
+        "name": "realETH",
+        "type": "uint256"
+      },
+      {
+        "name": "virtualETH",
+        "type": "uint256"
+      },
+      {
+        "name": "totalBorrowedETH",
+        "type": "uint256"
+      },
+      {
+        "name": "collateralSupply",
+        "type": "uint256"
+      },
+      {
+        "name": "floorBoostPool",
+        "type": "uint256"
+      },
+      {
+        "name": "totalReserveAccumulated",
+        "type": "uint256"
+      },
+      {
+        "name": "allTimeHighPrice",
+        "type": "uint256"
+      },
+      {
+        "name": "initialized",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenToPoolId",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "borrowedETH",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "collateralBalance",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalPurchasedETH",
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "registerToken",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "totalFeeBps",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "effectiveETH",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getEffectivePrice",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "circulatingSupply",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "estimateBuy",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "ethIn",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "tokensOut",
+        "type": "uint256"
+      },
+      {
+        "name": "platformFee",
+        "type": "uint256"
+      },
+      {
+        "name": "floorBoostFee",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "estimateSell",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "tokenAmount",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "ethOut",
+        "type": "uint256"
+      },
+      {
+        "name": "platformFee",
+        "type": "uint256"
+      },
+      {
+        "name": "floorBoostFee",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "estimateBorrowMore",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "additionalEth",
+        "type": "uint256"
+      },
+      {
+        "name": "fee",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getHookPermissions",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "beforeInitialize",
+            "type": "bool"
+          },
+          {
+            "name": "afterInitialize",
+            "type": "bool"
+          },
+          {
+            "name": "beforeAddLiquidity",
+            "type": "bool"
+          },
+          {
+            "name": "afterAddLiquidity",
+            "type": "bool"
+          },
+          {
+            "name": "beforeRemoveLiquidity",
+            "type": "bool"
+          },
+          {
+            "name": "afterRemoveLiquidity",
+            "type": "bool"
+          },
+          {
+            "name": "beforeSwap",
+            "type": "bool"
+          },
+          {
+            "name": "afterSwap",
+            "type": "bool"
+          },
+          {
+            "name": "beforeDonate",
+            "type": "bool"
+          },
+          {
+            "name": "afterDonate",
+            "type": "bool"
+          },
+          {
+            "name": "beforeSwapReturnDelta",
+            "type": "bool"
+          },
+          {
+            "name": "afterSwapReturnDelta",
+            "type": "bool"
+          },
+          {
+            "name": "afterAddLiquidityReturnDelta",
+            "type": "bool"
+          },
+          {
+            "name": "afterRemoveLiquidityReturnDelta",
+            "type": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "borrow",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "borrowMore",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "repay",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "beforeInitialize",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "uint160"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "beforeAddLiquidity",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "tickLower",
+            "type": "int24"
+          },
+          {
+            "name": "tickUpper",
+            "type": "int24"
+          },
+          {
+            "name": "liquidityDelta",
+            "type": "int256"
+          },
+          {
+            "name": "salt",
+            "type": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "beforeSwap",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      },
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "params",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "zeroForOne",
+            "type": "bool"
+          },
+          {
+            "name": "amountSpecified",
+            "type": "int256"
+          },
+          {
+            "name": "sqrtPriceLimitX96",
+            "type": "uint160"
+          }
+        ]
+      },
+      {
+        "name": "hookData",
+        "type": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "selector",
+        "type": "bytes4"
+      },
+      {
+        "name": "delta",
+        "type": "int256"
+      },
+      {
+        "name": "lpFeeOverride",
+        "type": "uint24"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "TokenRegistered",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "totalFeeBps",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Buy",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "buyer",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "ethIn",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "tokensOut",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newPrice",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Sell",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "seller",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "tokensIn",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "ethOut",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newPrice",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "FloorRaised",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "oldFloor",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newFloor",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "ATHUpdated",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "oldATH",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newATH",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Borrow",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "tokensLocked",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "ethBorrowed",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "fee",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "BorrowMore",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "additionalEth",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "fee",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Repay",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "ethRepaid",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "tokensUnlocked",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Sweep",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "DustCollected",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "NotPoolManager",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotFactory",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPool",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LiquidityAdditionsForbidden",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ExactOutputUnsupported",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MissingSwapperInHookData",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroAmount",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MintZero",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MaxSupplyExceeded",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientBalance",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FloorNotSet",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BorrowTooSmall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientPoolLiquidity",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoCollateral",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoOutstandingDebt",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoAdditionalValue",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ETHTransferFailed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TokenNotRegistered",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TokenAlreadyRegistered",
+    "inputs": []
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  }
+] as const;
+```

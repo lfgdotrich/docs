@@ -1,0 +1,620 @@
+---
+title: 协议合约示例
+description: Viem, Ethers, and Python examples for estimates, buy, sell, borrow, borrowMore, and repay.
+---
+
+This page shows direct contract examples for developers building bots, dashboards, scripts, or custom interfaces.
+
+The examples use BNB Smart Chain and the deployed LFG.RICH contracts.
+
+## 合约地址
+
+```txt
+Factory:          0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66
+Uniswap V4 Hook:  0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888
+Swap Router:      0x092043364f39f7f57C4E1D32116f453BfaE37440
+```
+
+## ABI 格式
+
+Viem, Ethers, and Web3.py all accept an ABI as an array of JSON ABI items.
+
+```ts
+import { FACTORY_ABI } from './abis/factory';
+```
+
+or, if your build/runtime supports JSON imports:
+
+```ts
+import FACTORY_ABI from './abis/Factory.abi.json';
+```
+
+For TypeScript and Viem, `as const` gives better type inference. Ethers does not require `as const`; it can use the same array directly.
+
+## 通用流程
+
+<Steps>
+  <Step title="Get the pool ID">
+    Use `Factory.getTokenInfo(token)` or `Hook.tokenToPoolId(token)`.
+  </Step>
+  <Step title="Get the pool key">
+    Use `Factory.getPoolKey(token)`.
+  </Step>
+  <Step title="Estimate the action">
+    Use `estimateBuy`, `estimateSell`, or `estimateBorrowMore` on the Hook.
+  </Step>
+  <Step title="Approve tokens when needed">
+    Sells approve the Swap Router. Borrows approve the Hook.
+  </Step>
+  <Step title="Execute">
+    Use the Swap Router for buys/sells and the Hook for borrow/repay actions.
+  </Step>
+</Steps>
+
+---
+
+# Node.js with Viem
+
+## 设置
+
+```bash
+npm install viem
+```
+
+```ts
+import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { bsc } from 'viem/chains';
+
+import { FACTORY_ABI } from './abis/factory';
+import { UNISWAP_V4_HOOK_ABI } from './abis/uniswap-v4-hook';
+import { SWAP_ROUTER_ABI } from './abis/swap-router';
+import { TOKEN_ABI } from './abis/token';
+
+const FACTORY = '0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66';
+const HOOK = '0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888';
+const SWAP_ROUTER = '0x092043364f39f7f57C4E1D32116f453BfaE37440';
+
+const publicClient = createPublicClient({
+  chain: bsc,
+  transport: http(process.env.BSC_RPC_URL)
+});
+
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
+
+const walletClient = createWalletClient({
+  account,
+  chain: bsc,
+  transport: http(process.env.BSC_RPC_URL)
+});
+```
+
+## 获取 pool 信息
+
+```ts
+const token = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const tokenInfo = await publicClient.readContract({
+  address: FACTORY,
+  abi: FACTORY_ABI,
+  functionName: 'getTokenInfo',
+  args: [token]
+});
+
+const poolId = tokenInfo.poolId;
+
+const poolKey = await publicClient.readContract({
+  address: FACTORY,
+  abi: FACTORY_ABI,
+  functionName: 'getPoolKey',
+  args: [token]
+});
+```
+
+## 估算买入并执行买入
+
+```ts
+const ethIn = parseEther('0.1');
+
+const [tokensOut, platformFee, floorBoostFee] = await publicClient.readContract({
+  address: HOOK,
+  abi: UNISWAP_V4_HOOK_ABI,
+  functionName: 'estimateBuy',
+  args: [poolId, ethIn]
+});
+
+console.log('tokensOut:', tokensOut.toString());
+console.log('platformFee BNB:', formatEther(platformFee));
+console.log('floorBoostFee BNB:', formatEther(floorBoostFee));
+
+const slippageBps = 500n; // 5%
+const minTokensOut = (tokensOut * (10_000n - slippageBps)) / 10_000n;
+
+const buyHash = await walletClient.writeContract({
+  address: SWAP_ROUTER,
+  abi: SWAP_ROUTER_ABI,
+  functionName: 'buy',
+  args: [poolKey, minTokensOut],
+  value: ethIn
+});
+
+console.log('buy tx:', buyHash);
+```
+
+## 估算卖出、授权并执行卖出
+
+```ts
+const tokenAmount = parseEther('1000');
+
+const [ethOut, sellPlatformFee, sellFloorBoostFee] = await publicClient.readContract({
+  address: HOOK,
+  abi: UNISWAP_V4_HOOK_ABI,
+  functionName: 'estimateSell',
+  args: [poolId, tokenAmount]
+});
+
+const allowance = await publicClient.readContract({
+  address: token,
+  abi: TOKEN_ABI,
+  functionName: 'allowance',
+  args: [account.address, SWAP_ROUTER]
+});
+
+if (allowance < tokenAmount) {
+  const approveHash = await walletClient.writeContract({
+    address: token,
+    abi: TOKEN_ABI,
+    functionName: 'approve',
+    args: [SWAP_ROUTER, tokenAmount]
+  });
+
+  await publicClient.waitForTransactionReceipt({ hash: approveHash });
+}
+
+const minEthOut = (ethOut * 95n) / 100n; // 5% slippage
+
+const sellHash = await walletClient.writeContract({
+  address: SWAP_ROUTER,
+  abi: SWAP_ROUTER_ABI,
+  functionName: 'sell',
+  args: [poolKey, tokenAmount, minEthOut]
+});
+
+console.log('sell tx:', sellHash);
+```
+
+## 借贷
+
+借贷会将代币锁定为抵押品。先授权 Hook，然后调用 `borrow(poolId, amount)`。
+
+```ts
+const collateralAmount = parseEther('1000');
+
+const borrowAllowance = await publicClient.readContract({
+  address: token,
+  abi: TOKEN_ABI,
+  functionName: 'allowance',
+  args: [account.address, HOOK]
+});
+
+if (borrowAllowance < collateralAmount) {
+  const approveBorrowHash = await walletClient.writeContract({
+    address: token,
+    abi: TOKEN_ABI,
+    functionName: 'approve',
+    args: [HOOK, collateralAmount]
+  });
+
+  await publicClient.waitForTransactionReceipt({ hash: approveBorrowHash });
+}
+
+const borrowHash = await walletClient.writeContract({
+  address: HOOK,
+  abi: UNISWAP_V4_HOOK_ABI,
+  functionName: 'borrow',
+  args: [poolId, collateralAmount]
+});
+
+console.log('borrow tx:', borrowHash);
+```
+
+## 估算 borrowMore 并执行 borrowMore
+
+```ts
+const [additionalEth, borrowMoreFee] = await publicClient.readContract({
+  address: HOOK,
+  abi: UNISWAP_V4_HOOK_ABI,
+  functionName: 'estimateBorrowMore',
+  args: [poolId, account.address]
+});
+
+console.log('additional BNB:', formatEther(additionalEth));
+console.log('fee BNB:', formatEther(borrowMoreFee));
+
+if (additionalEth > 0n) {
+  const borrowMoreHash = await walletClient.writeContract({
+    address: HOOK,
+    abi: UNISWAP_V4_HOOK_ABI,
+    functionName: 'borrowMore',
+    args: [poolId]
+  });
+
+  console.log('borrowMore tx:', borrowMoreHash);
+}
+```
+
+## 还款
+
+```ts
+const repayAmount = parseEther('0.05');
+
+const repayHash = await walletClient.writeContract({
+  address: HOOK,
+  abi: UNISWAP_V4_HOOK_ABI,
+  functionName: 'repay',
+  args: [poolId],
+  value: repayAmount
+});
+
+console.log('repay tx:', repayHash);
+```
+
+---
+
+# Node.js with Ethers
+
+## 设置
+
+```bash
+npm install ethers
+```
+
+```ts
+import { ethers } from 'ethers';
+
+import { FACTORY_ABI } from './abis/factory';
+import { UNISWAP_V4_HOOK_ABI } from './abis/uniswap-v4-hook';
+import { SWAP_ROUTER_ABI } from './abis/swap-router';
+import { TOKEN_ABI } from './abis/token';
+
+const FACTORY = '0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66';
+const HOOK = '0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888';
+const SWAP_ROUTER = '0x092043364f39f7f57C4E1D32116f453BfaE37440';
+
+const provider = new ethers.JsonRpcProvider(process.env.BSC_RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+
+const factory = new ethers.Contract(FACTORY, FACTORY_ABI, wallet);
+const hook = new ethers.Contract(HOOK, UNISWAP_V4_HOOK_ABI, wallet);
+const router = new ethers.Contract(SWAP_ROUTER, SWAP_ROUTER_ABI, wallet);
+```
+
+## 获取 pool 信息
+
+```ts
+const token = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const tokenInfo = await factory.getTokenInfo(token);
+const poolId = tokenInfo.poolId;
+const poolKey = await factory.getPoolKey(token);
+
+console.log({ poolId, poolKey });
+```
+
+## 估算买入并执行买入
+
+```ts
+const ethIn = ethers.parseEther('0.1');
+
+const [tokensOut, platformFee, floorBoostFee] = await hook.estimateBuy(poolId, ethIn);
+
+console.log('tokensOut:', tokensOut.toString());
+console.log('platformFee BNB:', ethers.formatEther(platformFee));
+console.log('floorBoostFee BNB:', ethers.formatEther(floorBoostFee));
+
+const slippageBps = 500n; // 5%
+const minTokensOut = (tokensOut * (10_000n - slippageBps)) / 10_000n;
+
+const buyTx = await router.buy(poolKey, minTokensOut, {
+  value: ethIn
+});
+
+console.log('buy tx:', buyTx.hash);
+await buyTx.wait();
+```
+
+## 估算卖出、授权并执行卖出
+
+```ts
+const tokenContract = new ethers.Contract(token, TOKEN_ABI, wallet);
+const tokenAmount = ethers.parseEther('1000');
+
+const [ethOut, sellPlatformFee, sellFloorBoostFee] = await hook.estimateSell(
+  poolId,
+  tokenAmount
+);
+
+const allowance = await tokenContract.allowance(wallet.address, SWAP_ROUTER);
+
+if (allowance < tokenAmount) {
+  const approveTx = await tokenContract.approve(SWAP_ROUTER, tokenAmount);
+  await approveTx.wait();
+}
+
+const minEthOut = (ethOut * 95n) / 100n; // 5% slippage
+
+const sellTx = await router.sell(poolKey, tokenAmount, minEthOut);
+console.log('sell tx:', sellTx.hash);
+await sellTx.wait();
+```
+
+## 借贷
+
+```ts
+const tokenContract = new ethers.Contract(token, TOKEN_ABI, wallet);
+const collateralAmount = ethers.parseEther('1000');
+
+const borrowAllowance = await tokenContract.allowance(wallet.address, HOOK);
+
+if (borrowAllowance < collateralAmount) {
+  const approveBorrowTx = await tokenContract.approve(HOOK, collateralAmount);
+  await approveBorrowTx.wait();
+}
+
+const borrowTx = await hook.borrow(poolId, collateralAmount);
+console.log('borrow tx:', borrowTx.hash);
+await borrowTx.wait();
+```
+
+## 估算 borrowMore 并执行 borrowMore
+
+```ts
+const [additionalEth, fee] = await hook.estimateBorrowMore(poolId, wallet.address);
+
+console.log('additional BNB:', ethers.formatEther(additionalEth));
+console.log('fee BNB:', ethers.formatEther(fee));
+
+if (additionalEth > 0n) {
+  const borrowMoreTx = await hook.borrowMore(poolId);
+  console.log('borrowMore tx:', borrowMoreTx.hash);
+  await borrowMoreTx.wait();
+}
+```
+
+## 还款
+
+```ts
+const repayAmount = ethers.parseEther('0.05');
+
+const repayTx = await hook.repay(poolId, {
+  value: repayAmount
+});
+
+console.log('repay tx:', repayTx.hash);
+await repayTx.wait();
+```
+
+---
+
+# Python with Web3.py
+
+## 设置
+
+```bash
+pip install web3
+```
+
+```python
+import json
+import os
+from web3 import Web3
+
+FACTORY = Web3.to_checksum_address("0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66")
+HOOK = Web3.to_checksum_address("0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888")
+SWAP_ROUTER = Web3.to_checksum_address("0x092043364f39f7f57C4E1D32116f453BfaE37440")
+
+w3 = Web3(Web3.HTTPProvider(os.environ["BSC_RPC_URL"]))
+account = w3.eth.account.from_key(os.environ["PRIVATE_KEY"])
+
+with open("abis/Factory.abi.json") as f:
+    FACTORY_ABI = json.load(f)
+
+with open("abis/UniswapV4Hook.abi.json") as f:
+    HOOK_ABI = json.load(f)
+
+with open("abis/SwapRouter.abi.json") as f:
+    SWAP_ROUTER_ABI = json.load(f)
+
+with open("abis/Token.abi.json") as f:
+    TOKEN_ABI = json.load(f)
+
+factory = w3.eth.contract(address=FACTORY, abi=FACTORY_ABI)
+hook = w3.eth.contract(address=HOOK, abi=HOOK_ABI)
+router = w3.eth.contract(address=SWAP_ROUTER, abi=SWAP_ROUTER_ABI)
+```
+
+## 获取 pool 信息
+
+```python
+token = Web3.to_checksum_address("0x29Ede1E1254419Fe5a3c803fC2b015042075A49A")
+
+token_info = factory.functions.getTokenInfo(token).call()
+pool_id = token_info[5]
+pool_key = factory.functions.getPoolKey(token).call()
+
+print("pool_id:", pool_id.hex() if hasattr(pool_id, "hex") else pool_id)
+print("pool_key:", pool_key)
+```
+
+## 估算买入并执行买入
+
+```python
+eth_in = w3.to_wei(0.1, "ether")
+
+tokens_out, platform_fee, floor_boost_fee = hook.functions.estimateBuy(
+    pool_id,
+    eth_in
+).call()
+
+print("tokens_out:", tokens_out)
+print("platform_fee BNB:", w3.from_wei(platform_fee, "ether"))
+print("floor_boost_fee BNB:", w3.from_wei(floor_boost_fee, "ether"))
+
+min_tokens_out = tokens_out * 95 // 100  # 5% slippage
+
+buy_tx = router.functions.buy(
+    pool_key,
+    min_tokens_out
+).build_transaction({
+    "from": account.address,
+    "value": eth_in,
+    "nonce": w3.eth.get_transaction_count(account.address),
+    "gas": 700000,
+    "gasPrice": w3.eth.gas_price,
+})
+
+signed_buy = account.sign_transaction(buy_tx)
+buy_hash = w3.eth.send_raw_transaction(signed_buy.raw_transaction)
+print("buy tx:", buy_hash.hex())
+```
+
+## 估算卖出、授权并执行卖出
+
+```python
+token_contract = w3.eth.contract(address=token, abi=TOKEN_ABI)
+token_amount = w3.to_wei(1000, "ether")
+
+eth_out, platform_fee, floor_boost_fee = hook.functions.estimateSell(
+    pool_id,
+    token_amount
+).call()
+
+allowance = token_contract.functions.allowance(
+    account.address,
+    SWAP_ROUTER
+).call()
+
+if allowance < token_amount:
+    approve_tx = token_contract.functions.approve(
+        SWAP_ROUTER,
+        token_amount
+    ).build_transaction({
+        "from": account.address,
+        "nonce": w3.eth.get_transaction_count(account.address),
+        "gas": 120000,
+        "gasPrice": w3.eth.gas_price,
+    })
+
+    signed_approve = account.sign_transaction(approve_tx)
+    approve_hash = w3.eth.send_raw_transaction(signed_approve.raw_transaction)
+    w3.eth.wait_for_transaction_receipt(approve_hash)
+
+min_eth_out = eth_out * 95 // 100
+
+sell_tx = router.functions.sell(
+    pool_key,
+    token_amount,
+    min_eth_out
+).build_transaction({
+    "from": account.address,
+    "nonce": w3.eth.get_transaction_count(account.address),
+    "gas": 700000,
+    "gasPrice": w3.eth.gas_price,
+})
+
+signed_sell = account.sign_transaction(sell_tx)
+sell_hash = w3.eth.send_raw_transaction(signed_sell.raw_transaction)
+print("sell tx:", sell_hash.hex())
+```
+
+## 借贷
+
+```python
+collateral_amount = w3.to_wei(1000, "ether")
+
+borrow_allowance = token_contract.functions.allowance(
+    account.address,
+    HOOK
+).call()
+
+if borrow_allowance < collateral_amount:
+    approve_tx = token_contract.functions.approve(
+        HOOK,
+        collateral_amount
+    ).build_transaction({
+        "from": account.address,
+        "nonce": w3.eth.get_transaction_count(account.address),
+        "gas": 120000,
+        "gasPrice": w3.eth.gas_price,
+    })
+
+    signed_approve = account.sign_transaction(approve_tx)
+    approve_hash = w3.eth.send_raw_transaction(signed_approve.raw_transaction)
+    w3.eth.wait_for_transaction_receipt(approve_hash)
+
+borrow_tx = hook.functions.borrow(
+    pool_id,
+    collateral_amount
+).build_transaction({
+    "from": account.address,
+    "nonce": w3.eth.get_transaction_count(account.address),
+    "gas": 600000,
+    "gasPrice": w3.eth.gas_price,
+})
+
+signed_borrow = account.sign_transaction(borrow_tx)
+borrow_hash = w3.eth.send_raw_transaction(signed_borrow.raw_transaction)
+print("borrow tx:", borrow_hash.hex())
+```
+
+## 估算 borrowMore 并执行 borrowMore
+
+```python
+additional_eth, fee = hook.functions.estimateBorrowMore(
+    pool_id,
+    account.address
+).call()
+
+print("additional BNB:", w3.from_wei(additional_eth, "ether"))
+print("fee BNB:", w3.from_wei(fee, "ether"))
+
+if additional_eth > 0:
+    tx = hook.functions.borrowMore(pool_id).build_transaction({
+        "from": account.address,
+        "nonce": w3.eth.get_transaction_count(account.address),
+        "gas": 500000,
+        "gasPrice": w3.eth.gas_price,
+    })
+
+    signed = account.sign_transaction(tx)
+    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    print("borrowMore tx:", tx_hash.hex())
+```
+
+## 还款
+
+```python
+repay_amount = w3.to_wei(0.05, "ether")
+
+repay_tx = hook.functions.repay(pool_id).build_transaction({
+    "from": account.address,
+    "value": repay_amount,
+    "nonce": w3.eth.get_transaction_count(account.address),
+    "gas": 500000,
+    "gasPrice": w3.eth.gas_price,
+})
+
+signed_repay = account.sign_transaction(repay_tx)
+repay_hash = w3.eth.send_raw_transaction(signed_repay.raw_transaction)
+print("repay tx:", repay_hash.hex())
+```
+
+## 说明
+
+- All token amounts use 18 decimals.
+- BNB values are passed in wei.
+- Always use slippage limits for buys and sells.
+- For selling, approve the Swap Router.
+- For borrowing, approve the Uniswap V4 Hook.
+- `borrowMore` only works when the user's existing collateral supports more borrowable value.
+- `repay` can be partial or full depending on the BNB value sent.

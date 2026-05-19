@@ -1,0 +1,150 @@
+---
+title: Swap Router ABI
+description: Runtime ABI for buying and selling LFG.RICH tokens through the protocol router.
+---
+
+Use this ABI as a copy-paste-ready JavaScript/TypeScript constant with Viem, Ethers, bots, dashboards, and custom integrations.
+
+<Note>
+This is the deployed runtime ABI for connecting to the existing Swap Router contract. Constructor entries are not needed when creating `ethers.Contract`, `viem` contract calls, or Web3.py contract objects for an already-deployed contract.
+</Note>
+
+```ts
+export const SWAP_ROUTER_ABI = [
+  {
+    "type": "function",
+    "name": "poolManager",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "buy",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "minTokensOut",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "sell",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address"
+          },
+          {
+            "name": "currency1",
+            "type": "address"
+          },
+          {
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "name": "tokenAmount",
+        "type": "uint256"
+      },
+      {
+        "name": "minEthOut",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "unlockCallback",
+    "inputs": [
+      {
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "error",
+    "name": "NotPoolManager",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SlippageBuy",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SlippageSell",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroAmount",
+    "inputs": []
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  }
+] as const;
+```
+
+You can also import the matching JSON file from `/abis/SwapRouter.abi.json` if your build setup supports JSON imports.

@@ -1,126 +1,191 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "LFG.RICH",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#F0B90B",
+    "light": "#FACC15",
+    "dark": "#D97706"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Launch App",
+      "href": "https://lfg.rich"
+    }
+  },
   "navigation": {
-    "tabs": [
+    "global": {
+      "anchors": [
+        {
+          "anchor": "X",
+          "href": "https://x.com/lfgdotrich",
+          "icon": "x-twitter"
+        },
+        {
+          "anchor": "Telegram",
+          "href": "https://t.me/LfgRichOfficial",
+          "icon": "telegram"
+        },
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/lfgdotrich",
+          "icon": "github"
+        }
+      ]
+    },
+    "languages": [
       {
-        "tab": "Guides",
-        "groups": [
+        "language": "en",
+        "directory": "en",
+        "tabs": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Agent ready",
-            "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+            "tab": "Documentation",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "index",
+                  "overview/why-lfg-rich"
+                ]
+              },
+              {
+                "group": "Protocol",
+                "pages": [
+                  "protocol/uniswap-v4-hooks",
+                  "protocol/bonding-curve",
+                  "protocol/floor-price",
+                  "protocol/borrowing",
+                  "protocol/fees"
+                ]
+              },
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "getting-started/create-token",
+                  "getting-started/buy-sell",
+                  "getting-started/borrow-repay"
+                ]
+              },
+              {
+                "group": "Developers",
+                "pages": [
+                  "developers/overview",
+                  "developers/contracts",
+                  "developers/protocol-examples",
+                  "developers/api",
+                  "developers/examples",
+                  {
+                    "group": "ABIs",
+                    "pages": [
+                      "developers/abis/factory",
+                      "developers/abis/uniswap-v4-hook",
+                      "developers/abis/token",
+                      "developers/abis/swap-router"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Resources",
+                "pages": [
+                  "resources/buybot",
+                  "resources/faq",
+                  "resources/security",
+                  "resources/support"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
+        "language": "zh",
+        "directory": "zh",
+        "tabs": [
           {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+            "tab": "文档",
+            "groups": [
+              {
+                "group": "概览",
+                "pages": [
+                  "index",
+                  "overview/why-lfg-rich"
+                ]
+              },
+              {
+                "group": "协议",
+                "pages": [
+                  "protocol/uniswap-v4-hooks",
+                  "protocol/bonding-curve",
+                  "protocol/floor-price",
+                  "protocol/borrowing",
+                  "protocol/fees"
+                ]
+              },
+              {
+                "group": "入门",
+                "pages": [
+                  "getting-started/create-token",
+                  "getting-started/buy-sell",
+                  "getting-started/borrow-repay"
+                ]
+              },
+              {
+                "group": "开发者",
+                "pages": [
+                  "developers/overview",
+                  "developers/contracts",
+                  "developers/protocol-examples",
+                  "developers/api",
+                  "developers/examples",
+                  {
+                    "group": "ABI",
+                    "pages": [
+                      "developers/abis/factory",
+                      "developers/abis/uniswap-v4-hook",
+                      "developers/abis/token",
+                      "developers/abis/swap-router"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "资源",
+                "pages": [
+                  "resources/buybot",
+                  "resources/faq",
+                  "resources/security",
+                  "resources/support"
+                ]
+              }
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
+    ]
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/lfgdotrich",
+      "telegram": "https://t.me/LfgRichOfficial",
+      "github": "https://github.com/lfgdotrich"
     }
   }
 }

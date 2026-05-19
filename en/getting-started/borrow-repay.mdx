@@ -1,0 +1,49 @@
+---
+title: Borrow and Repay
+description: Lock LFG.RICH tokens as collateral and borrow BNB.
+---
+
+LFG.RICH supports borrowing against official token collateral.
+
+Borrowing uses the token's floor value, so the collateral value is based on protocol floor mechanics instead of short-term market price.
+
+## Borrow
+
+<Steps>
+  <Step title="Open a token page">
+    Choose an official LFG.RICH token that you hold.
+  </Step>
+  <Step title="Choose collateral">
+    Select how many tokens to lock as collateral.
+  </Step>
+  <Step title="Review borrow amount">
+    Review the estimated BNB amount, borrow fee, and locked collateral.
+  </Step>
+  <Step title="Approve token if needed">
+    Approve the contract to lock your selected token amount.
+  </Step>
+  <Step title="Confirm borrow">
+    Confirm the borrow transaction in your wallet.
+  </Step>
+</Steps>
+
+## Borrow fee
+
+Borrowing has a fixed one-time fee of **3%**.
+
+The fee is deducted upfront. For example, if the gross borrow value is `1 BNB`, the user receives `0.97 BNB` after the `0.03 BNB` fee.
+
+## Borrow more
+
+If the token floor rises after borrowing, the same locked collateral can support more borrow value. Users can use **Borrow More** to borrow the additional available BNB.
+
+## Repay
+
+Users repay BNB to unlock collateral.
+
+- Partial repayment unlocks a proportional amount of collateral.
+- Full repayment unlocks the remaining locked collateral.
+
+## Liquidations and interest
+
+LFG.RICH borrowing has no liquidation mechanism and no ongoing interest. Collateral remains locked until repayment.

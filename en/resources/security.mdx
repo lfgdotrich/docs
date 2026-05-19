@@ -1,0 +1,47 @@
+---
+title: Security
+description: Security notes and risk reminders for LFG.RICH users and developers.
+---
+
+LFG.RICH is a smart-contract platform. Users and developers should understand the risks before interacting with contracts or building integrations.
+
+## What LFG.RICH is designed to protect against
+
+LFG.RICH reduces common launch risks by using:
+
+- Protocol-managed reserves.
+- Bonding-curve trading.
+- Floor price protection.
+- Permanent creator-selected trade fees.
+- Collateral borrowing based on floor value.
+
+These mechanics are designed to make official launches more transparent and more resistant to traditional liquidity rug mechanics.
+
+## What still requires caution
+
+No smart-contract platform removes every risk.
+
+Users should still consider:
+
+- Smart contract risk.
+- Frontend risk.
+- RPC/provider risk.
+- Wallet-signing risk.
+- Chain/network risk.
+- Market risk.
+- Integration bugs from third-party tools.
+
+## Contract verification
+
+Use official LFG.RICH links and APIs when checking contract addresses.
+
+Developers should verify addresses and bytecode before integrating with real value.
+
+## Safer integration practices
+
+- Read contract addresses from the app API when possible.
+- Use read-only calls first.
+- Simulate transactions before sending real value.
+- Use conservative slippage limits.
+- Handle failed or reverted transactions cleanly.
+- Never ask users for seed phrases or private keys.
