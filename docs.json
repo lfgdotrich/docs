@@ -42,7 +42,6 @@
     "languages": [
       {
         "language": "en",
-        "directory": "en",
         "tabs": [
           {
             "tab": "Documentation",
@@ -50,43 +49,43 @@
               {
                 "group": "Overview",
                 "pages": [
-                  "index",
-                  "overview/why-lfg-rich"
+                  "en/index",
+                  "en/overview/why-lfg-rich"
                 ]
               },
               {
                 "group": "Protocol",
                 "pages": [
-                  "protocol/uniswap-v4-hooks",
-                  "protocol/bonding-curve",
-                  "protocol/floor-price",
-                  "protocol/borrowing",
-                  "protocol/fees"
+                  "en/protocol/uniswap-v4-hooks",
+                  "en/protocol/bonding-curve",
+                  "en/protocol/floor-price",
+                  "en/protocol/borrowing",
+                  "en/protocol/fees"
                 ]
               },
               {
                 "group": "Getting Started",
                 "pages": [
-                  "getting-started/create-token",
-                  "getting-started/buy-sell",
-                  "getting-started/borrow-repay"
+                  "en/getting-started/create-token",
+                  "en/getting-started/buy-sell",
+                  "en/getting-started/borrow-repay"
                 ]
               },
               {
                 "group": "Developers",
                 "pages": [
-                  "developers/overview",
-                  "developers/contracts",
-                  "developers/protocol-examples",
-                  "developers/api",
-                  "developers/examples",
+                  "en/developers/overview",
+                  "en/developers/contracts",
+                  "en/developers/protocol-examples",
+                  "en/developers/api",
+                  "en/developers/examples",
                   {
                     "group": "ABIs",
                     "pages": [
-                      "developers/abis/factory",
-                      "developers/abis/uniswap-v4-hook",
-                      "developers/abis/token",
-                      "developers/abis/swap-router"
+                      "en/developers/abis/factory",
+                      "en/developers/abis/uniswap-v4-hook",
+                      "en/developers/abis/token",
+                      "en/developers/abis/swap-router"
                     ]
                   }
                 ]
@@ -94,10 +93,10 @@
               {
                 "group": "Resources",
                 "pages": [
-                  "resources/buybot",
-                  "resources/faq",
-                  "resources/security",
-                  "resources/support"
+                  "en/resources/buybot",
+                  "en/resources/faq",
+                  "en/resources/security",
+                  "en/resources/support"
                 ]
               }
             ]
@@ -106,7 +105,6 @@
       },
       {
         "language": "zh",
-        "directory": "zh",
         "tabs": [
           {
             "tab": "文档",
@@ -114,43 +112,43 @@
               {
                 "group": "概览",
                 "pages": [
-                  "index",
-                  "overview/why-lfg-rich"
+                  "zh/index",
+                  "zh/overview/why-lfg-rich"
                 ]
               },
               {
                 "group": "协议",
                 "pages": [
-                  "protocol/uniswap-v4-hooks",
-                  "protocol/bonding-curve",
-                  "protocol/floor-price",
-                  "protocol/borrowing",
-                  "protocol/fees"
+                  "zh/protocol/uniswap-v4-hooks",
+                  "zh/protocol/bonding-curve",
+                  "zh/protocol/floor-price",
+                  "zh/protocol/borrowing",
+                  "zh/protocol/fees"
                 ]
               },
               {
                 "group": "入门",
                 "pages": [
-                  "getting-started/create-token",
-                  "getting-started/buy-sell",
-                  "getting-started/borrow-repay"
+                  "zh/getting-started/create-token",
+                  "zh/getting-started/buy-sell",
+                  "zh/getting-started/borrow-repay"
                 ]
               },
               {
                 "group": "开发者",
                 "pages": [
-                  "developers/overview",
-                  "developers/contracts",
-                  "developers/protocol-examples",
-                  "developers/api",
-                  "developers/examples",
+                  "zh/developers/overview",
+                  "zh/developers/contracts",
+                  "zh/developers/protocol-examples",
+                  "zh/developers/api",
+                  "zh/developers/examples",
                   {
                     "group": "ABI",
                     "pages": [
-                      "developers/abis/factory",
-                      "developers/abis/uniswap-v4-hook",
-                      "developers/abis/token",
-                      "developers/abis/swap-router"
+                      "zh/developers/abis/factory",
+                      "zh/developers/abis/uniswap-v4-hook",
+                      "zh/developers/abis/token",
+                      "zh/developers/abis/swap-router"
                     ]
                   }
                 ]
@@ -158,10 +156,10 @@
               {
                 "group": "资源",
                 "pages": [
-                  "resources/buybot",
-                  "resources/faq",
-                  "resources/security",
-                  "resources/support"
+                  "zh/resources/buybot",
+                  "zh/resources/faq",
+                  "zh/resources/security",
+                  "zh/resources/support"
                 ]
               }
             ]
