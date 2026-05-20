@@ -1,0 +1,37 @@
+---
+title: Trading Bot
+description: Use the LFG.RICH community trading bot to automate buy and sell strategies for LFG.RICH tokens.
+---
+
+The LFG.RICH Trading Bot is a community Python trading bot for users and developers who want to automate **buy and sell strategies** for official LFG.RICH tokens on **BNB Smart Chain**.
+
+The bot connects directly to the LFG.RICH protocol contracts. It uses Hook `Buy` and `Sell` events to build local candles, gets protocol price estimates, and executes trades through the official LFG.RICH SwapRouter.
+
+<Info>
+The trading bot supports **buy and sell only**. It does not use the borrowing, borrow-more, or repay functions of the protocol.
+</Info>
+
+## Source code
+
+The English version of the trading bot is available on GitHub:
+
+<Card title="LFG.RICH Trading Bot" icon="github" href="https://github.com/lfgdotrich/LFG.RICH-Trading-Bot">
+  View the source code, installation steps, configuration examples, and dashboard instructions.
+</Card>
+
+## What the bot includes
+
+- LFG.RICH-only automated trading through the official SwapRouter.
+- Buy and sell execution for official LFG.RICH tokens.
+- Candle building from protocol `Buy` and `Sell` events.
+- Strategy signals using EMA, RSI, trend, pump, dump, and bleed detection.
+- Dry-run mode for testing strategy decisions before live trading.
+- Test mode for controlled buy or sell transactions.
+- Local SQLite state database for trades, lots, positions, and candle cache.
+- Optional Streamlit dashboard for positions, lots, PnL, and bot state.
+
+## Recommended usage
+
+Start with a dedicated wallet and a small BNB balance. Run the smoke test first, run the bot in dry-run mode, and then test with a tiny live buy before enabling normal live operation.
+
+The dashboard depends on the bot's local SQLite database. It shows lots and PnL only after the bot has created or rebuilt local trade records.

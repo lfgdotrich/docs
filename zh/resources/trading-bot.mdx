@@ -1,0 +1,37 @@
+---
+title: 交易机器人
+description: 使用 LFG.RICH 社区交易机器人，为 LFG.RICH 代币自动执行买入和卖出策略。
+---
+
+LFG.RICH Trading Bot 是一个面向用户和开发者的社区 Python 交易机器人，用于在 **BNB Smart Chain** 上为官方 LFG.RICH 代币自动执行 **买入和卖出策略**。
+
+机器人直接连接 LFG.RICH 协议合约。它使用 Hook 的 `Buy` 和 `Sell` 事件构建本地 K 线，获取协议价格估算，并通过官方 LFG.RICH SwapRouter 执行交易。
+
+<Info>
+交易机器人只支持 **买入和卖出**。它不会使用协议的 borrow、borrowMore 或 repay 功能。
+</Info>
+
+## 源代码
+
+中文版交易机器人可在 GitHub 获取：
+
+<Card title="LFG.RICH Trading Bot 中文版" icon="github" href="https://github.com/lfgdotrich/LFG.RICH-Trading-Bot-zh">
+  查看源代码、安装步骤、配置示例和仪表盘说明。
+</Card>
+
+## 机器人包含什么
+
+- 仅支持 LFG.RICH，通过官方 SwapRouter 自动执行交易。
+- 为官方 LFG.RICH 代币执行买入和卖出。
+- 根据协议 `Buy` 和 `Sell` 事件构建 K 线。
+- 使用 EMA、RSI、趋势、pump、dump 和 bleed 检测生成策略信号。
+- 提供 dry-run 模式，可在真实交易前测试策略决策。
+- 提供 test mode，可执行受控的买入或卖出交易。
+- 使用本地 SQLite 状态数据库保存交易、lots、仓位和 K 线缓存。
+- 可选 Streamlit 仪表盘，用于查看仓位、lots、PnL 和机器人状态。
+
+## 推荐使用方式
+
+建议使用专用钱包，并只放入少量 BNB。先运行 smoke test，再使用 dry-run 模式运行机器人，然后用很小金额测试一次真实买入，最后再启用正常的实时运行。
+
+仪表盘依赖机器人本地的 SQLite 数据库。只有当机器人创建或重建了本地交易记录之后，仪表盘才会显示 lots 和 PnL。
