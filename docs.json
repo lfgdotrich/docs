@@ -94,11 +94,18 @@
                 "group": "Resources",
                 "pages": [
                   "en/resources/buybot",
+                  "en/resources/trading-bot",
                   "en/resources/faq",
                   "en/resources/security",
                   "en/resources/support"
                 ]
               }
+            ]
+          },
+          {
+            "tab": "Changelog",
+            "pages": [
+              "en/changelog"
             ]
           }
         ]
@@ -157,11 +164,18 @@
                 "group": "资源",
                 "pages": [
                   "zh/resources/buybot",
+                  "zh/resources/trading-bot",
                   "zh/resources/faq",
                   "zh/resources/security",
                   "zh/resources/support"
                 ]
               }
+            ]
+          },
+          {
+            "tab": "更新日志",
+            "pages": [
+              "zh/changelog"
             ]
           }
         ]
