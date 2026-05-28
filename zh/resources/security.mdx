@@ -5,6 +5,22 @@ description: 面向 LFG.RICH 用户和开发者的安全说明与风险提醒。
 
 LFG.RICH 是智能合约平台。用户和开发者在与合约交互或构建集成前，应理解相关风险。
 
+<CardGroup cols={2}>
+  <Card title="钱包安全" icon="wallet">
+    保护助记词，机器人使用专用钱包，并在签名前检查交易。
+  </Card>
+  <Card title="官方路径" icon="route">
+    与协议交互时使用官方 App 页面、API 端点和 V5 合约地址。
+  </Card>
+  <Card title="授权卫生" icon="key">
+    只授权必要合约：卖出授权 Swap Router，借款抵押授权 Hook。
+  </Card>
+  <Card title="机器人谨慎操作" icon="robot">
+    先使用 dry run、smoke tests、小额测试和独立钱包。
+  </Card>
+</CardGroup>
+
+
 <Warning>
 永远不要分享助记词或私钥。LFG.RICH 支持人员、管理员、机器人和文档都永远不需要你的私钥。
 </Warning>
@@ -17,7 +33,7 @@ LFG.RICH 通过以下方式降低常见发行风险：
 - bonding-curve 交易；
 - Uniswap V4 Hook 结算；
 - 地板价保护；
-- 永久的创作者选择交易手续费；
+- 固定协议费用；
 - 基于协议认可地板价值的抵押借贷；
 - 通过 Factory、Hook、Swap Router、Token 和 Pool Manager 的官方合约路由。
 
@@ -88,13 +104,29 @@ Telegram BuyBot 只是通知工具。
 
 真实运行前：
 
-1. 使用专用钱包；
-2. 钱包中只保留少量 BNB；
-3. 从 `dry_run: true` 开始；
-4. 运行 smoke test；
-5. 测试一次极小金额买入；
-6. 确认仪表盘和 lots 正确；
-7. 然后才考虑正常实时运行。
+<Steps>
+  <Step title="使用专用钱包">
+    将机器人活动与主钱包隔离。
+  </Step>
+  <Step title="钱包中只保留少量 BNB">
+    限制测试和实盘运行中的潜在损失。
+  </Step>
+  <Step title="先启用 dry_run">
+    在允许真实交易前确认行为正确。
+  </Step>
+  <Step title="运行 smoke test">
+    验证 RPC、合约、代币上下文和基本读取。
+  </Step>
+  <Step title="测试一次极小金额买入">
+    正常运行前使用尽可能小的实际金额。
+  </Step>
+  <Step title="确认仪表盘和 lots 正确">
+    确保记录与钱包和链上行为一致。
+  </Step>
+  <Step title="然后才考虑正常实盘运行">
+    从测试逐步过渡到真实使用。
+  </Step>
+</Steps>
 
 不要用存有无法承受损失资金的钱包运行交易机器人。
 

@@ -7,6 +7,22 @@ LFG.RICH V5 includes collateral borrowing for official tokens. Users can lock to
 
 Borrowing is based on the protocol floor, not temporary market spikes. There is no liquidation engine and no ongoing interest.
 
+<CardGroup cols={2}>
+  <Card title="Floor-based value" icon="shield-halved">
+    Borrowing power is calculated from the protocol floor instead of short-term market price spikes.
+  </Card>
+  <Card title="No liquidation engine" icon="lock">
+    V5 borrowing does not use a traditional liquidation mechanism.
+  </Card>
+  <Card title="Fixed 3% fee" icon="percent">
+    Borrowing has a one-time 3% fee, split between platform and direct parent/platform depending on referral state.
+  </Card>
+  <Card title="Borrow more" icon="arrow-up-right-dots">
+    If the floor rises, existing collateral may support additional borrowing through `borrowMore(poolId)`.
+  </Card>
+</CardGroup>
+
+
 ## Key properties
 
 - Borrowing power is based on floor value.
@@ -22,14 +38,26 @@ Borrowing is based on the protocol floor, not temporary market spikes. There is 
 
 The V5 borrow flow is:
 
-```txt
-1. Resolve token poolId.
-2. Approve the Hook to transfer the collateral tokens.
-3. Call hook.borrow(poolId, amount).
-4. Hook transfers tokens into collateral accounting.
-5. Hook records debt.
-6. User receives net BNB after the borrow fee.
-```
+<Steps>
+  <Step title="Resolve token poolId">
+    Borrow state is stored per `poolId` and user.
+  </Step>
+  <Step title="Approve the Hook">
+    The Hook must be approved to transfer the collateral tokens.
+  </Step>
+  <Step title="Call hook.borrow(poolId, amount)">
+    The borrow action is executed through the Hook, not the Swap Router.
+  </Step>
+  <Step title="Hook locks collateral">
+    Tokens are transferred into collateral accounting and removed from circulating supply while locked.
+  </Step>
+  <Step title="Hook records debt">
+    Debt is recorded as the gross borrowed value.
+  </Step>
+  <Step title="User receives net BNB">
+    The borrower receives BNB after the fixed 3% borrow fee is deducted.
+  </Step>
+</Steps>
 
 Function:
 

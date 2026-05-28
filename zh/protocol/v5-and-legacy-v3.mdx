@@ -5,6 +5,22 @@ description: 当前 V5 Hook 协议与旧 V3 合约之间的变化。
 
 LFG.RICH 当前文档以 V5 协议作为活跃集成目标。旧 V3 合约可能仍存在于链上，也可能出现在历史数据中，但新文档和新集成应使用 V5 流程，除非明确在处理旧 V3 代币。
 
+<CardGroup cols={2}>
+  <Card title="V5 是当前版本" icon="circle-check">
+    新的 App 流程、示例、地址和集成都应面向 V5。
+  </Card>
+  <Card title="V3 是 legacy" icon="clock-rotate-left">
+    V3 信息保留用于历史兼容、索引或调试旧代币。
+  </Card>
+  <Card title="不要混用 ABI" icon="triangle-exclamation">
+    V3 和 V5 的函数签名与代币状态结构不同。
+  </Card>
+  <Card title="解析 pool 上下文" icon="route">
+    V5 集成必须先解析 `poolId` 和 PoolKey，再估算或执行操作。
+  </Card>
+</CardGroup>
+
+
 ## 当前 V5 地址
 
 | 合约 | 地址 |

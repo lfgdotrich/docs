@@ -5,22 +5,64 @@ description: 通过 App 交易官方 LFG.RICH 代币。
 
 官方 LFG.RICH 代币通过协议交易流程买入和卖出。
 
+<CardGroup cols={2}>
+  <Card title="用 BNB 买入" icon="cart-shopping">
+    买入会把原生 BNB 发送到官方 Swap Router，然后由 Hook 计算代币输出。
+  </Card>
+  <Card title="卖出代币" icon="money-bill-transfer">
+    卖出需要授权 Swap Router，并在 Hook 应用曲线、地板价和费用规则后返回 BNB。
+  </Card>
+  <Card title="地板保护" icon="shield-halved">
+    卖出不能把有效协议价格压到当前地板价以下。
+  </Card>
+  <Card title="固定交易手续费" icon="percent">
+    V5 买卖使用固定 1.25% 总手续费，并根据推荐状态拆分。
+  </Card>
+</CardGroup>
+
+
 ## 买入代币
 
-1. 打开代币页面。
-2. 选择 **Buy**。
-3. 输入 BNB 金额。
-4. 查看预计获得代币数量和费用。
-5. 在钱包中确认交易。
+<Steps>
+  <Step title="打开代币页面">
+    使用官方 LFG.RICH 代币页面，这样 App 可以加载正确的 `poolId` 和 PoolKey。
+  </Step>
+  <Step title="选择 Buy">
+    打开该代币的买入面板。
+  </Step>
+  <Step title="输入 BNB 金额">
+    App 会通过 Hook 估算可获得的代币数量。
+  </Step>
+  <Step title="查看估算和费用">
+    检查预计获得代币、滑点保护，以及 V5 的 1.25% 交易手续费。
+  </Step>
+  <Step title="在钱包中确认">
+    买入会通过官方 Swap Router 和该代币对应的 PoolKey 执行。
+  </Step>
+</Steps>
 
 ## 卖出代币
 
-1. 打开代币页面。
-2. 选择 **Sell**。
-3. 输入代币数量。
-4. 如有需要，授权 SwapRouter。
-5. 查看预计获得 BNB 和费用。
-6. 在钱包中确认卖出交易。
+<Steps>
+  <Step title="打开代币页面">
+    使用官方页面，让 App 加载该代币的 V5 路由上下文。
+  </Step>
+  <Step title="选择 Sell">
+    打开该代币的卖出面板。
+  </Step>
+  <Step title="输入代币数量">
+    App 会使用该代币的 `poolId` 通过 Hook 估算 BNB 输出。
+  </Step>
+  <Step title="如有需要，授权 Swap Router">
+    卖出需要把代币授权给 Swap Router，而不是 Hook。
+  </Step>
+  <Step title="查看输出和费用">
+    检查预计获得 BNB、滑点保护和费用拆分。
+  </Step>
+  <Step title="在钱包中确认">
+    卖出会通过官方 Swap Router 执行，并且不能低于协议地板价定价。
+  </Step>
+</Steps>
 
 ## 滑点
 

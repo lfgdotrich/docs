@@ -5,6 +5,22 @@ description: V5 创建、交易、推荐、借贷、金库以及旧 V3 手续费
 
 LFG.RICH V5 的手续费由协议合约自动处理。
 
+<CardGroup cols={2}>
+  <Card title="创建费用" icon="rocket">
+    代币创建使用 Factory 当前创建费用，加上创建者可选初始买入的 `devBuyEth`。
+  </Card>
+  <Card title="交易手续费" icon="arrow-right-arrow-left">
+    V5 买入和卖出使用固定 1.25% 总交易手续费。
+  </Card>
+  <Card title="推荐拆分" icon="people-arrows">
+    推荐状态有效时，1.00% 交易奖励给用户的 initial inviter。
+  </Card>
+  <Card title="借贷费用" icon="landmark">
+    借款有一次性 3.00% 费用；可用时，2.00% 奖励会路由给 direct parent。
+  </Card>
+</CardGroup>
+
+
 <Warning>
 旧文档中提到的创建者选择 1% 到 10% 交易手续费属于旧 V3 流程。V5 使用固定协议手续费常量。
 </Warning>

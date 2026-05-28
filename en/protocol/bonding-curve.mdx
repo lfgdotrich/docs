@@ -5,33 +5,73 @@ description: How LFG.RICH V5 token pricing works through the Hook-managed bondin
 
 Official LFG.RICH tokens trade through a Hook-managed bonding-curve flow instead of a creator-managed liquidity pool.
 
+<CardGroup cols={2}>
+  <Card title="Hook-managed price" icon="chart-line">
+    The Hook calculates buy and sell outcomes using token-specific `poolId` state.
+  </Card>
+  <Card title="Official Router" icon="route">
+    Users and integrations execute swaps through the Swap Router, not arbitrary third-party pools.
+  </Card>
+  <Card title="Floor-aware sells" icon="shield-halved">
+    The effective sell price cannot move below the current protocol floor.
+  </Card>
+  <Card title="Indexable state" icon="database">
+    Price, reserve, floor, ATH, volume, and activity can be read from protocol state and events.
+  </Card>
+</CardGroup>
+
+
 The bonding curve defines how much token supply is minted when BNB enters the pool and how much BNB is returned when tokens are burned through a sell. In V5, this logic is enforced inside the Uniswap V4 Hook and routed through the Uniswap V4 Pool Manager.
 
 ## Buy flow
 
 When a user buys an official V5 token:
 
-1. The user sends BNB to the Swap Router `buy(key, minTokensOut)` function.
-2. The Router enters the Uniswap V4 unlock/callback flow.
-3. The Pool Manager calls the Hook.
-4. The Hook reads the token's `poolId` state.
-5. The Hook deducts the V5 trade fee.
-6. The curve calculates how many tokens the net BNB can mint.
-7. The Hook mints tokens to the buyer.
-8. Price, reserve, floor, ATH, volume, and trade history can then be indexed from protocol events and state.
+<Steps>
+  <Step title="BNB enters the Swap Router">
+    The user sends BNB to `buy(key, minTokensOut)` with the token-specific PoolKey.
+  </Step>
+  <Step title="Router enters the Uniswap V4 flow">
+    The Router uses the Pool Manager unlock/callback flow.
+  </Step>
+  <Step title="Pool Manager calls the Hook">
+    The Hook receives the pool context and applies LFG.RICH protocol logic.
+  </Step>
+  <Step title="Hook reads poolId state">
+    The Hook reads the token's `poolId` state for price, floor, reserve, fee, and referral rules.
+  </Step>
+  <Step title="Fee is deducted and curve output is calculated">
+    The V5 trading fee is deducted, then the curve calculates token output from net BNB.
+  </Step>
+  <Step title="Tokens are minted and state updates">
+    Tokens are minted to the buyer, and price, reserve, floor, ATH, volume, and trade history can be indexed from events and state.
+  </Step>
+</Steps>
 
 ## Sell flow
 
 When a user sells an official V5 token:
 
-1. The user approves the Swap Router to spend the token.
-2. The user calls the Swap Router `sell(key, tokenAmount, minEthOut)` function.
-3. The Router routes the swap through Uniswap V4.
-4. The Hook calculates the gross BNB return from the bonding curve.
-5. The Hook deducts the V5 trade fee.
-6. Tokens are burned.
-7. The seller receives BNB after fees.
-8. The sell cannot be priced below the protocol floor.
+<Steps>
+  <Step title="Approve the Swap Router">
+    The seller approves the official Swap Router to spend the token amount.
+  </Step>
+  <Step title="Call sell with the PoolKey">
+    The user calls `sell(key, tokenAmount, minEthOut)`.
+  </Step>
+  <Step title="Router routes through Uniswap V4">
+    The Router enters the same Pool Manager and Hook flow.
+  </Step>
+  <Step title="Hook calculates BNB output">
+    The Hook calculates gross BNB return from the bonding curve and applies the V5 fee.
+  </Step>
+  <Step title="Tokens burn and BNB is paid out">
+    Tokens are burned and the seller receives BNB after fees.
+  </Step>
+  <Step title="Floor protection applies">
+    The sell cannot be priced below the protocol floor.
+  </Step>
+</Steps>
 
 ## V5 estimate functions
 

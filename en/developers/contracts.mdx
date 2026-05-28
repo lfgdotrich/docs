@@ -5,6 +5,28 @@ description: Main LFG.RICH V5 contract addresses, integration notes, and readabl
 
 This page gives developers the public contract information needed to integrate with LFG.RICH. Users do **not** need access to the site source code. The readable ABI arrays below can be copied directly into Ethers, Viem `parseAbi`, Web3.js, or Web3.py integrations.
 
+<CardGroup cols={2}>
+  <Card title="Factory" icon="industry">
+    Creates official LFG.RICH tokens and registers them with the Hook.
+  </Card>
+  <Card title="Uniswap V4 Hook" icon="anchor">
+    Handles pricing, floors, reserves, fees, collateral, borrowing, and hook callbacks.
+  </Card>
+  <Card title="Swap Router" icon="route">
+    Provides simple buy and sell functions for users and integrations.
+  </Card>
+  <Card title="Token" icon="coin">
+    ERC20-compatible token contract created by the Factory.
+  </Card>
+  <Card title="Pool Manager" icon="layer-group">
+    Uniswap V4 Pool Manager used by the Hook and Router flow.
+  </Card>
+  <Card title="Referral and Treasury" icon="people-arrows">
+    Handles invite bindings, referral reward routing, and platform-side accounting.
+  </Card>
+</CardGroup>
+
+
 <Warning>
 Use the V5 signatures shown on this page. Older examples that call `createToken(name, symbol, totalFeeBps)`, `estimateBuy(poolId, ethIn)`, or `estimateSell(poolId, tokenAmount)` are outdated.
 </Warning>
@@ -37,12 +59,26 @@ Every token created on LFG.RICH has its own `poolId` and its own Uniswap V4 `Poo
 
 For reliable integrations:
 
-1. Load the token from the API or from the Factory.
-2. Resolve the token's `poolId`.
-3. Resolve or build the token's `PoolKey`.
-4. Quote through the Hook using `poolId`.
-5. Execute buys and sells through the Swap Router using `PoolKey`.
-6. Execute borrow, borrow more, and repay through the Hook using `poolId`.
+<Steps>
+  <Step title="Load the token">
+    Start from the public API or from Factory-created token data.
+  </Step>
+  <Step title="Resolve the poolId">
+    Use `token.pool_id`, `token.poolId`, or `hook.tokenToPoolId(tokenAddress)`.
+  </Step>
+  <Step title="Resolve or build the PoolKey">
+    Prefer `factory.getPoolKey(tokenAddress)` when available.
+  </Step>
+  <Step title="Quote through the Hook">
+    Use `poolId` and the wallet address for V5 buy/sell estimates.
+  </Step>
+  <Step title="Execute swaps through the Swap Router">
+    Buy and sell calls use the token-specific PoolKey.
+  </Step>
+  <Step title="Execute lending through the Hook">
+    Borrow, borrow more, repay, and price reads use `poolId`.
+  </Step>
+</Steps>
 
 <Info>
 The API token object normally includes `pool_id`. You can use that value, but external tools should still know how to resolve the same value from `hook.tokenToPoolId(tokenAddress)` or `factory.getTokenInfo(tokenAddress).poolId`.

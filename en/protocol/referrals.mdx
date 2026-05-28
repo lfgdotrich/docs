@@ -5,6 +5,22 @@ description: How LFG.RICH V5 referral binding, whitelist roots, parents, initial
 
 LFG.RICH V5 uses an on-chain referral contract to bind wallets into referral trees. This referral state is used by the protocol to decide where the referral portions of trading fees and borrowing fees are sent.
 
+<CardGroup cols={2}>
+  <Card title="Whitelisted roots" icon="sitemap">
+    Referral trees start from whitelisted addresses, which act as approved roots.
+  </Card>
+  <Card title="Permanent binding" icon="lock">
+    A user can bind only once. The parent and initial inviter are then fixed.
+  </Card>
+  <Card title="1% trading reward" icon="arrow-right-arrow-left">
+    Buy and sell referral rewards go to the user's initial inviter when the user is bound.
+  </Card>
+  <Card title="2% borrow reward" icon="landmark">
+    Borrow and borrowMore rewards go to the user's direct parent when the user is bound.
+  </Card>
+</CardGroup>
+
+
 Referral binding is optional for normal protocol use. A wallet can create tokens, buy, sell, borrow, repay, and use the app without binding to an inviter. Binding is only required if the wallet wants to join a referral tree and make its activity eligible for referral reward routing.
 
 <Warning>
@@ -62,11 +78,23 @@ Whitelisted addresses are very important because they start the referral trees.
 
 When the platform owner whitelists an address:
 
-1. that address becomes an approved referral root;
-2. that address is treated as already bound by the referral system;
-3. that address becomes its own initial inviter;
-4. users can bind directly to that address;
-5. non-whitelisted users below it inherit that same initial inviter.
+<Steps>
+  <Step title="Address becomes an approved referral root">
+    Whitelisted addresses are the root nodes that can start valid referral trees.
+  </Step>
+  <Step title="Address is treated as already bound">
+    The referral system treats the whitelisted address as eligible without needing a parent.
+  </Step>
+  <Step title="Address becomes its own initial inviter">
+    The root remains the inherited initial inviter for users below it.
+  </Step>
+  <Step title="Users can bind directly to the root">
+    Normal users can bind to a whitelisted root address.
+  </Step>
+  <Step title="Downline users inherit the same initial inviter">
+    Non-whitelisted users below that root inherit the root as their initial inviter.
+  </Step>
+</Steps>
 
 A normal wallet cannot become the root of a new referral tree by itself. A normal wallet can invite others only after it is already bound under an existing whitelisted root.
 
@@ -301,13 +329,29 @@ getInfo(user)       -> all common referral fields in one call
 The site uses referral codes and referral links for user experience, but the on-chain binding is still wallet based.
 
 ```txt
-1. User opens a referral link or pastes a referral code.
-2. The frontend extracts the referral code.
-3. The API resolves the code to an inviter wallet.
-4. The frontend checks that the inviter is eligible.
-5. The user confirms the binding.
-6. The frontend calls referral.bind(inviterAddress).
-7. The backend mirror records the binding transaction for dashboard/indexing purposes.
+<Steps>
+  <Step title="User opens a referral link or pastes a code">
+    The frontend receives the referral code from the URL or input field.
+  </Step>
+  <Step title="Frontend extracts the referral code">
+    The app parses the code and prepares the binding flow.
+  </Step>
+  <Step title="API resolves the inviter wallet">
+    The code is resolved to the inviter address used for on-chain binding.
+  </Step>
+  <Step title="Frontend checks inviter eligibility">
+    The inviter must be whitelisted or already bound.
+  </Step>
+  <Step title="User confirms binding">
+    Binding is one-time and permanent, so the user must intentionally confirm it.
+  </Step>
+  <Step title="Frontend calls referral.bind(inviterAddress)">
+    The on-chain referral contract records the binding.
+  </Step>
+  <Step title="Backend mirror records the transaction">
+    The backend mirror supports dashboards, profile pages, and indexed referral views.
+  </Step>
+</Steps>
 ```
 
 The referral code is only a convenient way to find the inviter wallet. The permanent source of truth is the on-chain referral contract.

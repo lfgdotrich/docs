@@ -7,6 +7,22 @@ LFG.RICH 基于 Uniswap V4 Hook 架构构建。Hook 不只是辅助合约，而�
 
 用户看到的交易流程很简单，但链上路径是固定的：
 
+<CardGroup cols={2}>
+  <Card title="Factory" icon="industry">
+    创建官方 LFG.RICH 代币，并把它们注册到 Hook。
+  </Card>
+  <Card title="Uniswap V4 Hook" icon="anchor">
+    强制定价、地板价、储备、费用、抵押品、借贷和 hook callbacks。
+  </Card>
+  <Card title="Swap Router" icon="route">
+    为用户和集成提供简单的买入和卖出入口。
+  </Card>
+  <Card title="Pool Manager" icon="layer-group">
+    执行 Hook 和 Router 使用的 Uniswap V4 unlock、swap、settlement 和 callback 流程。
+  </Card>
+</CardGroup>
+
+
 ```txt
 用户钱包
   -> Swap Router
@@ -81,11 +97,23 @@ Hook 让代币不再像普通的、由创建者管理 LP 的代币。创建者�
 
 V5 应使用以下模式：
 
-```txt
-1. 加载代币数据。
-2. 解析 poolId。
-3. 解析 PoolKey。
-4. 使用 Hook + poolId + 用户地址估算。
-5. 使用 Swap Router + PoolKey 执行买入/卖出。
-6. 使用 Hook + poolId 执行 borrow、borrowMore 和 repay。
-```
+<Steps>
+  <Step title="加载代币数据">
+    从 API 代币数据或已知代币地址开始。
+  </Step>
+  <Step title="解析 poolId">
+    使用 `token.pool_id`、`token.poolId`，或 `hook.tokenToPoolId(tokenAddress)`。
+  </Step>
+  <Step title="解析 PoolKey">
+    使用 `factory.getPoolKey(tokenAddress)`，或根据已验证的 V5 常量构建。
+  </Step>
+  <Step title="使用 Hook + poolId + 用户地址估算">
+    V5 估算函数包含钱包地址，因为推荐状态可能改变费用接收方。
+  </Step>
+  <Step title="使用 Swap Router + PoolKey 执行买入/卖出">
+    交易执行使用该代币对应的 PoolKey。
+  </Step>
+  <Step title="使用 Hook + poolId 执行借贷">
+    Borrow、borrowMore、repay 和状态读取使用 Hook 和 `poolId`。
+  </Step>
+</Steps>

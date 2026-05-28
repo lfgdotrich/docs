@@ -5,6 +5,22 @@ description: 使用 LFG.RICH 社区交易机器人，为 LFG.RICH 代币自动�
 
 LFG.RICH Community Trading Bot 是一个用于 BNB Smart Chain 的 Python 交易机器人示例，通过官方 LFG.RICH 协议合约交易 **官方 LFG.RICH 发射台代币**。
 
+<CardGroup cols={2}>
+  <Card title="自托管" icon="server">
+    在你自己的机器或 VPS 上运行机器人，并使用自己的钱包和配置。
+  </Card>
+  <Card title="支持 V5 流程" icon="route">
+    机器人会解析 Hook/Router 上下文，并使用官方 V5 交互流程。
+  </Card>
+  <Card title="仪表盘" icon="chart-pie">
+    本地查看仓位、lots、交易、已实现/未实现 PnL 和策略状态。
+  </Card>
+  <Card title="先 dry run" icon="shield-halved">
+    允许真实交易前，先使用 `dry_run` 和 smoke tests。
+  </Card>
+</CardGroup>
+
+
 此版本仅兼容 **LFG.RICH**：
 
 - 通过 LFG.RICH **Swap Router** 买入；
@@ -25,13 +41,29 @@ LFG.RICH Community Trading Bot 是一个用于 BNB Smart Chain 的 Python 交易
 
 对于每个配置的代币，它会：
 
-1. 通过 LFG.RICH Hook 解析代币池；
-2. 扫描 Hook 的 `Buy` 和 `Sell` 事件；
-3. 构建内部价格 K 线；
-4. 计算 EMA、RSI、趋势、pump、dump 和 bleed 等指标；
-5. 判断应该 `BUY`、`SELL` 还是 `HOLD`；
-6. 如果没有启用 `dry_run`，通过 LFG.RICH Swap Router 执行交易；
-7. 将已确认交易和 lots 写入本地 SQLite 数据库。
+<Steps>
+  <Step title="通过 Hook 解析代币池">
+    机器人使用 V5 pool 上下文，而不是猜测旧 pair 或 pool。
+  </Step>
+  <Step title="扫描 Hook 的 Buy 和 Sell 事件">
+    事件数据用于构建本地市场历史。
+  </Step>
+  <Step title="构建内部价格 K 线">
+    K 线用于策略指标和仪表盘。
+  </Step>
+  <Step title="计算策略指标">
+    本地评估 EMA、RSI、趋势、pump、dump 和 bleed 条件。
+  </Step>
+  <Step title="判断 BUY、SELL 或 HOLD">
+    策略根据配置规则和当前状态做出决定。
+  </Step>
+  <Step title="未启用 dry_run 时通过 Swap Router 执行">
+    实盘交易使用官方 LFG.RICH Swap Router。
+  </Step>
+  <Step title="将交易和 lots 写入 SQLite">
+    已确认成交会被持久化，用于会计、仪表盘和之后卖出。
+  </Step>
+</Steps>
 
 机器人必须解析并使用代币的 LFG.RICH 池数据。它不应该假设存在传统 pair 地址或 PancakeSwap 风格的池。
 
@@ -507,9 +539,17 @@ remaining open quantity
 
 对于 LFG 代币，仪表盘按以下优先级为 open lots 定价：
 
-1. 最新有效 K 线收盘价；
-2. LFG Hook `getEffectivePrice(poolId)` fallback；
-3. 前两者都不可用时才为零。
+<Steps>
+  <Step title="使用最新有效 K 线收盘价">
+    当 K 线数据可用时，这是首选当前价格来源。
+  </Step>
+  <Step title="Fallback 到 LFG Hook getEffectivePrice(poolId)">
+    如果 K 线数据不可用，仪表盘会读取协议有效价格。
+  </Step>
+  <Step title="只有两个来源都不可用时才使用零">
+    价格为零表示仪表盘没有找到安全的当前价格来源。
+  </Step>
+</Steps>
 
 ### 常用 SQLite 命令
 
@@ -700,9 +740,17 @@ streamlit==1.40.1
 
 对于 LFG 代币，仪表盘现在使用：
 
-1. 最新有效 K 线收盘价；
-2. LFG Hook `getEffectivePrice(poolId)` fallback；
-3. 前两者都不可用时才为零。
+<Steps>
+  <Step title="使用最新有效 K 线收盘价">
+    当 K 线数据可用时，这是首选当前价格来源。
+  </Step>
+  <Step title="Fallback 到 LFG Hook getEffectivePrice(poolId)">
+    如果 K 线数据不可用，仪表盘会读取协议有效价格。
+  </Step>
+  <Step title="只有两个来源都不可用时才使用零">
+    价格为零表示仪表盘没有找到安全的当前价格来源。
+  </Step>
+</Steps>
 
 如果该值仍然为空，请确认机器人和仪表盘使用同一个 `state.db` 和 `config.yaml`。
 
@@ -710,14 +758,32 @@ streamlit==1.40.1
 
 真实运行前：
 
-1. 使用专用钱包。
-2. 钱包中只保留少量 BNB。
-3. 从 `dry_run: true` 开始。
-4. 运行 `python -m bot.smoke_test_lfg`。
-5. 运行机器人并确认 K 线/信号看起来正确。
-6. 使用 `test_mode: true`、`test_action: "BUY"` 和很小的 `test_amount_bnb` 进行测试。
-7. 确认仪表盘显示已创建的 lot。
-8. 然后再禁用 `test_mode`。
+<Steps>
+  <Step title="使用专用钱包">
+    不要用主钱包运行自动交易机器人。
+  </Step>
+  <Step title="钱包中只保留少量 BNB">
+    在测试和运行期间限制风险敞口。
+  </Step>
+  <Step title="先启用 dry_run">
+    在允许真实交易前使用 `dry_run: true`。
+  </Step>
+  <Step title="运行 smoke test">
+    运行机器人前执行 `python -m bot.smoke_test_lfg`。
+  </Step>
+  <Step title="确认 K 线和信号看起来正确">
+    让机器人运行，并检查市场数据和决策是否合理。
+  </Step>
+  <Step title="在 test mode 中测试一次极小 BUY">
+    使用 `test_mode: true`、`test_action: "BUY"` 和很小的 `test_amount_bnb`。
+  </Step>
+  <Step title="确认仪表盘显示 lot">
+    确认本地数据库和仪表盘结果符合预期。
+  </Step>
+  <Step title="然后再禁用 test_mode">
+    只有确认小额测试后才进入实盘运行。
+  </Step>
+</Steps>
 
 ## 社区说明
 

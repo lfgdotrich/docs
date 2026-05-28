@@ -5,6 +5,28 @@ description: LFG.RICH V5 主要合约地址、集成说明，以及可读 ABI �
 
 本页提供开发者集成 LFG.RICH 所需的公开合约信息。用户**不需要**访问网站源码。下面的可读 ABI 数组可以直接复制到 Ethers、Viem `parseAbi`、Web3.js 或 Web3.py 集成中使用。
 
+<CardGroup cols={2}>
+  <Card title="Factory" icon="industry">
+    创建官方 LFG.RICH 代币，并把它们注册到 Hook。
+  </Card>
+  <Card title="Uniswap V4 Hook" icon="anchor">
+    处理定价、地板价、储备、费用、抵押品、借贷和 hook callbacks。
+  </Card>
+  <Card title="Swap Router" icon="route">
+    为用户和集成提供简单的买入和卖出函数。
+  </Card>
+  <Card title="Token" icon="coin">
+    由 Factory 创建的 ERC20-compatible 代币合约。
+  </Card>
+  <Card title="Pool Manager" icon="layer-group">
+    Hook 和 Router 流程使用的 Uniswap V4 Pool Manager。
+  </Card>
+  <Card title="Referral 与 Treasury" icon="people-arrows">
+    处理邀请绑定、推荐奖励路由和平台侧会计。
+  </Card>
+</CardGroup>
+
+
 <Warning>
 请使用本页展示的 V5 签名。旧示例中调用 `createToken(name, symbol, totalFeeBps)`、`estimateBuy(poolId, ethIn)` 或 `estimateSell(poolId, tokenAmount)` 的方式已经过时。
 </Warning>
@@ -37,12 +59,26 @@ description: LFG.RICH V5 主要合约地址、集成说明，以及可读 ABI �
 
 为了保证集成稳定可靠：
 
-1. 从 API 或 Factory 加载代币。
-2. 解析该代币的 `poolId`。
-3. 解析或构建该代币的 `PoolKey`。
-4. 使用 `poolId` 通过 Hook 获取报价。
-5. 使用 `PoolKey` 通过 Swap Router 执行买入和卖出。
-6. 使用 `poolId` 通过 Hook 执行 borrow、borrow more 和 repay。
+<Steps>
+  <Step title="加载代币">
+    从公共 API 或 Factory 创建的代币数据开始。
+  </Step>
+  <Step title="解析 poolId">
+    使用 `token.pool_id`、`token.poolId`，或 `hook.tokenToPoolId(tokenAddress)`。
+  </Step>
+  <Step title="解析或构建 PoolKey">
+    可用时优先使用 `factory.getPoolKey(tokenAddress)`。
+  </Step>
+  <Step title="通过 Hook 获取报价">
+    V5 买卖估算需要 `poolId` 和钱包地址。
+  </Step>
+  <Step title="通过 Swap Router 执行交易">
+    买入和卖出调用使用该代币对应的 PoolKey。
+  </Step>
+  <Step title="通过 Hook 执行借贷">
+    Borrow、borrow more、repay 和价格读取都使用 `poolId`。
+  </Step>
+</Steps>
 
 <Info>
 API 的 token 对象通常包含 `pool_id`。可以直接使用该值，但外部工具仍然应该知道如何通过 `hook.tokenToPoolId(tokenAddress)` 或 `factory.getTokenInfo(tokenAddress).poolId` 解析同一个值。

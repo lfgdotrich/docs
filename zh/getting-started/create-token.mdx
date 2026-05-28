@@ -5,6 +5,22 @@ description: 创建官方 LFG.RICH 代币。
 
 LFG.RICH 允许创建者直接在 App 中发行官方代币。每个官方代币都通过 LFG.RICH Factory 创建，并连接到平台的绑定曲线、地板价、推荐和借贷机制。
 
+<CardGroup cols={2}>
+  <Card title="元数据" icon="id-card">
+    发布前准备好代币名称、符号、Logo、描述和社区链接。
+  </Card>
+  <Card title="可选初始买入" icon="cart-shopping">
+    当前 V5 表单允许在创建时填写可选初始买入。
+  </Card>
+  <Card title="固定 V5 费用" icon="percent">
+    V5 使用固定协议费用。当前表单没有创建者自选交易手续费字段。
+  </Card>
+  <Card title="官方协议路径" icon="route">
+    新代币由 Factory 注册，并连接到 Hook、Router、地板价、推荐和借贷系统。
+  </Card>
+</CardGroup>
+
+
 ## 需要准备什么
 
 创建代币前，请准备：
@@ -21,12 +37,26 @@ LFG.RICH 允许创建者直接在 App 中发行官方代币。每个官方代币
 
 ## 创建流程
 
-1. 在 BNB Smart Chain 上连接钱包。
-2. 在 App 中打开 **Create**。
-3. 添加代币名称、符号、Logo、描述和链接。
-4. 可选填写初始买入金额。这让创建者可以在同一笔发行交易中买入一部分代币。
-5. 在钱包中提交交易。
-6. 确认后，代币会作为官方 LFG.RICH 代币出现，并可通过 App 交易。
+<Steps>
+  <Step title="在 BNB Smart Chain 上连接钱包">
+    使用将要创建代币并支付 gas、创建费用和可选初始买入的钱包。
+  </Step>
+  <Step title="在 App 中打开 Create">
+    从 LFG.RICH App 进入代币创建表单。
+  </Step>
+  <Step title="填写代币信息">
+    输入代币名称、符号、Logo、描述和社区链接。
+  </Step>
+  <Step title="可选填写初始买入金额">
+    初始买入让创建者可以在同一笔发行交易中买入一部分代币。
+  </Step>
+  <Step title="提交交易">
+    在钱包中确认交易。V5 不会要求创建者选择交易手续费。
+  </Step>
+  <Step title="代币成为官方代币">
+    确认后，代币会作为官方 LFG.RICH 代币出现，并可通过 App 交易。
+  </Step>
+</Steps>
 
 ## 初始买入
 

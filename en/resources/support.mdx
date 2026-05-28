@@ -5,6 +5,22 @@ description: Where to get help with LFG.RICH.
 
 For help with LFG.RICH, use the official links from the app and docs navigation.
 
+<CardGroup cols={2}>
+  <Card title="Community" icon="telegram" href="https://t.me/LfgRichOfficial">
+    Join the official Telegram community for discussion and support.
+  </Card>
+  <Card title="Social updates" icon="x-twitter" href="https://x.com/lfgdotrich">
+    Follow LFG.RICH on X for public updates.
+  </Card>
+  <Card title="Developer source" icon="github" href="https://github.com/lfgdotrich">
+    Check official public repositories and examples where available.
+  </Card>
+  <Card title="BuyBot help" icon="robot" href="/en/resources/buybot">
+    Review BuyBot commands and troubleshooting before asking for support.
+  </Card>
+</CardGroup>
+
+
 ## Before asking for help
 
 Please include the details that allow someone to understand the issue without guessing.
@@ -65,11 +81,23 @@ Also check whether the collateral is already locked, whether the repay value is 
 
 Check:
 
-1. The bot is in the Telegram group.
-2. The bot has permission to send messages.
-3. The group admin ran `/settoken`.
-4. The token address belongs to an official LFG.RICH token.
-5. There has been new activity after the token was added.
+<Steps>
+  <Step title="Confirm the bot is in the Telegram group">
+    The bot must be present in the group where alerts should appear.
+  </Step>
+  <Step title="Confirm the bot can send messages">
+    Telegram permissions must allow the bot to post.
+  </Step>
+  <Step title="Confirm /settoken was completed">
+    A group admin must configure the token before alerts can start.
+  </Step>
+  <Step title="Confirm the token is official">
+    The address should belong to an official LFG.RICH token.
+  </Step>
+  <Step title="Confirm new activity occurred after setup">
+    Alerts are generated from new activity after configuration.
+  </Step>
+</Steps>
 
 If commands do not appear, try:
 

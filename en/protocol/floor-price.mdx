@@ -9,6 +9,22 @@ For official V5 tokens, the public rule is simple:
 
 > **The protocol floor is always based on 50% of the token's all-time high price.**
 
+<CardGroup cols={2}>
+  <Card title="50% of ATH" icon="percent">
+    The floor target is calculated from the token's all-time high price using `autoFloorPctBps = 5000`.
+  </Card>
+  <Card title="Only moves up" icon="arrow-trend-up">
+    When ATH rises, the floor can rise. When price falls, the floor does not go down.
+  </Card>
+  <Card title="Enforced by the Hook" icon="anchor">
+    The creator cannot manually lower the protocol floor after launch.
+  </Card>
+  <Card title="Used by borrowing" icon="landmark">
+    Borrowing power is based on floor value, which is why a higher floor can enable `borrowMore(poolId)`.
+  </Card>
+</CardGroup>
+
+
 When the token reaches a new all-time high, the Hook records that new ATH and raises the floor target to half of it. If the price later falls, the ATH does not reset and the floor does not go down.
 
 This means the floor is not controlled by the creator, by a market maker, or by manual team action. It is protocol state enforced by the **Uniswap V4 Hook**.
@@ -55,12 +71,23 @@ After trades, the Hook can update the token's ATH and floor state.
 
 The flow is:
 
-1. The Hook calculates the token's current effective price.
-2. If the effective price is higher than the previous `allTimeHighPrice`, the Hook stores a new ATH.
-3. The Hook calculates the new floor target using `autoFloorPctBps`.
-4. With the default V5 setting, the target is 50% of ATH.
-5. If the new calculated floor is higher than the current `floorPrice`, the floor is raised.
-6. The floor is never reduced later.
+<Steps>
+  <Step title="Hook calculates the current effective price">
+    The current protocol price is checked after trades update the pool state.
+  </Step>
+  <Step title="New ATH is stored when reached">
+    If the effective price is higher than the previous `allTimeHighPrice`, the Hook stores the new ATH.
+  </Step>
+  <Step title="Floor target is calculated from autoFloorPctBps">
+    The default V5 value is `5000`, meaning 50%.
+  </Step>
+  <Step title="Floor is raised to 50% of ATH">
+    When the calculated floor target is higher than the current `floorPrice`, the Hook raises the floor.
+  </Step>
+  <Step title="Floor does not move down later">
+    If the market falls, the ATH and floor remain in place.
+  </Step>
+</Steps>
 
 The Hook emits events for these changes:
 

@@ -5,6 +5,22 @@ description: Add the official LFG.RICH BuyBot to your Telegram group and track l
 
 The official LFG.RICH BuyBot helps communities follow live activity for LFG.RICH tokens directly inside Telegram groups.
 
+<CardGroup cols={2}>
+  <Card title="Live buy alerts" icon="bell">
+    Show buy activity for official LFG.RICH tokens directly inside Telegram groups.
+  </Card>
+  <Card title="Borrow alerts" icon="landmark">
+    Notify the community when users borrow against token collateral.
+  </Card>
+  <Card title="Token commands" icon="terminal">
+    Use `/settoken`, `/deltoken`, `/tokens`, `/price`, `/info`, and `/lang` to manage the bot.
+  </Card>
+  <Card title="Group language" icon="language">
+    Configure the bot language per Telegram group.
+  </Card>
+</CardGroup>
+
+
 Bot username:
 
 ```txt
@@ -42,13 +58,29 @@ The token address must be a valid BSC contract address and must belong to a toke
 
 ## Add the bot to your group
 
-1. Open Telegram.
-2. Search for `@lfgdotrich_buybot`.
-3. Add the bot to your Telegram group.
-4. Give the bot admin rights so it can send messages.
-5. In the group, run `/settoken`.
-6. Choose the group language.
-7. Send the LFG.RICH token contract address when the bot asks for it.
+<Steps>
+  <Step title="Open Telegram">
+    Use the Telegram account that manages your token community group.
+  </Step>
+  <Step title="Search for @lfgdotrich_buybot">
+    Find the official LFG.RICH BuyBot account.
+  </Step>
+  <Step title="Add the bot to your group">
+    Add it to the Telegram group where you want alerts to appear.
+  </Step>
+  <Step title="Give the bot admin rights">
+    The bot needs permission to send alert messages in the group.
+  </Step>
+  <Step title="Run /settoken">
+    Start the token setup flow inside the group.
+  </Step>
+  <Step title="Choose the group language">
+    Select the language the group should use for bot replies and alerts.
+  </Step>
+  <Step title="Send the official token contract address">
+    Use the LFG.RICH token contract address, not a transaction hash, pair address, or pool ID.
+  </Step>
+</Steps>
 
 <Info>
 Group setup must be completed by the group owner or by a group admin who has permission to add admins, because the bot needs admin rights to send alerts in the group.
@@ -206,11 +238,23 @@ Also confirm the bot is still in the group and has permission to send messages.
 
 Check these points:
 
-1. The token was added with `/settoken`.
-2. The address is the token contract address, not a transaction hash, pair address, or pool ID.
-3. The token was created on LFG.RICH.
-4. The bot has permission to send messages in the group.
-5. There has been new buy or borrow activity after the token was added.
+<Steps>
+  <Step title="Confirm the token was added with /settoken">
+    Run `/tokens` to check which tokens are configured for the group.
+  </Step>
+  <Step title="Confirm the address is the token contract">
+    Do not use a transaction hash, pair address, or pool ID.
+  </Step>
+  <Step title="Confirm the token was created on LFG.RICH">
+    The BuyBot is designed for official LFG.RICH tokens.
+  </Step>
+  <Step title="Confirm the bot can send messages">
+    The bot must have permission to post in the group.
+  </Step>
+  <Step title="Confirm new activity occurred after setup">
+    Alerts are generated from new buy or borrow activity after the token was added.
+  </Step>
+</Steps>
 
 ### The token address is rejected
 

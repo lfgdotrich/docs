@@ -5,22 +5,64 @@ description: Trade official LFG.RICH tokens through the app.
 
 Official LFG.RICH tokens are bought and sold through the protocol trading flow.
 
+<CardGroup cols={2}>
+  <Card title="Buy with BNB" icon="cart-shopping">
+    Buys send native BNB through the official Swap Router, then the Hook calculates token output.
+  </Card>
+  <Card title="Sell tokens" icon="money-bill-transfer">
+    Sells approve the Swap Router and return BNB after the Hook applies curve, floor, and fee rules.
+  </Card>
+  <Card title="Floor protection" icon="shield-halved">
+    A sell cannot push the effective protocol price below the current floor.
+  </Card>
+  <Card title="Fixed trading fee" icon="percent">
+    V5 buy and sell trades use a fixed 1.25% total fee split by referral state.
+  </Card>
+</CardGroup>
+
+
 ## Buy tokens
 
-1. Open a token page.
-2. Choose **Buy**.
-3. Enter the BNB amount.
-4. Review the estimated tokens received and fees.
-5. Confirm the transaction in your wallet.
+<Steps>
+  <Step title="Open a token page">
+    Use an official LFG.RICH token page so the app can load the correct `poolId` and PoolKey.
+  </Step>
+  <Step title="Choose Buy">
+    Open the buy panel for that token.
+  </Step>
+  <Step title="Enter the BNB amount">
+    The app estimates the token output through the Hook.
+  </Step>
+  <Step title="Review the estimate and fees">
+    Check estimated tokens received, slippage protection, and the V5 1.25% trading fee.
+  </Step>
+  <Step title="Confirm in your wallet">
+    The buy is executed through the official Swap Router and token-specific PoolKey.
+  </Step>
+</Steps>
 
 ## Sell tokens
 
-1. Open a token page.
-2. Choose **Sell**.
-3. Enter the token amount.
-4. Approve the SwapRouter if needed.
-5. Review the estimated BNB output and fees.
-6. Confirm the sell transaction in your wallet.
+<Steps>
+  <Step title="Open a token page">
+    Use the official page so the app loads the token's V5 routing context.
+  </Step>
+  <Step title="Choose Sell">
+    Open the sell panel for that token.
+  </Step>
+  <Step title="Enter the token amount">
+    The app estimates the BNB output through the Hook using the token's `poolId`.
+  </Step>
+  <Step title="Approve the Swap Router if needed">
+    Sells require token approval for the Swap Router, not the Hook.
+  </Step>
+  <Step title="Review the output and fees">
+    Check estimated BNB output, slippage protection, and fee split.
+  </Step>
+  <Step title="Confirm in your wallet">
+    The sell is executed through the official Swap Router and cannot be priced below the protocol floor.
+  </Step>
+</Steps>
 
 ## Slippage
 

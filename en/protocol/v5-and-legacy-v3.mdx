@@ -5,6 +5,22 @@ description: What changed between legacy V3 contracts and the current V5 Hook-ba
 
 LFG.RICH currently documents the V5 protocol as the active integration target. Legacy V3 contracts may still exist on-chain and may appear in historical data, but new documentation and integrations should use the V5 flow unless they are explicitly working with legacy V3 tokens.
 
+<CardGroup cols={2}>
+  <Card title="V5 is current" icon="circle-check">
+    New app flows, examples, addresses, and integrations should target V5.
+  </Card>
+  <Card title="V3 is legacy" icon="clock-rotate-left">
+    V3 information is kept for historical compatibility, indexing, or debugging old tokens.
+  </Card>
+  <Card title="Do not mix ABIs" icon="triangle-exclamation">
+    V3 and V5 have different function signatures and token-state structures.
+  </Card>
+  <Card title="Resolve pool context" icon="route">
+    V5 integrations must resolve `poolId` and PoolKey before estimating or executing actions.
+  </Card>
+</CardGroup>
+
+
 ## Current V5 addresses
 
 | Contract | Address |

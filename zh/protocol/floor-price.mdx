@@ -9,6 +9,22 @@ description: V5 地板价机制如何保护官方 LFG.RICH 代币发射。
 
 > **协议地板价始终基于该代币历史最高价（ATH）的 50%。**
 
+<CardGroup cols={2}>
+  <Card title="ATH 的 50%" icon="percent">
+    地板目标根据代币历史最高价计算，使用 `autoFloorPctBps = 5000`。
+  </Card>
+  <Card title="只会上升" icon="arrow-trend-up">
+    ATH 上升时，地板价可以上升。价格回落时，地板价不会下降。
+  </Card>
+  <Card title="由 Hook 强制执行" icon="anchor">
+    创建者不能在发行后手动降低协议地板价。
+  </Card>
+  <Card title="用于借贷" icon="landmark">
+    借款额度基于地板价值，所以更高的地板价可能启用 `borrowMore(poolId)`。
+  </Card>
+</CardGroup>
+
+
 当代币达到新的历史最高价时，Hook 会记录新的 ATH，并把地板价目标提高到 ATH 的一半。如果之后价格下跌，ATH 不会重置，地板价也不会下调。
 
 这意味着地板价不是由创建者、做市商或团队手动控制的。它是由 **Uniswap V4 Hook** 强制执行的链上协议状态。
@@ -55,12 +71,23 @@ autoFloorPctBps = 5000
 
 流程如下：
 
-1. Hook 计算代币当前的有效价格。
-2. 如果有效价格高于之前的 `allTimeHighPrice`，Hook 会记录新的 ATH。
-3. Hook 根据 `autoFloorPctBps` 计算新的地板价目标。
-4. 在 V5 默认设置下，该目标是 ATH 的 50%。
-5. 如果新计算出的地板价高于当前 `floorPrice`，地板价会被提高。
-6. 地板价之后不会被降低。
+<Steps>
+  <Step title="Hook 计算当前有效价格">
+    交易更新 pool 状态后，会检查当前协议价格。
+  </Step>
+  <Step title="达到新 ATH 时记录下来">
+    如果有效价格高于之前的 `allTimeHighPrice`，Hook 会存储新的 ATH。
+  </Step>
+  <Step title="根据 autoFloorPctBps 计算地板目标">
+    V5 默认值是 `5000`，也就是 50%。
+  </Step>
+  <Step title="地板提高到 ATH 的 50%">
+    当计算出的地板目标高于当前 `floorPrice` 时，Hook 会提高地板价。
+  </Step>
+  <Step title="之后地板不会下降">
+    如果市场价格回落，ATH 和地板价仍然保留。
+  </Step>
+</Steps>
 
 Hook 会为这些变化发出事件：
 

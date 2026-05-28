@@ -7,6 +7,22 @@ description: "关于在 LFG.RICH 创建代币、交易、借贷、推荐奖励�
 
 这里整理了 LFG.RICH 用户经常会问的问题。页面结构参考了应用中的 FAQ，但内容已按照当前 V5 协议规则重新整理。
 
+<CardGroup cols={2}>
+  <Card title="入门" icon="rocket">
+    代币创建、官方代币页面、可选初始买入和当前 V5 发布流程。
+  </Card>
+  <Card title="交易与市场" icon="chart-line">
+    买入、卖出、固定费用、地板保护和 V5 pool 路由。
+  </Card>
+  <Card title="借贷" icon="landmark">
+    抵押品、基于地板价值的借款、borrowMore、还款和固定借贷费用。
+  </Card>
+  <Card title="推荐与奖励" icon="people-arrows">
+    白名单根节点、parent、initial inviter、1% 交易奖励和 2% 借贷奖励。
+  </Card>
+</CardGroup>
+
+
 <Info>
 V5 已经不再支持创建者选择交易手续费。当前协议使用由合约强制执行的固定 V5 手续费。
 </Info>
@@ -68,12 +84,26 @@ V5 的重要变化是：创建者已经**不能选择代币交易手续费**。�
 
 创建后：
 
-1. 代币合约部署到链上；
-2. Factory 注册该代币；
-3. Hook 按 `poolId` 保存代币状态；
-4. Uniswap V4 Pool Manager 流程完成初始化；
-5. 代币可以通过官方 Swap Router 买卖；
-6. 代币页面可以展示价格、地板价、供应量、成交量、交易和借贷数据。
+<Steps>
+  <Step title="代币合约部署到链上">
+    代币会作为 V5 创建流程的一部分部署。
+  </Step>
+  <Step title="Factory 注册该代币">
+    Factory 会把该代币记录为官方 LFG.RICH 代币。
+  </Step>
+  <Step title="Hook 按 poolId 保存代币状态">
+    V5 协议状态按 `poolId` 保存。
+  </Step>
+  <Step title="Pool Manager 流程完成初始化">
+    代币会连接到 Uniswap V4 Pool Manager 和 Hook 流程。
+  </Step>
+  <Step title="代币可以通过官方 Swap Router 交易">
+    买入和卖出使用官方 V5 路由路径。
+  </Step>
+  <Step title="代币页面可以展示协议数据">
+    价格、地板价、供应量、成交量、交易和借贷数据会提供给 App 和集成使用。
+  </Step>
+</Steps>
 
 代币一开始没有流通供应量。只有当用户通过联合曲线买入时，代币才会被铸造。如果创建者执行了初始买入，那么该买入会在发射时为创建者铸造第一批代币余额。
 

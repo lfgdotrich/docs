@@ -7,6 +7,22 @@ LFG.RICH V5 为官方代币内置抵押借贷。用户可以锁定代币作为�
 
 借贷基于协议地板价，而不是短暂市场尖峰。没有清算引擎，也没有持续利息。
 
+<CardGroup cols={2}>
+  <Card title="基于地板价值" icon="shield-halved">
+    借款额度根据协议地板价计算，而不是短期市场尖峰价格。
+  </Card>
+  <Card title="没有清算引擎" icon="lock">
+    V5 借款不使用传统清算机制。
+  </Card>
+  <Card title="固定 3% 费用" icon="percent">
+    借款有一次性 3% 费用，并根据推荐状态在平台和 direct parent/platform 之间拆分。
+  </Card>
+  <Card title="继续借款" icon="arrow-up-right-dots">
+    如果地板价上升，现有抵押品可能可以通过 `borrowMore(poolId)` 借出更多。
+  </Card>
+</CardGroup>
+
+
 ## 关键特性
 
 - 借款能力基于地板价价值。
@@ -22,14 +38,26 @@ LFG.RICH V5 为官方代币内置抵押借贷。用户可以锁定代币作为�
 
 V5 借款流程：
 
-```txt
-1. 解析代币 poolId。
-2. 授权 Hook 转移抵押代币。
-3. 调用 hook.borrow(poolId, amount)。
-4. Hook 将代币转入抵押会计。
-5. Hook 记录债务。
-6. 用户收到扣除借贷手续费后的净 BNB。
-```
+<Steps>
+  <Step title="解析代币 poolId">
+    借款状态按 `poolId` 和用户存储。
+  </Step>
+  <Step title="授权 Hook">
+    必须授权 Hook 转移抵押代币。
+  </Step>
+  <Step title="调用 hook.borrow(poolId, amount)">
+    借款操作通过 Hook 执行，而不是 Swap Router。
+  </Step>
+  <Step title="Hook 锁定抵押品">
+    代币进入抵押会计，并在锁定期间从流通供应中移除。
+  </Step>
+  <Step title="Hook 记录债务">
+    债务按总借款价值记录。
+  </Step>
+  <Step title="用户收到净 BNB">
+    借款人收到扣除固定 3% 借贷手续费后的 BNB。
+  </Step>
+</Steps>
 
 函数：
 

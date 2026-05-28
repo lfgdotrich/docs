@@ -5,33 +5,73 @@ description: LFG.RICH V5 代币如何通过 Hook 管理的联合曲线定价。
 
 官方 LFG.RICH 代币通过 Hook 管理的联合曲线交易，而不是由创建者管理的传统流动性池。
 
+<CardGroup cols={2}>
+  <Card title="Hook 管理价格" icon="chart-line">
+    Hook 使用代币自己的 `poolId` 状态计算买入和卖出结果。
+  </Card>
+  <Card title="官方 Router" icon="route">
+    用户和集成通过 Swap Router 执行交易，而不是任意第三方池。
+  </Card>
+  <Card title="卖出受地板价保护" icon="shield-halved">
+    有效卖出价格不能低于当前协议地板价。
+  </Card>
+  <Card title="可索引状态" icon="database">
+    价格、储备、地板价、ATH、成交量和活动可以从协议状态和事件读取。
+  </Card>
+</CardGroup>
+
+
 联合曲线定义了 BNB 进入池时会铸造多少代币，以及用户卖出并销毁代币时会返回多少 BNB。在 V5 中，这套逻辑由 the Uniswap V4 Hook 强制执行，并通过 Uniswap V4 的 Pool Manager 路由。
 
 ## 买入流程
 
 用户买入官方 V5 代币时：
 
-1. 用户向 the Swap Router `buy(key, minTokensOut)` function 发送 BNB。
-2. Router 进入 Uniswap V4 的 unlock/callback 流程。
-3. Pool Manager 调用 Hook。
-4. Hook 读取该代币的 `poolId` 状态。
-5. Hook 扣除 V5 交易手续费。
-6. 联合曲线计算净 BNB 可以铸造多少代币。
-7. Hook 将代币铸造给买家。
-8. 价格、储备、地板价、ATH、成交量和交易历史可由协议事件和状态索引。
+<Steps>
+  <Step title="BNB 进入 Swap Router">
+    用户使用该代币对应的 PoolKey，把 BNB 发送到 `buy(key, minTokensOut)`。
+  </Step>
+  <Step title="Router 进入 Uniswap V4 流程">
+    Router 使用 Pool Manager 的 unlock/callback 流程。
+  </Step>
+  <Step title="Pool Manager 调用 Hook">
+    Hook 接收 pool 上下文，并应用 LFG.RICH 协议逻辑。
+  </Step>
+  <Step title="Hook 读取 poolId 状态">
+    Hook 读取该代币的 `poolId` 状态，用于价格、地板价、储备、费用和推荐规则。
+  </Step>
+  <Step title="扣除费用并计算曲线输出">
+    先扣除 V5 交易手续费，然后联合曲线根据净 BNB 计算代币输出。
+  </Step>
+  <Step title="铸造代币并更新状态">
+    代币被铸造给买家，价格、储备、地板价、ATH、成交量和交易历史可以从事件和状态中索引。
+  </Step>
+</Steps>
 
 ## 卖出流程
 
 用户卖出官方 V5 代币时：
 
-1. 用户授权 Swap Router 花费该代币。
-2. 用户调用 the Swap Router `sell(key, tokenAmount, minEthOut)` function。
-3. Router 通过 Uniswap V4 路由交易。
-4. Hook 根据联合曲线计算卖出的 BNB 毛额。
-5. Hook 扣除 V5 交易手续费。
-6. 代币被销毁。
-7. 卖家收到扣除手续费后的 BNB。
-8. 卖出价格不能低于协议地板价。
+<Steps>
+  <Step title="授权 Swap Router">
+    卖家授权官方 Swap Router 花费要卖出的代币数量。
+  </Step>
+  <Step title="使用 PoolKey 调用 sell">
+    用户调用 `sell(key, tokenAmount, minEthOut)`。
+  </Step>
+  <Step title="Router 通过 Uniswap V4 路由">
+    Router 进入相同的 Pool Manager 和 Hook 流程。
+  </Step>
+  <Step title="Hook 计算 BNB 输出">
+    Hook 根据联合曲线计算总 BNB 返回值，并应用 V5 费用。
+  </Step>
+  <Step title="代币销毁，BNB 支付给卖家">
+    代币被销毁，卖家收到扣除费用后的 BNB。
+  </Step>
+  <Step title="应用地板保护">
+    卖出价格不能低于协议地板价。
+  </Step>
+</Steps>
 
 ## V5 估算函数
 

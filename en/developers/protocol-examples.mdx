@@ -5,11 +5,39 @@ description: V5 contract interaction examples for LFG.RICH using Ethers, Viem, W
 
 These examples follow the same V5 pattern used by the LFG.RICH application:
 
-1. Resolve the token's `poolId`.
-2. Resolve or build the token's `PoolKey`.
-3. Quote through the Hook.
-4. Execute buys and sells through the Swap Router.
-5. Execute borrow, borrow more, and repay through the Hook.
+<CardGroup cols={2}>
+  <Card title="Ethers.js" icon="code">
+    Includes shared setup, estimates, buy, sell, borrow, borrowMore, and repay examples.
+  </Card>
+  <Card title="Viem" icon="terminal">
+    Shows typed public/wallet client reads and writes for the V5 flow.
+  </Card>
+  <Card title="Web3.js" icon="brackets-curly">
+    Provides examples for integrations still using Web3.js.
+  </Card>
+  <Card title="Python Web3.py" icon="python">
+    Covers backend scripts, bots, and analytics workers that need direct V5 contract calls.
+  </Card>
+</CardGroup>
+
+
+<Steps>
+  <Step title="Resolve the token's poolId">
+    Use API data when available, then fall back to `hook.tokenToPoolId(tokenAddress)`.
+  </Step>
+  <Step title="Resolve or build the PoolKey">
+    Prefer `factory.getPoolKey(tokenAddress)` and only build manually when constants are known.
+  </Step>
+  <Step title="Quote through the Hook">
+    V5 estimate functions include the user wallet address because referral routing can affect fee recipients.
+  </Step>
+  <Step title="Execute buys and sells through the Swap Router">
+    Swap execution uses the token-specific PoolKey.
+  </Step>
+  <Step title="Execute borrow, borrow more, and repay through the Hook">
+    Lending actions use `poolId`, and collateral approvals go to the Hook.
+  </Step>
+</Steps>
 
 <Warning>
 Do not use old V3 examples for V5 tokens. In V5, `estimateBuy` and `estimateSell` include the user address, `createToken` takes `devBuyEth`, and token trades must be routed with the correct `PoolKey`.

@@ -5,21 +5,61 @@ description: Borrow BNB against official LFG.RICH tokens.
 
 Borrowing lets holders lock tokens as collateral and receive BNB based on the token's floor value.
 
+<CardGroup cols={2}>
+  <Card title="Floor-value collateral" icon="shield-halved">
+    Borrowing power is based on protocol floor value, not temporary market spikes.
+  </Card>
+  <Card title="No ongoing interest" icon="clock">
+    V5 borrowing has a fixed one-time fee and no recurring interest.
+  </Card>
+  <Card title="Repay anytime" icon="rotate-left">
+    Partial repayment unlocks collateral proportionally. Full repayment unlocks the remaining collateral.
+  </Card>
+  <Card title="Borrow more" icon="arrow-up-right-dots">
+    If the floor rises, existing locked collateral may support additional borrowing.
+  </Card>
+</CardGroup>
+
+
 ## Borrow
 
-1. Open a token page.
-2. Choose **Borrow**.
-3. Enter the amount of tokens to lock.
-4. Approve the token's Hook contract if needed.
-5. Review the estimated BNB received, debt, and fee.
-6. Confirm the borrow transaction.
+<Steps>
+  <Step title="Open a token page">
+    Use an official LFG.RICH token page so the app can resolve the correct `poolId`.
+  </Step>
+  <Step title="Choose Borrow">
+    Open the borrow panel for that token.
+  </Step>
+  <Step title="Enter the collateral amount">
+    Choose how many tokens to lock as collateral.
+  </Step>
+  <Step title="Approve the Hook if needed">
+    Borrowing uses the Hook as the collateral spender, not the Swap Router.
+  </Step>
+  <Step title="Review BNB received, debt, and fee">
+    Borrowing is based on floor value and applies the fixed V5 3% one-time borrow fee.
+  </Step>
+  <Step title="Confirm the borrow transaction">
+    After confirmation, collateral is locked and BNB is sent to the borrower.
+  </Step>
+</Steps>
 
 ## Repay
 
-1. Open the token page or portfolio borrow tab.
-2. Choose **Repay**.
-3. Enter the BNB amount to repay.
-4. Confirm the repayment transaction.
+<Steps>
+  <Step title="Open the token page or portfolio borrow tab">
+    Find the active borrow position you want to repay.
+  </Step>
+  <Step title="Choose Repay">
+    Open the repayment action for that position.
+  </Step>
+  <Step title="Enter the BNB amount">
+    You can repay partially or close the full debt.
+  </Step>
+  <Step title="Confirm the repayment">
+    Collateral unlocks proportionally as debt is repaid.
+  </Step>
+</Steps>
 
 Collateral is unlocked proportionally as debt is repaid. Full repayment returns all remaining locked tokens.
 

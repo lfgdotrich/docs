@@ -7,6 +7,22 @@ LFG.RICH 的核心理念很简单：代币发行从第一天开始就应该具�
 
 官方 LFG.RICH 代币不依赖创建者自行管理流动性和承诺，而是通过协议逻辑管理交易、储备、地板价保护、借贷和推荐。
 
+<CardGroup cols={2}>
+  <Card title="协议管理交易" icon="chart-line">
+    官方代币通过 Hook 管理的定价和官方 Router 交易，而不是依赖创建者拥有的 LP 流动性。
+  </Card>
+  <Card title="上升式地板保护" icon="shield-halved">
+    V5 地板价基于 ATH 的 50%，一旦提高就不会随着价格回落而降低。
+  </Card>
+  <Card title="内置借贷" icon="landmark">
+    持有人可以锁定官方代币作为抵押品，并按地板价值借出 BNB，没有持续利息。
+  </Card>
+  <Card title="推荐奖励" icon="people-arrows">
+    OTOInvite 通过 initial inviter 和 direct parent 规则，让交易和借贷奖励路径清晰可查。
+  </Card>
+</CardGroup>
+
+
 ## LFG.RICH 想改善的问题
 
 传统 meme 代币发行通常存在类似弱点：

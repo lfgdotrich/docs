@@ -5,6 +5,22 @@ description: LFG.RICH V5 推荐绑定、白名单根节点、parent、initial in
 
 LFG.RICH V5 使用链上推荐合约把钱包绑定到推荐树中。协议会根据这个推荐状态决定交易手续费和借贷手续费中的推荐奖励应该发送给谁。
 
+<CardGroup cols={2}>
+  <Card title="白名单根节点" icon="sitemap">
+    推荐树从白名单地址开始，这些地址是被批准的 root。
+  </Card>
+  <Card title="永久绑定" icon="lock">
+    用户只能绑定一次。绑定后，parent 和 initial inviter 会固定。
+  </Card>
+  <Card title="1% 交易奖励" icon="arrow-right-arrow-left">
+    用户已绑定时，买入和卖出的推荐奖励给该用户的 initial inviter。
+  </Card>
+  <Card title="2% 借贷奖励" icon="landmark">
+    用户已绑定时，borrow 和 borrowMore 奖励给该用户的 direct parent。
+  </Card>
+</CardGroup>
+
+
 推荐绑定对于正常使用协议是可选的。钱包不绑定推荐人也可以创建代币、买入、卖出、借款、还款和使用应用。绑定只用于让钱包加入推荐树，并让该钱包的活动进入推荐奖励路由。
 
 <Warning>
@@ -62,11 +78,23 @@ V5 每次借款和继续借款都有总计 **3.00%** 的借贷手续费，按借
 
 当平台 owner 把一个地址加入白名单时：
 
-1. 该地址成为被批准的推荐根节点；
-2. 该地址会被推荐系统视为已经绑定；
-3. 该地址成为自己的 initial inviter；
-4. 用户可以直接绑定到该地址；
-5. 该地址下面的非白名单用户都会继承同一个 initial inviter。
+<Steps>
+  <Step title="该地址成为被批准的推荐根节点">
+    白名单地址是可以启动有效推荐树的根节点。
+  </Step>
+  <Step title="该地址被视为已经绑定">
+    推荐系统会把白名单地址视为合格地址，不需要 parent。
+  </Step>
+  <Step title="该地址成为自己的 initial inviter">
+    这个 root 会作为其下方用户继承的 initial inviter。
+  </Step>
+  <Step title="用户可以直接绑定到 root">
+    普通用户可以绑定到白名单 root 地址。
+  </Step>
+  <Step title="下级用户继承同一个 initial inviter">
+    该 root 下方的非白名单用户都会继承该 root 作为 initial inviter。
+  </Step>
+</Steps>
 
 普通钱包不能自己变成新的推荐树根节点。普通钱包只有在已经绑定到某个白名单根节点下面之后，才能继续邀请其他用户。
 
@@ -300,15 +328,29 @@ getInfo(user)        -> 一次读取常用推荐字段
 
 网站使用推荐码和推荐链接提升用户体验，但链上的绑定仍然是钱包地址之间的绑定。
 
-```txt
-1. 用户打开推荐链接或粘贴推荐码。
-2. 前端提取推荐码。
-3. API 把推荐码解析为邀请人钱包。
-4. 前端检查邀请人是否有效。
-5. 用户确认绑定。
-6. 前端调用 referral.bind(inviterAddress)。
-7. 后端镜像记录绑定交易，用于面板和索引显示。
-```
+<Steps>
+  <Step title="用户打开推荐链接或粘贴推荐码">
+    前端从 URL 或输入框接收推荐码。
+  </Step>
+  <Step title="前端提取推荐码">
+    App 解析推荐码并准备绑定流程。
+  </Step>
+  <Step title="API 解析邀请人钱包">
+    推荐码会解析为链上绑定使用的邀请人地址。
+  </Step>
+  <Step title="前端检查邀请人资格">
+    邀请人必须是白名单地址，或已经完成绑定。
+  </Step>
+  <Step title="用户确认绑定">
+    绑定是一次性且永久的，因此用户必须明确确认。
+  </Step>
+  <Step title="前端调用 referral.bind(inviterAddress)">
+    链上推荐合约记录绑定关系。
+  </Step>
+  <Step title="后端镜像记录交易">
+    后端镜像用于仪表盘、个人页面和推荐索引视图。
+  </Step>
+</Steps>
 
 推荐码只是找到邀请人钱包的便捷方式。永久的真实来源仍然是链上的推荐合约。
 

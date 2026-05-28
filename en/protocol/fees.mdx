@@ -5,6 +5,22 @@ description: V5 creation, trading, referral, borrowing, treasury, and legacy fee
 
 LFG.RICH V5 fees are handled automatically by the protocol contracts.
 
+<CardGroup cols={2}>
+  <Card title="Creation fee" icon="rocket">
+    Token creation uses the Factory's current creation fee plus optional `devBuyEth` for the creator's initial buy.
+  </Card>
+  <Card title="Trading fee" icon="arrow-right-arrow-left">
+    Buy and sell trades use a fixed 1.25% total fee in V5.
+  </Card>
+  <Card title="Referral split" icon="people-arrows">
+    The 1.00% trading reward goes to the user's initial inviter when referral state is valid.
+  </Card>
+  <Card title="Borrow fee" icon="landmark">
+    Borrowing has a one-time 3.00% fee, with the 2.00% reward routed to the direct parent when available.
+  </Card>
+</CardGroup>
+
+
 <Warning>
 Older documentation that described creator-selected 1% to 10% trading fees belongs to the legacy V3 flow. V5 uses fixed protocol fee constants.
 </Warning>

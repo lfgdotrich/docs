@@ -7,6 +7,22 @@ LFG.RICH is built around a Uniswap V4 Hook architecture. The Hook is not just a 
 
 The user-facing swap flow is intentionally simple, but the on-chain route is precise:
 
+<CardGroup cols={2}>
+  <Card title="Factory" icon="industry">
+    Creates official LFG.RICH tokens and registers them with the Hook.
+  </Card>
+  <Card title="Uniswap V4 Hook" icon="anchor">
+    Enforces pricing, floors, reserves, fees, collateral, borrowing, and hook callbacks.
+  </Card>
+  <Card title="Swap Router" icon="route">
+    Gives users and integrations simple buy and sell entry points.
+  </Card>
+  <Card title="Pool Manager" icon="layer-group">
+    Executes the Uniswap V4 unlock, swap, settlement, and callback flow used by the Hook and Router.
+  </Card>
+</CardGroup>
+
+
 ```txt
 User wallet
   -> Swap Router
@@ -81,11 +97,23 @@ Older V3 examples are not safe for V5 integrations. V5 estimates include the use
 
 Use this V5 pattern:
 
-```txt
-1. Load token data.
-2. Resolve poolId.
-3. Resolve PoolKey.
-4. Estimate with Hook + poolId + user address.
-5. Execute buy/sell with Swap Router + PoolKey.
-6. Execute borrow, borrowMore, and repay with Hook + poolId.
-```
+<Steps>
+  <Step title="Load token data">
+    Start from API token data or a known token address.
+  </Step>
+  <Step title="Resolve poolId">
+    Use `token.pool_id`, `token.poolId`, or `hook.tokenToPoolId(tokenAddress)`.
+  </Step>
+  <Step title="Resolve PoolKey">
+    Use `factory.getPoolKey(tokenAddress)` or build from verified V5 constants.
+  </Step>
+  <Step title="Estimate with Hook + poolId + user address">
+    V5 estimate functions include the wallet address because referral state can change fee recipients.
+  </Step>
+  <Step title="Execute buy/sell with Swap Router + PoolKey">
+    Swap execution uses the token-specific PoolKey.
+  </Step>
+  <Step title="Execute lending with Hook + poolId">
+    Borrow, borrowMore, repay, and state reads use the Hook and `poolId`.
+  </Step>
+</Steps>

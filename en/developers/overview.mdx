@@ -5,6 +5,22 @@ description: Build integrations around LFG.RICH V5.
 
 This section is for developers building dashboards, trading tools, bots, alerts, analytics, and wallet integrations for LFG.RICH.
 
+<CardGroup cols={2}>
+  <Card title="Public API" icon="server" href="/en/developers/api">
+    Read token lists, details, trades, candles, portfolio data, and public protocol configuration.
+  </Card>
+  <Card title="Contract reference" icon="braces" href="/en/developers/contracts">
+    Use V5 addresses and readable ABI string arrays for Factory, Hook, Router, Token, Referral, and Treasury.
+  </Card>
+  <Card title="Protocol examples" icon="terminal" href="/en/developers/protocol-examples">
+    Follow V5 examples for Ethers, Viem, Web3.js, and Python Web3.py.
+  </Card>
+  <Card title="API examples" icon="code" href="/en/developers/examples">
+    Copy practical fetch examples for existing public REST endpoints.
+  </Card>
+</CardGroup>
+
+
 ## V5 is the current integration target
 
 Use V5 contracts for new integrations. V3 exists only for legacy tokens and should be treated as deprecated.
@@ -13,10 +29,20 @@ Use V5 contracts for new integrations. V3 exists only for legacy tokens and shou
 
 For token interactions, do not hardcode an old factory, hook, or PoolKey. Instead:
 
-1. Read the token's `FACTORY()` and `hook()` values when available.
-2. Use the correct Factory to call `getPoolKey(token)`.
-3. Use the returned PoolKey with the SwapRouter for buy/sell.
-4. Use the token's Hook and poolId for estimates, borrowing, repayment, and price reads.
+<Steps>
+  <Step title="Read the token's factory and hook when available">
+    V5 integrations should not assume old contract routes for every token.
+  </Step>
+  <Step title="Resolve the PoolKey from the correct Factory">
+    Use `getPoolKey(token)` when available instead of guessing pool fields.
+  </Step>
+  <Step title="Use the PoolKey with the Swap Router">
+    Buy and sell execution goes through the official Swap Router.
+  </Step>
+  <Step title="Use poolId with the Hook">
+    Estimates, borrowing, repayment, and price reads use the token's Hook and `poolId`.
+  </Step>
+</Steps>
 
 ## Price precision
 

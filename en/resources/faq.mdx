@@ -7,6 +7,22 @@ description: "Common questions about creating, trading, borrowing, referrals, an
 
 Find answers to common questions about LFG.RICH. This page follows the same user-facing FAQ structure used by the app, but the answers are written for the current V5 protocol.
 
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket">
+    Token creation, official token pages, optional initial buy, and current V5 launch flow.
+  </Card>
+  <Card title="Trading & Market" icon="chart-line">
+    Buys, sells, fixed fees, floor protection, and V5 pool routing.
+  </Card>
+  <Card title="Borrowing" icon="landmark">
+    Collateral, floor-value borrowing, borrowMore, repayment, and the fixed borrow fee.
+  </Card>
+  <Card title="Referrals & Rewards" icon="people-arrows">
+    Whitelisted roots, parent, initial inviter, 1% trading rewards, and 2% borrow rewards.
+  </Card>
+</CardGroup>
+
+
 <Info>
 V5 no longer has a creator-selected trading fee. The current protocol uses fixed V5 fees enforced by the contracts.
 </Info>
@@ -68,12 +84,26 @@ Creators should not look for a fee selector in the V5 create-token form. The onl
 
 After creation:
 
-1. the token contract exists on-chain;
-2. the Factory registers the token;
-3. the Hook stores the token state by `poolId`;
-4. the Uniswap V4 Pool Manager flow is initialized;
-5. the token can be bought and sold through the official Swap Router;
-6. the token page can display price, floor, supply, volume, trades, and borrowing data.
+<Steps>
+  <Step title="Token contract exists on-chain">
+    The token is deployed as part of the V5 creation flow.
+  </Step>
+  <Step title="Factory registers the token">
+    The Factory records the token as an official LFG.RICH token.
+  </Step>
+  <Step title="Hook stores token state by poolId">
+    V5 protocol state is keyed by `poolId`.
+  </Step>
+  <Step title="Pool Manager flow is initialized">
+    The token is connected to the Uniswap V4 Pool Manager and Hook flow.
+  </Step>
+  <Step title="Token can trade through the official Swap Router">
+    Buys and sells use the official V5 routing path.
+  </Step>
+  <Step title="Token page can display protocol data">
+    Price, floor, supply, volume, trades, and borrowing data become available to the app and integrations.
+  </Step>
+</Steps>
 
 Tokens start with no circulating supply until buys mint tokens through the bonding curve. If the creator performs an initial buy, that buy mints the creator's first token balance at launch.
 

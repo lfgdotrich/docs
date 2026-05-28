@@ -5,6 +5,22 @@ description: Use the LFG.RICH community trading bot to automate buy and sell str
 
 The LFG.RICH Community Trading Bot is a Python trading bot example for BNB Smart Chain that trades **official LFG.RICH launchpad tokens** through the official LFG.RICH protocol contracts.
 
+<CardGroup cols={2}>
+  <Card title="Self-hosted" icon="server">
+    Run the bot on your own machine or VPS with your own wallet and configuration.
+  </Card>
+  <Card title="V5-aware" icon="route">
+    The bot resolves Hook/Router context and uses the official V5 interaction flow.
+  </Card>
+  <Card title="Dashboard" icon="chart-pie">
+    Review positions, lots, trades, realized/unrealized PnL, and strategy state locally.
+  </Card>
+  <Card title="Dry run first" icon="shield-halved">
+    Start in `dry_run` and use smoke tests before allowing live transactions.
+  </Card>
+</CardGroup>
+
+
 This version is compatible with **LFG.RICH only**:
 
 - buys through the LFG.RICH **Swap Router**;
@@ -25,13 +41,29 @@ The bot monitors one or more LFG.RICH tokens from `config.yaml`.
 
 For each configured token, it:
 
-1. resolves the token pool through the LFG.RICH Hook;
-2. scans Hook `Buy` and `Sell` events;
-3. builds internal price candles;
-4. calculates indicators such as EMA, RSI, trend, pump, dump, and bleed conditions;
-5. decides whether to `BUY`, `SELL`, or `HOLD`;
-6. executes trades through the LFG.RICH Swap Router, unless `dry_run` is enabled;
-7. records confirmed trades and lots in the local SQLite database.
+<Steps>
+  <Step title="Resolve the token pool through the Hook">
+    The bot uses V5 pool context instead of guessing an old pair or pool.
+  </Step>
+  <Step title="Scan Hook Buy and Sell events">
+    Event data is used to build local market history.
+  </Step>
+  <Step title="Build internal price candles">
+    Candles power the strategy indicators and dashboard.
+  </Step>
+  <Step title="Calculate strategy indicators">
+    EMA, RSI, trend, pump, dump, and bleed conditions are evaluated locally.
+  </Step>
+  <Step title="Decide BUY, SELL, or HOLD">
+    The strategy makes a decision from configured rules and current state.
+  </Step>
+  <Step title="Execute through the Swap Router unless dry_run is enabled">
+    Live trades use the official LFG.RICH Swap Router.
+  </Step>
+  <Step title="Record trades and lots in SQLite">
+    Confirmed fills are persisted for accounting, dashboard, and later sells.
+  </Step>
+</Steps>
 
 The bot must resolve and use the token's LFG.RICH pool data. It should not assume a legacy pair address or a PancakeSwap-style pool.
 
@@ -507,9 +539,17 @@ The dashboard uses open lots to calculate:
 
 For LFG tokens, the dashboard prices open lots using this priority:
 
-1. latest valid candle close;
-2. LFG Hook `getEffectivePrice(poolId)` fallback;
-3. zero only if both are unavailable.
+<Steps>
+  <Step title="Use the latest valid candle close">
+    This is the preferred current price source when candle data is available.
+  </Step>
+  <Step title="Fallback to LFG Hook getEffectivePrice(poolId)">
+    If candle data is unavailable, the dashboard reads the protocol effective price.
+  </Step>
+  <Step title="Use zero only when both sources are unavailable">
+    A zero price means the dashboard could not find a safe current price source.
+  </Step>
+</Steps>
 
 ### Useful SQLite commands
 
@@ -700,9 +740,17 @@ The dashboard needs a valid current price.
 
 For LFG tokens, the dashboard now uses:
 
-1. latest valid candle close;
-2. LFG Hook `getEffectivePrice(poolId)` fallback;
-3. zero only if both are unavailable.
+<Steps>
+  <Step title="Use the latest valid candle close">
+    This is the preferred current price source when candle data is available.
+  </Step>
+  <Step title="Fallback to LFG Hook getEffectivePrice(poolId)">
+    If candle data is unavailable, the dashboard reads the protocol effective price.
+  </Step>
+  <Step title="Use zero only when both sources are unavailable">
+    A zero price means the dashboard could not find a safe current price source.
+  </Step>
+</Steps>
 
 If the value is still empty, confirm the bot and dashboard are using the same `state.db` and `config.yaml`.
 
@@ -710,14 +758,32 @@ If the value is still empty, confirm the bot and dashboard are using the same `s
 
 Before running live:
 
-1. Use a dedicated wallet.
-2. Keep only a small amount of BNB in that wallet.
-3. Start with `dry_run: true`.
-4. Run `python -m bot.smoke_test_lfg`.
-5. Run the bot and confirm candles/signals look correct.
-6. Test with `test_mode: true`, `test_action: "BUY"`, and a tiny `test_amount_bnb`.
-7. Confirm the dashboard shows the created lot.
-8. Only then disable `test_mode`.
+<Steps>
+  <Step title="Use a dedicated wallet">
+    Do not run an automated bot from your main wallet.
+  </Step>
+  <Step title="Keep only a small amount of BNB in that wallet">
+    Limit exposure while testing and operating the bot.
+  </Step>
+  <Step title="Start with dry_run enabled">
+    Use `dry_run: true` before allowing live transactions.
+  </Step>
+  <Step title="Run the smoke test">
+    Execute `python -m bot.smoke_test_lfg` before running the bot.
+  </Step>
+  <Step title="Confirm candles and signals look correct">
+    Let the bot run and verify that market data and decisions make sense.
+  </Step>
+  <Step title="Test one tiny BUY in test mode">
+    Use `test_mode: true`, `test_action: "BUY"`, and a tiny `test_amount_bnb`.
+  </Step>
+  <Step title="Confirm the dashboard shows the lot">
+    Make sure the local database and dashboard match the expected result.
+  </Step>
+  <Step title="Only then disable test_mode">
+    Move to live operation only after the small test is confirmed.
+  </Step>
+</Steps>
 
 ## Community note
 

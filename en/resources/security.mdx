@@ -5,6 +5,22 @@ description: Security notes and risk reminders for LFG.RICH users and developers
 
 LFG.RICH is a smart-contract platform. Users and developers should understand the risks before interacting with contracts or building integrations.
 
+<CardGroup cols={2}>
+  <Card title="Wallet safety" icon="wallet">
+    Protect seed phrases, use dedicated wallets for bots, and review transactions before signing.
+  </Card>
+  <Card title="Official routes" icon="route">
+    Use official app pages, API endpoints, and V5 contract addresses when interacting with the protocol.
+  </Card>
+  <Card title="Approval hygiene" icon="key">
+    Approve only the required contract: Swap Router for sells and Hook for borrowing collateral.
+  </Card>
+  <Card title="Bot caution" icon="robot">
+    Start with dry runs, smoke tests, tiny amounts, and separate wallets.
+  </Card>
+</CardGroup>
+
+
 <Warning>
 Never share your seed phrase or private key. LFG.RICH support, admins, bots, and documentation will never need your private key.
 </Warning>
@@ -17,7 +33,7 @@ LFG.RICH reduces common launch risks by using:
 - bonding-curve trading;
 - Uniswap V4 Hook settlement;
 - floor price protection;
-- permanent creator-selected trade fees;
+- fixed protocol fees;
 - collateral borrowing based on protocol-recognized floor value;
 - official contract routing through Factory, Hook, Swap Router, Token, and Pool Manager.
 
@@ -88,13 +104,29 @@ The community Trading Bot is live trading software when `dry_run` is disabled.
 
 Before running live:
 
-1. use a dedicated wallet;
-2. keep only a small amount of BNB in that wallet;
-3. start with `dry_run: true`;
-4. run the smoke test;
-5. test one tiny buy;
-6. confirm the dashboard and lots are correct;
-7. only then consider normal live operation.
+<Steps>
+  <Step title="Use a dedicated wallet">
+    Keep bot activity separate from your main wallet.
+  </Step>
+  <Step title="Keep only a small amount of BNB in that wallet">
+    Limit possible loss during testing and live operation.
+  </Step>
+  <Step title="Start with dry_run enabled">
+    Confirm behavior before allowing transactions.
+  </Step>
+  <Step title="Run the smoke test">
+    Verify RPC, contracts, token context, and basic reads.
+  </Step>
+  <Step title="Test one tiny buy">
+    Use the smallest practical amount before normal operation.
+  </Step>
+  <Step title="Confirm dashboard and lots are correct">
+    Make sure records match wallet and on-chain behavior.
+  </Step>
+  <Step title="Only then consider normal live operation">
+    Move gradually from testing to real usage.
+  </Step>
+</Steps>
 
 Do not run a trading bot with a wallet containing funds you cannot afford to risk.
 

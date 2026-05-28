@@ -5,11 +5,39 @@ description: 使用 Ethers、Viem、Web3.js 和 Python Web3.py 与 LFG.RICH V5 �
 
 这些示例遵循 LFG.RICH 应用本身使用的 V5 模式：
 
-1. 解析代币的 `poolId`。
-2. 解析或构建代币的 `PoolKey`。
-3. 通过 Hook 获取报价。
-4. 通过 Swap Router 执行买入和卖出。
-5. 通过 Hook 执行 borrow、borrow more 和 repay。
+<CardGroup cols={2}>
+  <Card title="Ethers.js" icon="code">
+    包含共享设置、估算、买入、卖出、借款、追加借款和还款示例。
+  </Card>
+  <Card title="Viem" icon="terminal">
+    展示 V5 流程的类型化 public client / wallet client 读取与写入。
+  </Card>
+  <Card title="Web3.js" icon="brackets-curly">
+    为仍在使用 Web3.js 的集成方提供示例。
+  </Card>
+  <Card title="Python Web3.py" icon="python">
+    覆盖需要直接调用 V5 合约的后端脚本、机器人和分析任务。
+  </Card>
+</CardGroup>
+
+
+<Steps>
+  <Step title="解析代币的 poolId">
+    可用时使用 API 数据，然后 fallback 到 `hook.tokenToPoolId(tokenAddress)`。
+  </Step>
+  <Step title="解析或构建 PoolKey">
+    优先使用 `factory.getPoolKey(tokenAddress)`，只有在已知常量时才手动构建。
+  </Step>
+  <Step title="通过 Hook 获取报价">
+    V5 估算函数包含用户钱包地址，因为推荐路由会影响费用接收方。
+  </Step>
+  <Step title="通过 Swap Router 执行买入和卖出">
+    交易执行使用该代币对应的 PoolKey。
+  </Step>
+  <Step title="通过 Hook 执行 borrow、borrow more 和 repay">
+    借贷操作使用 `poolId`，抵押品授权给 Hook。
+  </Step>
+</Steps>
 
 <Warning>
 不要把旧的 V3 示例用于 V5 代币。在 V5 中，`estimateBuy` 和 `estimateSell` 都需要用户地址，`createToken` 使用 `devBuyEth`，并且代币交易必须使用正确的 `PoolKey` 路由。

@@ -5,6 +5,22 @@ description: 将官方 LFG.RICH BuyBot 添加到 Telegram 群组，跟踪实时�
 
 官方 LFG.RICH BuyBot 帮助社区直接在 Telegram 群组中跟踪 LFG.RICH 代币的实时活动。
 
+<CardGroup cols={2}>
+  <Card title="实时买入提醒" icon="bell">
+    在 Telegram 群组内直接显示官方 LFG.RICH 代币的买入活动。
+  </Card>
+  <Card title="借款提醒" icon="landmark">
+    当用户用代币抵押借出 BNB 时通知社区。
+  </Card>
+  <Card title="代币命令" icon="terminal">
+    使用 `/settoken`、`/deltoken`、`/tokens`、`/price`、`/info` 和 `/lang` 管理机器人。
+  </Card>
+  <Card title="群组语言" icon="language">
+    为每个 Telegram 群组配置机器人语言。
+  </Card>
+</CardGroup>
+
+
 Bot 用户名：
 
 ```txt
@@ -42,13 +58,29 @@ BuyBot 可以帮助代币社区：
 
 ## 将机器人添加到群组
 
-1. 打开 Telegram。
-2. 搜索 `@lfgdotrich_buybot`。
-3. 将机器人添加到你的 Telegram 群组。
-4. 给机器人管理员权限，确保它可以发送消息。
-5. 在群组中运行 `/settoken`。
-6. 选择群组语言。
-7. 当机器人要求时，发送 LFG.RICH 代币合约地址。
+<Steps>
+  <Step title="打开 Telegram">
+    使用管理代币社区群组的 Telegram 账号。
+  </Step>
+  <Step title="搜索 @lfgdotrich_buybot">
+    找到官方 LFG.RICH BuyBot 账号。
+  </Step>
+  <Step title="将机器人添加到群组">
+    把它添加到你希望显示提醒的 Telegram 群组。
+  </Step>
+  <Step title="给机器人管理员权限">
+    机器人需要权限才能在群组中发送提醒消息。
+  </Step>
+  <Step title="运行 /settoken">
+    在群组内启动代币设置流程。
+  </Step>
+  <Step title="选择群组语言">
+    选择该群组用于机器人回复和提醒的语言。
+  </Step>
+  <Step title="发送官方代币合约地址">
+    使用 LFG.RICH 代币合约地址，不要使用交易哈希、pair 地址或 poolId。
+  </Step>
+</Steps>
 
 <Info>
 群组设置必须由群主，或拥有添加管理员权限的群组管理员完成，因为机器人需要管理员权限才能在群组中发送提醒。
@@ -206,11 +238,23 @@ BuyBot 可以帮助代币社区：
 
 检查以下内容：
 
-1. 已经通过 `/settoken` 添加代币。
-2. 地址是代币合约地址，不是交易哈希、pair 地址或 poolId。
-3. 该代币是在 LFG.RICH 上创建的。
-4. 机器人有权限在群组中发送消息。
-5. 添加代币之后确实发生了新的买入或借贷活动。
+<Steps>
+  <Step title="确认代币已通过 /settoken 添加">
+    运行 `/tokens` 检查群组已经配置哪些代币。
+  </Step>
+  <Step title="确认地址是代币合约地址">
+    不要使用交易哈希、pair 地址或 poolId。
+  </Step>
+  <Step title="确认代币是在 LFG.RICH 上创建的">
+    BuyBot 是为官方 LFG.RICH 代币设计的。
+  </Step>
+  <Step title="确认机器人可以发送消息">
+    机器人必须有权限在群组发言。
+  </Step>
+  <Step title="确认设置后发生了新活动">
+    提醒会根据添加代币之后发生的新买入或借贷活动生成。
+  </Step>
+</Steps>
 
 ### 代币地址被拒绝
 

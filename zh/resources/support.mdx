@@ -5,6 +5,22 @@ description: 在哪里获得 LFG.RICH 帮助。
 
 如需 LFG.RICH 帮助，请使用应用和文档导航中的官方链接。
 
+<CardGroup cols={2}>
+  <Card title="社区" icon="telegram" href="https://t.me/LfgRichOfficial">
+    加入官方 Telegram 社区进行讨论和获取支持。
+  </Card>
+  <Card title="社交更新" icon="x-twitter" href="https://x.com/lfgdotrich">
+    在 X 上关注 LFG.RICH 获取公开更新。
+  </Card>
+  <Card title="开发者源码" icon="github" href="https://github.com/lfgdotrich">
+    查看可用的官方公开仓库和示例。
+  </Card>
+  <Card title="BuyBot 帮助" icon="robot" href="/zh/resources/buybot">
+    请求支持前，先查看 BuyBot 命令和故障排查。
+  </Card>
+</CardGroup>
+
+
 ## 请求帮助前
 
 请提供足够信息，让别人不需要猜测就能理解问题。
@@ -65,11 +81,23 @@ description: 在哪里获得 LFG.RICH 帮助。
 
 检查：
 
-1. 机器人是否在 Telegram 群组中。
-2. 机器人是否有发送消息权限。
-3. 群组管理员是否运行了 `/settoken`。
-4. 代币地址是否属于官方 LFG.RICH 代币。
-5. 添加代币后是否发生了新的活动。
+<Steps>
+  <Step title="确认机器人在 Telegram 群组中">
+    机器人必须在需要显示提醒的群组内。
+  </Step>
+  <Step title="确认机器人可以发送消息">
+    Telegram 权限必须允许机器人发言。
+  </Step>
+  <Step title="确认已经完成 /settoken">
+    群组管理员必须先配置代币，提醒才会开始。
+  </Step>
+  <Step title="确认代币是官方代币">
+    地址应属于官方 LFG.RICH 代币。
+  </Step>
+  <Step title="确认设置后发生了新活动">
+    提醒根据配置之后的新活动生成。
+  </Step>
+</Steps>
 
 如果命令没有显示，尝试：
 

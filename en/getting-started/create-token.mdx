@@ -5,6 +5,22 @@ description: Launch an official LFG.RICH token.
 
 LFG.RICH lets creators launch official tokens directly from the app. Each official token is created through the LFG.RICH Factory and connected to the platform's bonding-curve, floor, referral, and borrowing mechanics.
 
+<CardGroup cols={2}>
+  <Card title="Metadata" icon="id-card">
+    Prepare the token name, symbol, logo, description, and community links before launching.
+  </Card>
+  <Card title="Optional initial buy" icon="cart-shopping">
+    The current V5 form allows an optional initial buy during creation.
+  </Card>
+  <Card title="Fixed V5 fees" icon="percent">
+    V5 uses fixed protocol fees. There is no creator-selected trading-fee field in the current form.
+  </Card>
+  <Card title="Official protocol route" icon="route">
+    New tokens are registered by the Factory and connected to the Hook, Router, floor, referral, and borrowing systems.
+  </Card>
+</CardGroup>
+
+
 ## What you need
 
 Before creating a token, prepare:
@@ -21,12 +37,26 @@ The current form does **not** include a trading-fee selector. V5 uses fixed prot
 
 ## Creation flow
 
-1. Connect a wallet on BNB Smart Chain.
-2. Open **Create** in the app.
-3. Add the token name, symbol, logo, description, and links.
-4. Optionally enter an initial buy amount. This lets the creator buy some of the token in the same launch transaction.
-5. Submit the transaction from your wallet.
-6. After confirmation, the token appears as an official LFG.RICH token and can be traded through the app.
+<Steps>
+  <Step title="Connect a wallet on BNB Smart Chain">
+    Use the wallet that will create the token and pay the gas, creation fee, and optional initial buy.
+  </Step>
+  <Step title="Open Create in the app">
+    Go to the token creation form from the LFG.RICH app.
+  </Step>
+  <Step title="Add token details">
+    Enter the token name, symbol, logo, description, and community links.
+  </Step>
+  <Step title="Optionally enter an initial buy amount">
+    The initial buy lets the creator buy some of the token in the same launch transaction.
+  </Step>
+  <Step title="Submit the transaction">
+    Confirm the transaction from your wallet. V5 does not ask the creator to select a trading fee.
+  </Step>
+  <Step title="Token becomes official">
+    After confirmation, the token appears as an official LFG.RICH token and can be traded through the app.
+  </Step>
+</Steps>
 
 ## Initial buy
 
