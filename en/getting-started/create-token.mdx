@@ -3,9 +3,7 @@ title: Create a Token
 description: Launch an official LFG.RICH token.
 ---
 
-LFG.RICH lets creators launch official tokens directly from the app.
-
-Each official token is created through the LFG.RICH factory and connected to the platform's bonding-curve, floor, fee, and borrowing mechanics.
+LFG.RICH lets creators launch official tokens directly from the app. Each official token is created through the LFG.RICH Factory and connected to the platform's bonding-curve, floor, referral, and borrowing mechanics.
 
 ## What you need
 
@@ -16,40 +14,30 @@ Before creating a token, prepare:
 - Token logo.
 - Short description.
 - Website, X/Twitter, Telegram, or other community links.
-- Trading fee selection between **1% and 10%**.
-- BNB for gas.
+- Optional initial buy amount in BNB.
+- BNB for gas and any protocol creation fee.
+
+The current form does **not** include a trading-fee selector. V5 uses fixed protocol fees.
 
 ## Creation flow
 
-<Steps>
-  <Step title="Connect wallet">
-    Connect a wallet on BNB Smart Chain.
-  </Step>
-  <Step title="Enter token details">
-    Add the token name, symbol, logo, description, and links.
-  </Step>
-  <Step title="Choose trading fee">
-    Select the permanent trading fee for the token. This fee applies to buys and sells.
-  </Step>
-  <Step title="Create token">
-    Submit the creation transaction from your wallet.
-  </Step>
-  <Step title="Token becomes official">
-    After confirmation, the token appears as an official LFG.RICH token and can be traded through the app.
-  </Step>
-</Steps>
+1. Connect a wallet on BNB Smart Chain.
+2. Open **Create** in the app.
+3. Add the token name, symbol, logo, description, and links.
+4. Optionally enter an initial buy amount. This lets the creator buy some of the token in the same launch transaction.
+5. Submit the transaction from your wallet.
+6. After confirmation, the token appears as an official LFG.RICH token and can be traded through the app.
 
-## Trading fee
+## Initial buy
 
-The creator-selected trading fee is permanent.
+The initial buy is optional. If used, the creator sends additional BNB with the creation transaction. The Factory receives:
 
-The total fee is split between:
+```txt
+creation fee + initial buy amount
+```
 
-- A fixed **0.3%** LFG.RICH platform fee.
-- The remaining portion, which goes to the token's floor boost.
-
-Example: with a **5%** total trading fee, **0.3%** is the platform fee and **4.7%** goes to floor boost.
+The initial buy still follows the protocol's buy logic and fee rules.
 
 ## Token metadata
 
-Token metadata such as logo, description, and social links is displayed across the app and can be used by integrations such as token pages, trackers, dashboards, and buybots.
+Token metadata such as logo, description, and social links is displayed across the app and can be used by token pages, trackers, dashboards, and community tools.

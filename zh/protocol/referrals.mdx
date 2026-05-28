@@ -1,0 +1,321 @@
+---
+title: 推荐机制
+description: LFG.RICH V5 推荐绑定、白名单根节点、parent、initial inviter 与奖励路由的工作方式。
+---
+
+LFG.RICH V5 使用链上推荐合约把钱包绑定到推荐树中。协议会根据这个推荐状态决定交易手续费和借贷手续费中的推荐奖励应该发送给谁。
+
+推荐绑定对于正常使用协议是可选的。钱包不绑定推荐人也可以创建代币、买入、卖出、借款、还款和使用应用。绑定只用于让钱包加入推荐树，并让该钱包的活动进入推荐奖励路由。
+
+<Warning>
+推荐绑定是永久的。钱包一旦绑定到某个邀请人，就不能解绑、不能更换邀请人，也不能移动到另一棵推荐树。
+</Warning>
+
+## 核心逻辑
+
+推荐系统有两条不同的奖励路径：
+
+| 行为 | 奖励比例 | 支付给谁 | 原因 |
+| --- | ---: | --- | --- |
+| 买入 / 卖出 | 交易金额的 1.00% | 交易者的 **initial inviter** | 交易奖励进入该推荐分支的白名单根节点。 |
+| 借款 / 继续借款 | 借款价值的 2.00% | 借款人的 **direct parent** | 借贷奖励进入直接邀请借款人的地址。 |
+
+这个区别非常重要。**initial inviter** 和 **parent** 在直接邀请时可以是同一个地址，但在多层推荐树中经常不是同一个地址。
+
+## 手续费拆分总结
+
+### 交易手续费
+
+V5 每次买入和卖出都有总计 **1.25%** 的交易手续费。
+
+| 交易者状态 | 平台 | Initial inviter | 总交易手续费 |
+| --- | ---: | ---: | ---: |
+| 已绑定用户 | 0.25% | 1.00% | 1.25% |
+| 未绑定用户 | 1.25% | 0.00% | 1.25% |
+
+当交易者已绑定时，1.00% 的邀请奖励进入交易者的 **initial inviter**。当交易者未绑定时，没有可奖励的邀请人，因此完整 1.25% 进入平台侧。
+
+### 借贷手续费
+
+V5 每次借款和继续借款都有总计 **3.00%** 的借贷手续费，按借款价值计算。
+
+| 借款人状态 | 平台 | Direct parent | 总借贷手续费 |
+| --- | ---: | ---: | ---: |
+| 有 parent 的已绑定用户 | 1.00% | 2.00% | 3.00% |
+| 未绑定用户 / 没有 parent | 3.00% | 0.00% | 3.00% |
+
+**2.00%** 的 parent 奖励是总 3.00% 借贷手续费的一部分。它是**借款价值的 2.00%**，不是 3.00% 手续费中的 2.00%。
+
+## 推荐角色
+
+| 角色 | 含义 |
+| --- | --- |
+| 白名单地址 | 由平台 owner 批准的根地址。白名单地址作为推荐系统的根节点。 |
+| Parent | 直接邀请用户的地址，也就是用户上一级地址。 |
+| Initial inviter | 用户所在推荐分支顶部的第一个白名单地址。这个根地址接收 1.00% 的交易奖励。 |
+| 已绑定用户 | 已经成功调用 `bind(inviter)` 的钱包。 |
+| 未绑定用户 | 尚未加入任何推荐树的钱包。 |
+
+## 白名单地址
+
+白名单地址非常重要，因为它们创建推荐树的根节点。
+
+当平台 owner 把一个地址加入白名单时：
+
+1. 该地址成为被批准的推荐根节点；
+2. 该地址会被推荐系统视为已经绑定；
+3. 该地址成为自己的 initial inviter；
+4. 用户可以直接绑定到该地址；
+5. 该地址下面的非白名单用户都会继承同一个 initial inviter。
+
+普通钱包不能自己变成新的推荐树根节点。普通钱包只有在已经绑定到某个白名单根节点下面之后，才能继续邀请其他用户。
+
+## 绑定规则
+
+| 规则 | 说明 |
+| --- | --- |
+| 只能绑定一次 | 钱包不能重复绑定。 |
+| 绑定是永久的 | 绑定后的邀请人不能更改。 |
+| 邀请人必须有效 | 邀请人必须已经绑定，或者本身是白名单地址。 |
+| 不能绑定自己 | 用户不能绑定自己的推荐码或自己的钱包。 |
+| 一个 parent | 每个已绑定用户只有一个 direct parent。 |
+| 一个 initial inviter | 每个已绑定用户只有一个从根节点继承来的 initial inviter。 |
+| 白名单由 owner 控制 | 只有推荐合约 owner 可以添加或移除白名单根地址。 |
+
+应用通常让用户使用推荐码，而不是直接粘贴钱包地址。前端会把推荐码解析为邀请人钱包，检查该邀请人是否有效，然后调用链上的 `bind(inviter)` 函数。
+
+## 推荐链如何确定
+
+当用户 `A` 绑定到邀请人 `B` 时：
+
+```txt
+A.parent = B
+```
+
+然后 initial inviter 按以下规则确定：
+
+```txt
+如果 B 是白名单地址：
+    A.initialInviter = B
+否则：
+    A.initialInviter = B.initialInviter
+```
+
+这意味着即使推荐树有很多层，initial inviter 也始终是该分支最顶部的白名单根地址。
+
+## 直接邀请示例
+
+设置：
+
+```txt
+W1 是白名单地址
+Alice 绑定到 W1
+```
+
+推荐树：
+
+```txt
+W1（白名单根节点）
+ └── Alice
+```
+
+Alice 的推荐状态：
+
+| 字段 | 值 |
+| --- | --- |
+| `parent` | `W1` |
+| `initialInviter` | `W1` |
+
+如果 Alice 买入 1 BNB 的代币：
+
+| 手续费部分 | 金额 | 接收方 |
+| --- | ---: | --- |
+| 平台手续费 | 0.0025 BNB | 平台 |
+| 邀请奖励 | 0.0100 BNB | `W1` |
+| 进入联合曲线 | 0.9875 BNB | 代币池会计 |
+
+如果 Alice 借出 1 BNB 价值：
+
+| 手续费部分 | 金额 | 接收方 |
+| --- | ---: | --- |
+| 平台手续费 | 0.0100 BNB | 平台 |
+| Parent 奖励 | 0.0200 BNB | `W1` |
+| Alice 实收 | 0.9700 BNB | Alice |
+
+在直接邀请中，parent 和 initial inviter 是同一个地址，所以同一个钱包会接收两种奖励。
+
+## 两层推荐示例
+
+设置：
+
+```txt
+W1 是白名单地址
+Alice 绑定到 W1
+Bob 绑定到 Alice
+```
+
+推荐树：
+
+```txt
+W1（白名单根节点）
+ └── Alice（parent = W1，initialInviter = W1）
+      └── Bob（parent = Alice，initialInviter = W1）
+```
+
+Bob 的推荐状态：
+
+| 字段 | 值 |
+| --- | --- |
+| `parent` | `Alice` |
+| `initialInviter` | `W1` |
+
+如果 Bob 买入或卖出，**1.00% 的交易奖励进入 W1**，因为 W1 是 Bob 的 initial inviter。
+
+如果 Bob 借款或继续借款，**2.00% 的借贷奖励进入 Alice**，因为 Alice 是 Bob 的 direct parent。
+
+<Note>
+这是 V5 的关键规则：交易奖励跟随 initial inviter，借贷奖励跟随 direct parent。
+</Note>
+
+## 多层推荐示例
+
+设置：
+
+```txt
+W1 是白名单地址
+Alice 绑定到 W1
+Bob 绑定到 Alice
+Charlie 绑定到 Bob
+Diana 绑定到 Charlie
+```
+
+推荐树：
+
+```txt
+W1（白名单根节点）
+ └── Alice（parent = W1，initialInviter = W1）
+      └── Bob（parent = Alice，initialInviter = W1）
+           └── Charlie（parent = Bob，initialInviter = W1）
+                └── Diana（parent = Charlie，initialInviter = W1）
+```
+
+Diana 的交易活动：
+
+| 行为 | 奖励 | 接收方 | 原因 |
+| --- | ---: | --- | --- |
+| 买入 | 交易金额的 1.00% | `W1` | W1 是 Diana 的 initial inviter。 |
+| 卖出 | 交易金额的 1.00% | `W1` | W1 是 Diana 的 initial inviter。 |
+
+Diana 的借贷活动：
+
+| 行为 | 奖励 | 接收方 | 原因 |
+| --- | ---: | --- | --- |
+| 借款 | 借款价值的 2.00% | `Charlie` | Charlie 是 Diana 的 direct parent。 |
+| 继续借款 | 新增借款价值的 2.00% | `Charlie` | Charlie 是 Diana 的 direct parent。 |
+
+## 多个白名单根节点
+
+不同白名单地址会形成彼此独立的推荐树。
+
+```txt
+W1（白名单根节点）              W2（白名单根节点）
+ └── Alice                       └── Bob
+      └── Charlie                     └── Diana
+```
+
+| 用户 | Parent | Initial inviter |
+| --- | --- | --- |
+| Alice | W1 | W1 |
+| Charlie | Alice | W1 |
+| Bob | W2 | W2 |
+| Diana | Bob | W2 |
+
+如果 Charlie 交易，1.00% 的交易奖励进入 `W1`。如果 Diana 交易，1.00% 的交易奖励进入 `W2`。
+
+推荐树不会合并。用户一旦绑定到某个白名单根节点下面，该用户的分支就会永久属于这个根节点。
+
+## 未绑定用户示例
+
+如果 Eve 从未绑定邀请人，她就是未绑定用户。
+
+如果 Eve 买入 1 BNB 的代币：
+
+| 手续费部分 | 金额 | 接收方 |
+| --- | ---: | --- |
+| 平台手续费 | 0.0125 BNB | 平台 |
+| 邀请奖励 | 0.0000 BNB | 无 |
+| 进入联合曲线 | 0.9875 BNB | 代币池会计 |
+
+如果 Eve 借出 1 BNB 价值：
+
+| 手续费部分 | 金额 | 接收方 |
+| --- | ---: | --- |
+| 平台手续费 | 0.0300 BNB | 平台 |
+| Parent 奖励 | 0.0000 BNB | 无 |
+| Eve 实收 | 0.9700 BNB | Eve |
+
+用户仍然可以正常使用协议。区别只是手续费路由：没有有效推荐绑定时，就没有 initial inviter 或 parent 可以接收奖励。
+
+## 奖励路由表
+
+| 用户行为 | 已绑定用户：平台 | 已绑定用户：推荐接收方 | 未绑定用户：平台 | 未绑定用户：推荐接收方 |
+| --- | ---: | ---: | ---: | ---: |
+| 买入 | 0.25% | 1.00% 给 initial inviter | 1.25% | 无 |
+| 卖出 | 0.25% | 1.00% 给 initial inviter | 1.25% | 无 |
+| 借款 | 1.00% | 2.00% 给 direct parent | 3.00% | 无 |
+| 继续借款 | 1.00% | 2.00% 给 direct parent | 3.00% | 无 |
+
+## 合约函数
+
+推荐合约暴露了应用、集成和协议手续费路由需要使用的推荐状态：
+
+```solidity
+function isWhitelist(address user) view returns (bool);
+function initialInviter(address user) view returns (address);
+function parent(address user) view returns (address);
+function inviteCount(address user) view returns (uint256);
+function isBound(address user) view returns (bool);
+function bind(address inviter);
+function getInfo(address user)
+    view
+    returns (
+        address _initialInviter,
+        address _parent,
+        uint256 _inviteCount,
+        bool _isBound
+    );
+```
+
+显示或应用推荐绑定前，常用检查包括：
+
+```txt
+isBound(user)        -> 用户是否已经加入推荐树
+parent(user)         -> 直接邀请人
+initialInviter(user) -> 交易奖励使用的白名单根节点
+isWhitelist(user)    -> 该地址是否是白名单根节点
+getInfo(user)        -> 一次读取常用推荐字段
+```
+
+## 前端推荐码流程
+
+网站使用推荐码和推荐链接提升用户体验，但链上的绑定仍然是钱包地址之间的绑定。
+
+```txt
+1. 用户打开推荐链接或粘贴推荐码。
+2. 前端提取推荐码。
+3. API 把推荐码解析为邀请人钱包。
+4. 前端检查邀请人是否有效。
+5. 用户确认绑定。
+6. 前端调用 referral.bind(inviterAddress)。
+7. 后端镜像记录绑定交易，用于面板和索引显示。
+```
+
+推荐码只是找到邀请人钱包的便捷方式。永久的真实来源仍然是链上的推荐合约。
+
+## 重要集成说明
+
+- 显示“应用推荐码”之前，必须检查用户是否已经绑定。
+- 绑定之前，必须检查邀请人是否已经绑定或是否是白名单地址。
+- 用户绑定后，不要提供更换邀请人的操作。
+- 不要只依靠前端假设计算推荐奖励。应读取推荐合约和协议手续费数据。
+- 不要混淆 1.00% 的交易奖励和 2.00% 的借贷奖励。它们使用不同的接收方。

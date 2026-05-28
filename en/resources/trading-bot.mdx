@@ -3,35 +3,726 @@ title: Trading Bot
 description: Use the LFG.RICH community trading bot to automate buy and sell strategies for LFG.RICH tokens.
 ---
 
-The LFG.RICH Trading Bot is a community Python trading bot for users and developers who want to automate **buy and sell strategies** for official LFG.RICH tokens on **BNB Smart Chain**.
+The LFG.RICH Community Trading Bot is a Python trading bot example for BNB Smart Chain that trades **official LFG.RICH launchpad tokens** through the official LFG.RICH protocol contracts.
 
-The bot connects directly to the LFG.RICH protocol contracts. It uses Hook `Buy` and `Sell` events to build local candles, gets protocol price estimates, and executes trades through the official LFG.RICH SwapRouter.
+This version is compatible with **LFG.RICH only**:
 
-<Info>
-The trading bot supports **buy and sell only**. It does not use the borrowing, borrow-more, or repay functions of the protocol.
-</Info>
+- buys through the LFG.RICH **Swap Router**;
+- sells through the LFG.RICH **Swap Router**;
+- builds candles from LFG.RICH Uniswap V4 Hook `Buy` and `Sell` events;
+- uses the LFG.RICH **Uniswap V4 Hook** for price and quote estimates;
+- does **not** use PancakeSwap V2;
+- does **not** use PancakeSwap V3;
+- does **not** borrow, borrow more, or repay.
 
-## Source code
+<Warning>
+This is community trading software. Use a dedicated wallet, start with small amounts, and test everything before running with real funds.
+</Warning>
 
-The English version of the trading bot is available on GitHub:
+## How the bot works
 
-<Card title="LFG.RICH Trading Bot" icon="github" href="https://github.com/lfgdotrich/LFG.RICH-Trading-Bot">
-  View the source code, installation steps, configuration examples, and dashboard instructions.
-</Card>
+The bot monitors one or more LFG.RICH tokens from `config.yaml`.
 
-## What the bot includes
+For each configured token, it:
 
-- LFG.RICH-only automated trading through the official SwapRouter.
-- Buy and sell execution for official LFG.RICH tokens.
-- Candle building from protocol `Buy` and `Sell` events.
-- Strategy signals using EMA, RSI, trend, pump, dump, and bleed detection.
-- Dry-run mode for testing strategy decisions before live trading.
-- Test mode for controlled buy or sell transactions.
-- Local SQLite state database for trades, lots, positions, and candle cache.
-- Optional Streamlit dashboard for positions, lots, PnL, and bot state.
+1. resolves the token pool through the LFG.RICH Hook;
+2. scans Hook `Buy` and `Sell` events;
+3. builds internal price candles;
+4. calculates indicators such as EMA, RSI, trend, pump, dump, and bleed conditions;
+5. decides whether to `BUY`, `SELL`, or `HOLD`;
+6. executes trades through the LFG.RICH Swap Router, unless `dry_run` is enabled;
+7. records confirmed trades and lots in the local SQLite database.
 
-## Recommended usage
+The bot must resolve and use the token's LFG.RICH pool data. It should not assume a legacy pair address or a PancakeSwap-style pool.
 
-Start with a dedicated wallet and a small BNB balance. Run the smoke test first, run the bot in dry-run mode, and then test with a tiny live buy before enabling normal live operation.
+## Requirements
 
-The dashboard depends on the bot's local SQLite database. It shows lots and PnL only after the bot has created or rebuilt local trade records.
+### Tested environment
+
+The bot has been tested with:
+
+```text
+Ubuntu 20.04 / Debian-style server
+Python 3.8
+SQLite state database
+BNB Smart Chain RPC with eth_getLogs support
+```
+
+Recommended Python versions for new users:
+
+```text
+Python 3.10 or Python 3.11
+```
+
+Python 3.8 is still supported by the pinned dependency versions included in the bot package.
+
+Do **not** run the bot with Python 2. If you see an error path like this:
+
+```text
+/usr/lib/python2.7/...
+```
+
+you are using the wrong Python version.
+
+### Required system components
+
+The bot needs:
+
+- Python 3;
+- Python virtual environment support;
+- `pip`;
+- SQLite;
+- a BNB Smart Chain RPC endpoint with `eth_getLogs` support;
+- a wallet private key for live trading.
+
+### Python dependencies
+
+Runtime dependencies are pinned in:
+
+```text
+requirements.txt
+```
+
+Dashboard dependencies are pinned separately in:
+
+```text
+requirements-dashboard.txt
+```
+
+Important compatibility notes:
+
+- `aiohappyeyeballs==2.6.1` is intentionally **not** used because it does not work with Python 3.8.
+- `streamlit==1.40.1` is used because `1.40.2` was not installable in the tested Python 3.8 environment.
+- The dashboard uses `use_container_width=True`, not newer Streamlit `width="stretch"` syntax.
+- The code includes Python 3.8 compatibility fixes where needed.
+
+## Installation on Linux / VPS
+
+Use these steps on Ubuntu/Debian-style servers.
+
+### 1. Install system packages
+
+For Python 3.8:
+
+```bash
+apt update
+apt install -y python3.8-venv python3-pip python3-dev build-essential sqlite3
+```
+
+If your server uses another Python 3 version, install the generic venv package instead:
+
+```bash
+apt update
+apt install -y python3-venv python3-pip python3-dev build-essential sqlite3
+```
+
+### 2. Download or clone the project
+
+Example:
+
+```bash
+cd /var/www
+git clone https://github.com/lfgdotrich/LFG.RICH-Trading-Bot.git
+cd LFG.RICH-Trading-Bot
+```
+
+If you are using a ZIP instead, upload/unzip it and then enter the project directory.
+
+### 3. Create a clean virtual environment
+
+```bash
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Your terminal should now show `(.venv)`.
+
+### 4. Upgrade packaging tools
+
+```bash
+python -m pip install --upgrade pip setuptools wheel
+```
+
+### 5. Install bot dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 6. Create local configuration files
+
+```bash
+cp .env.example .env
+cp config.yaml.example config.yaml
+```
+
+### 7. Confirm the environment
+
+```bash
+which python
+python --version
+python -m pip show web3
+```
+
+Expected `which python` should point inside this project:
+
+```text
+/var/www/LFG.RICH-Trading-Bot/.venv/bin/python
+```
+
+## Installation on Windows
+
+Windows is supported for local testing, development, and community usage. Linux/VPS is recommended for long-running 24/7 operation.
+
+Use PowerShell.
+
+### 1. Install Python
+
+Install Python 3.10 or 3.11 from the official Python website.
+
+During installation, enable:
+
+```text
+Add Python to PATH
+```
+
+### 2. Open PowerShell and enter the project folder
+
+Example:
+
+```powershell
+cd C:\path\to\LFG.RICH-Trading-Bot
+```
+
+### 3. Create and activate a virtual environment
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks activation, run:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Then activate again:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### 4. Install dependencies
+
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
+```
+
+### 5. Create local config files
+
+```powershell
+copy .env.example .env
+copy config.yaml.example config.yaml
+```
+
+## Environment configuration
+
+Create a `.env` file in the project root.
+
+Example:
+
+```env
+# Tested with NowNodes, Quicknode and publicnode. Other RPCs should work as well
+BSC_RPC_URL="https://bsc-rpc.publicnode.com"
+#BSC_RPC_URL="https://bsc.nownodes.io/some-api-key"
+#BSC_RPC_URL="https://fittest-few-fog.bsc.quiknode.pro/some-api-key/"
+PRIVATE_KEY="0xSecret"
+WALLET_ADDRESS="0xWalletAddress"
+```
+
+### `.env` settings
+
+| Setting | Required | Description |
+| --- | ---: | --- |
+| `BSC_RPC_URL` | Yes | BNB Smart Chain RPC URL. The bot needs normal contract calls and `eth_getLogs` for LFG Hook events. |
+| `PRIVATE_KEY` | Required for live trading | Wallet private key used to sign buy, sell, and approval transactions. Not required for pure dry-run observation. |
+| `WALLET_ADDRESS` | Recommended | Public wallet address used for logs and dashboard context. |
+
+Never commit `.env` to GitHub and never share your private key.
+
+## Bot configuration
+
+The bot is configured through:
+
+```text
+config.yaml
+```
+
+Start by copying the example:
+
+```bash
+cp config.yaml.example config.yaml
+```
+
+The default example token is LFGBULL:
+
+```yaml
+watchlist:
+  tokens:
+    - symbol: "LFGBULL"
+      address: "0x29Ede1E1254419Fe5a3c803fC2b015042075A49A"
+      dex: "lfg"
+```
+
+If you created your own token on LFG.RICH, replace the symbol and token address in `watchlist.tokens[]`.
+
+### LFG.RICH protocol contracts
+
+The default configuration uses the official LFG.RICH BSC contracts:
+
+```yaml
+lfg:
+  factory: "0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66"
+  hook: "0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888"
+  swap_router: "0x092043364f39f7f57C4E1D32116f453BfaE37440"
+  pool_manager: "0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF"
+```
+
+Do not change these unless LFG.RICH officially deploys new protocol contracts.
+
+## Smoke test
+
+Run the smoke test before running the full bot:
+
+```bash
+source .venv/bin/activate
+python -m bot.smoke_test_lfg
+```
+
+On Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m bot.smoke_test_lfg
+```
+
+A successful smoke test should print values similar to:
+
+```text
+token: 0x...
+pool_id: 0x...
+initialized: True
+totalFeeBps: ...
+effective price BNB/token: ...
+estimate buy 0.001 BNB:
+  tokensOut: ...
+  platformFee: ...
+  floorBoostFee: ...
+  totalFee: ...
+```
+
+The quote values come from the LFG.RICH Hook. Token amounts and BNB amounts use 18 decimals.
+
+## Running the bot
+
+### 1. Start with dry-run mode
+
+Before live trading, keep this enabled:
+
+```yaml
+bot:
+  dry_run: true
+```
+
+Run the bot:
+
+```bash
+source .venv/bin/activate
+python -m bot.main
+```
+
+In dry-run mode, the bot scans events, builds candles, calculates signals, and logs intended trades, but it does not send transactions.
+
+### 2. Test a small live buy
+
+After dry-run logs look correct, use a dedicated wallet with a small amount of BNB.
+
+Enable test mode:
+
+```yaml
+bot:
+  dry_run: false
+  test_mode: true
+  test_action: "BUY"
+  test_amount_bnb: 0.005
+  test_once: true
+```
+
+Run:
+
+```bash
+python -m bot.main
+```
+
+After the test buy succeeds, check the dashboard and verify that the lot was created.
+
+### 3. Disable test mode for normal strategy trading
+
+```yaml
+bot:
+  test_mode: false
+```
+
+Then run:
+
+```bash
+python -m bot.main
+```
+
+### 4. Keep the bot running with PM2
+
+Optional Linux example:
+
+```bash
+pm2 start "./.venv/bin/python -m bot.main" --name LFG-TradingBot
+pm2 save
+```
+
+Check logs:
+
+```bash
+pm2 logs LFG-TradingBot --lines 100
+```
+
+## Running the dashboard
+
+The dashboard is optional, but useful for checking open lots, PnL, trades, balances, and bot state.
+
+### 1. Install dashboard dependencies
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements-dashboard.txt
+```
+
+On Windows:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dashboard.txt
+```
+
+### 2. Run the dashboard
+
+Run this from the project root, not from inside the `bot/` folder:
+
+```bash
+python -m streamlit run bot/dashboard.py --server.address 0.0.0.0 --server.port 8501
+```
+
+On Windows local usage:
+
+```powershell
+python -m streamlit run bot/dashboard.py --server.port 8501
+```
+
+Open in the browser:
+
+```text
+http://YOUR_SERVER_IP:8501
+```
+
+For local usage:
+
+```text
+http://localhost:8501
+```
+
+### 3. SSH tunnel option
+
+If you do not want to expose port `8501` publicly:
+
+```bash
+ssh -L 8501:127.0.0.1:8501 root@YOUR_SERVER_IP
+```
+
+Then open:
+
+```text
+http://localhost:8501
+```
+
+### 4. Keep the dashboard running with PM2
+
+Optional Linux example:
+
+```bash
+pm2 start "./.venv/bin/python -m streamlit run bot/dashboard.py --server.address 0.0.0.0 --server.port 8501" --name LFG-TradingBot-Dashboard
+pm2 save
+```
+
+## SQLite database and lots
+
+The bot uses a local SQLite database:
+
+```text
+state.db
+```
+
+It is created automatically in the project root when the bot runs.
+
+### Dashboard dependency on the bot
+
+The dashboard reads `state.db`.
+
+The dashboard does not trade by itself and does not create positions by itself. It depends on the bot to create and update trades, positions, and lots.
+
+If the bot has not confirmed any buy transactions yet, the dashboard may have no open lots to display.
+
+### What are lots?
+
+A **lot** is the bot's local record of a buy position.
+
+When the bot confirms a successful buy transaction, it records a lot with:
+
+```text
+symbol
+buy transaction
+quantity opened
+cost in BNB
+average entry price
+remaining open quantity
+```
+
+The dashboard uses open lots to calculate:
+
+- current position value;
+- unrealized PnL;
+- realized PnL after sells;
+- average entry price;
+- open exposure per token.
+
+For LFG tokens, the dashboard prices open lots using this priority:
+
+1. latest valid candle close;
+2. LFG Hook `getEffectivePrice(poolId)` fallback;
+3. zero only if both are unavailable.
+
+### Useful SQLite commands
+
+```bash
+sqlite3 state.db ".tables"
+sqlite3 state.db "SELECT * FROM trades ORDER BY id DESC LIMIT 10;"
+sqlite3 state.db "SELECT * FROM lots ORDER BY id DESC LIMIT 10;"
+```
+
+Do not delete `state.db` unless you intentionally want to reset local trade history, lots, cooldowns, and candle cache.
+
+## Configuration reference
+
+This section documents the settings in `config.yaml`.
+
+### `chain`
+
+| Setting | Description |
+| --- | --- |
+| `chain.name` | Human-readable chain name. Keep as `bsc`. |
+| `chain.chain_id` | BNB Smart Chain mainnet chain ID. Keep as `56`. |
+
+### `rpc`
+
+| Setting | Description |
+| --- | --- |
+| `rpc.request_timeout_sec` | Timeout in seconds for individual RPC requests. |
+| `rpc.max_retries` | Number of retry attempts when RPC calls fail. |
+| `rpc.backoff_sec` | Initial delay between retries. The retry helper increases the delay on repeated failures. |
+
+### `lfg`
+
+| Setting | Description |
+| --- | --- |
+| `lfg.factory` | LFG.RICH Factory contract. Used for protocol metadata and fee receiver reference. |
+| `lfg.hook` | LFG.RICH Uniswap V4 Hook. Used for events, token state, prices, and estimates. |
+| `lfg.swap_router` | LFG.RICH Swap Router. Used to execute buys and sells. |
+| `lfg.pool_manager` | Uniswap V4 Pool Manager used by the LFG.RICH protocol. |
+
+### `bot` execution settings
+
+| Setting | Description |
+| --- | --- |
+| `bot.polling_interval_sec` | Seconds between each bot loop. |
+| `bot.trade_cooldown_sec` | Seconds to wait after a trade before trading the same token again. |
+| `bot.min_hold_minutes` | Minimum minutes to hold a lot before normal sell logic can sell it. |
+| `bot.dry_run` | If `true`, the bot logs intended trades but does not send transactions. |
+| `bot.warmup_approve` | If `true`, the bot checks token allowance for the LFG Swap Router on startup. |
+| `bot.approve_wait_sec` | Seconds to wait for approval transaction confirmation before continuing sell execution. |
+
+### `bot` risk and trade sizing
+
+| Setting | Description |
+| --- | --- |
+| `bot.profit_gate_enabled` | If `true`, normal sells require `min_profit_pct` unless stop-loss triggers. |
+| `bot.min_profit_pct` | Minimum profit percentage required for normal sells when profit gate is enabled. |
+| `bot.max_loss_pct` | Stop-loss percentage. Example: `10` means sell if the lot is at `-10%` or worse. |
+| `bot.max_hold_minutes` | Optional forced-exit timer in minutes. `0` disables forced exit. |
+| `bot.slippage_bps` | Slippage tolerance in basis points. `1200` means 12%. It must cover token fees and volatility. |
+| `bot.gas_limit` | Gas limit used for LFG buy/sell transactions. |
+| `bot.min_bnb_for_gas` | BNB to keep untouched for gas. The bot will not spend below this amount. |
+| `bot.min_trade_bnb` | Minimum BNB value for a buy/sell action. |
+| `bot.max_trade_bnb` | Maximum BNB value for a single buy/sell action. |
+
+### `bot` event scanner and candles
+
+| Setting | Description |
+| --- | --- |
+| `bot.blocks_per_candle` | Number of BSC blocks per internal price candle. |
+| `bot.confirmations` | Blocks to wait before treating events as safe/final enough to process. |
+| `bot.log_chunk_blocks` | `eth_getLogs` chunk size. Lower this if public/free RPCs rate-limit or fail. |
+| `bot.warmup_lookback_blocks` | Blocks scanned on first run to build historical candles for older tokens. Increase if the bot says `not enough data`. |
+| `bot.max_history_candles` | Maximum candles kept in memory/cache per token. |
+
+### `bot` strategy settings
+
+| Setting | Description |
+| --- | --- |
+| `bot.fast_down_enabled` | Enables fast downtrend sell protection. |
+| `bot.fast_down_candles` | Number of recent real-volume candles used for fast downtrend detection. |
+| `bot.fast_down_min_drop_pct` | Minimum percentage drop across `fast_down_candles` to flag fast downtrend. |
+| `bot.fast_down_min_steps` | Minimum number of red/down candle steps required to flag fast downtrend. |
+| `bot.trend_confirm_candles` | Number of candles used to confirm trend direction. |
+| `bot.ema_deadband_pct` | EMA deadband percentage. Helps avoid noisy trend flips when EMAs are very close. |
+| `bot.dump_lookback` | Number of candles used to detect a quick dump. |
+| `bot.dump_drop_pct` | Percentage drop over `dump_lookback` candles that flags a dump. |
+| `bot.pump_lookback` | Number of candles used to detect a quick pump. |
+| `bot.pump_rise_pct` | Percentage rise over `pump_lookback` candles that flags a pump. |
+| `bot.bleed_lookback` | Number of candles used to detect slow bleeding/downtrend. |
+| `bot.bleed_drop_pct` | Percentage drop over `bleed_lookback` candles that contributes to bleed detection. |
+| `bot.bleed_rise_pct` | Percentage rise threshold used to distinguish recovery from bleeding. |
+| `bot.bleed_min_steps` | Minimum number of down steps required for bleed detection. |
+
+### `bot` test mode
+
+| Setting | Description |
+| --- | --- |
+| `bot.test_mode` | If `true`, forces `test_action` instead of using the strategy signal. Useful for live buy/sell testing. |
+| `bot.test_action` | `BUY` or `SELL`. Only used when `test_mode` is true. |
+| `bot.test_amount_bnb` | BNB trade size for test-mode actions. |
+| `bot.test_once` | If `true`, performs one test action and exits. |
+
+### `watchlist.tokens[]`
+
+Each token entry defines one LFG.RICH token to monitor and trade.
+
+| Setting | Description |
+| --- | --- |
+| `symbol` | Token symbol/ticker. |
+| `address` | LFG.RICH token contract address. |
+| `max_alloc_bnb` | Maximum total BNB allocation allowed for this token. |
+| `add_step_bnb` | BNB amount to add when the strategy decides to buy/increase position. |
+| `timeframe_sec` | Intended strategy timeframe in seconds. Kept for compatibility with strategy settings/logs. |
+| `ema_fast` | Fast EMA period used by the strategy. |
+| `ema_slow` | Slow EMA period used by the strategy. |
+| `rsi_period` | RSI period used by the strategy. |
+| `dust_size` | Token quantity below this amount is treated as dust/closed in local lot accounting. |
+| `dex` | Trading venue. Keep as `lfg`. |
+
+## Troubleshooting
+
+### `SyntaxError` showing `/usr/lib/python2.7/...`
+
+You are running Python 2.
+
+Activate the venv and use Python 3:
+
+```bash
+source .venv/bin/activate
+python --version
+python -m bot.main
+```
+
+### `ModuleNotFoundError: No module named 'web3'`
+
+Dependencies are not installed in the active environment:
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+### `ensurepip is not available`
+
+Install the venv package:
+
+```bash
+apt install -y python3.8-venv python3-pip
+```
+
+Then recreate the venv:
+
+```bash
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### `pip: command not found`
+
+Install pip:
+
+```bash
+apt install -y python3-pip
+```
+
+### `No matching distribution found for aiohappyeyeballs==2.6.1`
+
+You are using an old/frozen dependency list from a newer Python environment.
+
+Use the `requirements.txt` included in this LFG.RICH bot package.
+
+### `No matching distribution found for streamlit==1.40.2`
+
+Use the included `requirements-dashboard.txt`, which pins:
+
+```text
+streamlit==1.40.1
+```
+
+### `invalid argument 0: hex string without 0x prefix`
+
+Use the latest LFG.RICH bot package. The LFG pool id and event topic handling were updated to normalize values with the required `0x` prefix.
+
+### Dashboard shows `lot_pnl_pct` as empty or `None`
+
+The dashboard needs a valid current price.
+
+For LFG tokens, the dashboard now uses:
+
+1. latest valid candle close;
+2. LFG Hook `getEffectivePrice(poolId)` fallback;
+3. zero only if both are unavailable.
+
+If the value is still empty, confirm the bot and dashboard are using the same `state.db` and `config.yaml`.
+
+## Safe operating checklist
+
+Before running live:
+
+1. Use a dedicated wallet.
+2. Keep only a small amount of BNB in that wallet.
+3. Start with `dry_run: true`.
+4. Run `python -m bot.smoke_test_lfg`.
+5. Run the bot and confirm candles/signals look correct.
+6. Test with `test_mode: true`, `test_action: "BUY"`, and a tiny `test_amount_bnb`.
+7. Confirm the dashboard shows the created lot.
+8. Only then disable `test_mode`.
+
+## Community note
+
+This bot was built as a contribution to the LFG.RICH community and to support developers, builders, and traders exploring the LFG.RICH launchpad and protocol.
+
+You are free to use, modify, improve, and share this project. Before running live trades, review the configuration, test with small amounts, and adjust the strategy to your own needs.
+
+The goal of this project is to help increase adoption, experimentation, and community-driven development around LFG.RICH.

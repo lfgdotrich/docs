@@ -1,65 +1,94 @@
 ---
 title: 手续费结构
-description: 创建、交易、平台、floor boost 和借贷手续费。
+description: V5 创建、交易、推荐、借贷、金库以及旧 V3 手续费说明。
 ---
 
-LFG.RICH 的手续费由协议自动处理。
+LFG.RICH V5 的手续费由协议合约自动处理。
 
-## 代币创建费
+<Warning>
+旧文档中提到的创建者选择 1% 到 10% 交易手续费属于旧 V3 流程。V5 使用固定协议手续费常量。
+</Warning>
 
-当前协议层面的代币创建费用为：`0 BNB`。
+## 代币创建费用
 
-创作者仍然需要 BNB 支付 Gas。
+代币创建使用 Factory 当前的创建费用：
+
+```solidity
+function creationFee() view returns (uint256);
+```
+
+V5 创建函数还接受 `devBuyEth`，即创建者可选的初始买入金额：
+
+```solidity
+function createToken(
+    string name,
+    string symbol,
+    uint256 devBuyEth
+) payable returns (address token, bytes32 poolId);
+```
+
+`msg.value` 必须覆盖：
+
+```txt
+creationFee + devBuyEth
+```
+
+多余金额应由合约流程退回。
 
 ## 交易手续费
 
-每个官方 LFG.RICH 代币都有一个由创作者在发行时选择的永久交易手续费。
+V5 买入和卖出使用固定总交易手续费：
 
-支持范围：**1% 到 10%**。
+| 手续费组成 | 比率 | 接收方 |
+| --- | ---: | --- |
+| 总交易手续费 | 1.25% | 根据推荐状态拆分 |
+| 平台手续费 | 0.25% | 平台 / Factory 侧 |
+| 邀请人手续费 | 1.00% | 用户的 initial inviter；如果没有邀请人则进入平台侧 |
 
-总交易手续费会拆分为两部分：
+Hook 暴露以下常量：
 
-| 手续费部分 | 用途 |
-| --- | --- |
-| 平台手续费 | 固定的 LFG.RICH 平台部分。 |
-| Floor boost | 剩余手续费部分，用于增强代币的 floor boost 池。 |
+```solidity
+function TOTAL_FEE_BPS() view returns (uint256);       // 125
+function PLATFORM_FEE_BPS() view returns (uint256);    // 25
+function INVITER_FEE_BPS() view returns (uint256);     // 100
+function BPS_DENOMINATOR() view returns (uint256);     // 10000
+```
 
-平台手续费为 **0.3%**。
+买入示例：
 
-## 交易手续费示例
+```txt
+用户发送:        1.0000 BNB
+总手续费:        0.0125 BNB
+平台部分:        0.0025 BNB
+邀请人部分:      0.0100 BNB
+进入曲线净额:    0.9875 BNB
+```
 
-| 创作者选择的总手续费 | 平台手续费 | Floor boost 部分 |
-| --- | --- | --- |
-| 1% | 0.3% | 0.7% |
-| 3% | 0.3% | 2.7% |
-| 5% | 0.3% | 4.7% |
-| 10% | 0.3% | 9.7% |
+如果交易者未绑定推荐树，邀请人部分会进入平台侧，而不是发送给用户邀请人。
 
 ## 借贷手续费
 
-借贷有固定一次性 **3% 手续费**。
+借贷有固定一次性 3% 手续费：
 
-借贷手续费与创作者选择的交易手续费是分开的。创作者选择的手续费适用于买入和卖出；固定借贷手续费只在用户基于锁定抵押品借贷时适用。
+| 手续费组成 | 比率 | 接收方 |
+| --- | ---: | --- |
+| 总借贷手续费 | 3.00% | 根据推荐状态拆分 |
+| 借贷平台手续费 | 1.00% | 平台 / Factory 侧 |
+| 借贷 parent 手续费 | 2.00% | 用户的直接 parent；如果没有 parent 则进入平台侧 |
 
-借贷手续费会从总借贷价值中预先扣除。
+Hook 常量：
 
-示例：
-
-```txt
-Gross borrow value: 1.00 BNB
-Borrow fee:         0.03 BNB
-Borrower receives:  0.97 BNB
-Debt recorded:      1.00 BNB
+```solidity
+function BORROW_FEE_BPS() view returns (uint256);           // 300
+function BORROW_PLATFORM_FEE_BPS() view returns (uint256);  // 100
+function BORROW_PARENT_FEE_BPS() view returns (uint256);    // 200
 ```
 
-## 借贷手续费如何使用
+重要区别：
 
-**3% 借贷手续费 100% 用于增加地板价支撑。**
+- 交易奖励给用户的 **initial inviter**；
+- 借贷奖励给用户的 **direct parent**。
 
-该费用保留在代币的协议储备记账中，并贡献给 floor boost 系统。它不是额外的创作者手续费，也不是固定平台手续费。
+## 旧 V3 手续费模型
 
-## 残余 BNB 与地板清理
-
-当代币跌到地板价且交易活动变得非常小的时候，由于 18 位小数精度、舍入以及地板价限制，可能会留下一些极小的残余 BNB 数量。
-
-协议包含清理机制，用于处理这些微小残余金额，避免在代币几乎死亡时永久卡住 BNB。该机制只用于清理残余价值；不会改变 3% 借贷手续费用于提高地板支撑的事实。
+旧 V3 示例可能包含代币级别的创建者自选交易手续费和 floor boost 部分。除非页面明确在记录旧 V3，否则不要在新的 V5 文档或 V5 示例中使用该模型。

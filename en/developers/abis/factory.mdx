@@ -1,16 +1,32 @@
 ---
 title: Factory ABI
-description: Factory runtime ABI for official LFG.RICH token creation and discovery.
+description: Full JSON ABI for Factory.
 ---
 
-Use this ABI as a copy-paste-ready JavaScript/TypeScript constant with Viem, Ethers, bots, dashboards, and custom integrations.
+This page contains the full public JSON ABI for `Factory` used by LFG.RICH integrations.
 
-<Note>
-This is the deployed runtime ABI for connecting to the existing Factory contract. Constructor entries are not needed when creating `ethers.Contract`, `viem` contract calls, or Web3.py contract objects for an already-deployed contract.
-</Note>
-
-```ts
-export const FACTORY_ABI = [
+```json
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_poolManager",
+        "type": "address",
+        "internalType": "contract IPoolManager"
+      },
+      {
+        "name": "_hook",
+        "type": "address",
+        "internalType": "contract WoofingPumpHook"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
   {
     "type": "function",
     "name": "owner",
@@ -18,7 +34,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -30,7 +47,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "contract IPoolManager"
       }
     ],
     "stateMutability": "view"
@@ -42,7 +60,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "contract WoofingPumpHook"
       }
     ],
     "stateMutability": "view"
@@ -54,7 +73,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -66,7 +86,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint24"
+        "type": "uint24",
+        "internalType": "uint24"
       }
     ],
     "stateMutability": "view"
@@ -78,7 +99,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "int24"
+        "type": "int24",
+        "internalType": "int24"
       }
     ],
     "stateMutability": "view"
@@ -90,7 +112,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint160"
+        "type": "uint160",
+        "internalType": "uint160"
       }
     ],
     "stateMutability": "view"
@@ -100,14 +123,16 @@ export const FACTORY_ABI = [
     "name": "allTokens",
     "inputs": [
       {
-        "name": "index",
-        "type": "uint256"
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -117,14 +142,16 @@ export const FACTORY_ABI = [
     "name": "tokenToCreator",
     "inputs": [
       {
-        "name": "token",
-        "type": "address"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -134,37 +161,70 @@ export const FACTORY_ABI = [
     "name": "tokenInfoMap",
     "inputs": [
       {
-        "name": "token",
-        "type": "address"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "tokenAddress",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "tokenId",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "creator",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "name",
-        "type": "string"
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "symbol",
-        "type": "string"
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setInviteContract",
+    "inputs": [
+      {
+        "name": "_invite",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setInviteRewardsEnabled",
+    "inputs": [
+      {
+        "name": "_enabled",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -172,25 +232,30 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "name",
-        "type": "string"
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "symbol",
-        "type": "string"
+        "type": "string",
+        "internalType": "string"
       },
       {
-        "name": "totalFeeBps",
-        "type": "uint256"
+        "name": "devBuyEth",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
       {
         "name": "token",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "stateMutability": "payable"
@@ -201,7 +266,8 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "newFee",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -213,7 +279,8 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "newOwner",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -225,7 +292,26 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "to",
-        "type": "address"
+        "type": "address",
+        "internalType": "address payable"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateCreator",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "newCreator",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -238,7 +324,8 @@ export const FACTORY_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -249,13 +336,15 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "token",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bool"
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -266,37 +355,45 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "token",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
         "type": "tuple",
+        "internalType": "struct WoofingPumpFactory.TokenInfo",
         "components": [
           {
             "name": "tokenAddress",
-            "type": "address"
+            "type": "address",
+            "internalType": "address"
           },
           {
             "name": "tokenId",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           },
           {
             "name": "creator",
-            "type": "address"
+            "type": "address",
+            "internalType": "address"
           },
           {
             "name": "name",
-            "type": "string"
+            "type": "string",
+            "internalType": "string"
           },
           {
             "name": "symbol",
-            "type": "string"
+            "type": "string",
+            "internalType": "string"
           },
           {
             "name": "poolId",
-            "type": "bytes32"
+            "type": "bytes32",
+            "internalType": "bytes32"
           }
         ]
       }
@@ -309,13 +406,15 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "user",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "address[]"
+        "type": "address[]",
+        "internalType": "address[]"
       }
     ],
     "stateMutability": "view"
@@ -326,33 +425,40 @@ export const FACTORY_ABI = [
     "inputs": [
       {
         "name": "token",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       }
@@ -366,34 +472,72 @@ export const FACTORY_ABI = [
       {
         "name": "token",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "tokenId",
         "type": "uint256",
-        "indexed": true
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
         "name": "creator",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "name",
         "type": "string",
-        "indexed": false
+        "indexed": false,
+        "internalType": "string"
       },
       {
         "name": "symbol",
         "type": "string",
-        "indexed": false
+        "indexed": false,
+        "internalType": "string"
       },
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": false
+        "indexed": false,
+        "internalType": "bytes32"
       }
-    ]
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DevBuy",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "ethAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -402,14 +546,17 @@ export const FACTORY_ABI = [
       {
         "name": "oldFee",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "newFee",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -418,14 +565,68 @@ export const FACTORY_ABI = [
       {
         "name": "to",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "amount",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CreatorUpdated",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "oldCreator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newCreator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InviteContractUpdated",
+    "inputs": [
+      {
+        "name": "inviteContract",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InviteRewardsToggled",
+    "inputs": [
+      {
+        "name": "enabled",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "error",
@@ -449,11 +650,6 @@ export const FACTORY_ABI = [
   },
   {
     "type": "error",
-    "name": "InvalidFee",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "InsufficientPayment",
     "inputs": []
   },
@@ -463,10 +659,9 @@ export const FACTORY_ABI = [
     "inputs": []
   },
   {
-    "type": "receive",
-    "stateMutability": "payable"
+    "type": "error",
+    "name": "TokenNotFound",
+    "inputs": []
   }
-] as const;
+]
 ```
-
-You can also import the matching JSON file from `/abis/Factory.abi.json` if your build setup supports JSON imports.

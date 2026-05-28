@@ -1,40 +1,200 @@
 ---
 title: 地板价保护
-description: LFG.RICH 地板价机制如何保护官方代币发行。
+description: V5 地板价机制如何保护官方 LFG.RICH 代币发射。
 ---
 
-每个官方 LFG.RICH 代币都有协议管理的地板价逻辑。
+地板价是 LFG.RICH V5 中最重要的保护机制之一。
 
-地板价是协议为代币设定的最低定价水平。它被设计为随着代币成长向上移动，并防止价格跌破代币地板。
+对于官方 V5 代币，公开规则很简单：
 
-## 地板价的作用
+> **协议地板价始终基于该代币历史最高价（ATH）的 50%。**
 
-地板价是代币卖出时的基准线。
+当代币达到新的历史最高价时，Hook 会记录新的 ATH，并把地板价目标提高到 ATH 的一半。如果之后价格下跌，ATH 不会重置，地板价也不会下调。
 
-LFG.RICH 使用这一机制，让发行更能抵抗传统流动性 rug 风险。代币创作者不管理或移除 LP 代币；官方发行使用协议管理的储备和地板逻辑。
+这意味着地板价不是由创建者、做市商或团队手动控制的。它是由 **Uniswap V4 Hook** 强制执行的链上协议状态。
 
-## 地板价如何上升
+## 核心概念
 
-地板价可能受到以下因素影响：
+V5 Hook 会为每个官方代币池跟踪两个重要价格：
 
-- 代币 bonding-curve 历史最高价格。
-- 协议的地板比例逻辑。
-- 代币的 floor boost 池。
-- 储备与偿付能力检查。
+| 数值 | 含义 |
+| --- | --- |
+| `allTimeHighPrice` | 该代币达到过的最高有效价格。 |
+| `floorPrice` | 协议强制执行的最低有效价格。 |
 
-结果是一个围绕协议状态设计的地板系统，而不是依赖外部承诺。
+默认地板价规则是：
 
-## Floor boost 池
+```txt
+floorPrice = allTimeHighPrice 的 50%
+```
 
-每个代币交易手续费的一部分可以进入 floor boost 池。
+用基点表示时，这个比例存储为：
 
-例如，如果代币总交易手续费为 **5%**：
+```txt
+autoFloorPctBps = 5000
+```
 
-- **0.3%** 是平台手续费。
-- **4.7%** 进入 floor boost 部分。
+因为 10,000 基点 = 100%，所以 5,000 基点 = 50%。
 
-Floor boost 部分会随着时间增强代币的地板机制。
+## 简单示例
 
-## 重要提示
+| 事件 | 有效价格 | ATH | 地板价 |
+| --- | ---: | ---: | ---: |
+| 代币启动 | 0 | 0 | 0 |
+| 第一批买入把价格推到 0.001 BNB | 0.001 BNB | 0.001 BNB | 0.0005 BNB |
+| 更多买入把价格推到 0.01 BNB | 0.01 BNB | 0.01 BNB | 0.005 BNB |
+| 卖出让价格回落 | 0.005 BNB | 0.01 BNB | 0.005 BNB |
+| 价格试图继续跌破 | 最低 0.005 BNB | 0.01 BNB | 0.005 BNB |
+| 新一轮上涨到 0.02 BNB | 0.02 BNB | 0.02 BNB | 0.01 BNB |
 
-地板价是协议机制，不是公司、做市商或代币创作者给出的保证。用户在交易前仍应理解智能合约风险、链风险、钱包风险、路由风险和市场风险。
+最重要的一点是：地板价会跟随 ATH 向上提高，但不会跟随价格下跌而降低。
+
+## 当出现新的 ATH 时会发生什么
+
+交易之后，Hook 可以更新代币的 ATH 和地板价状态。
+
+流程如下：
+
+1. Hook 计算代币当前的有效价格。
+2. 如果有效价格高于之前的 `allTimeHighPrice`，Hook 会记录新的 ATH。
+3. Hook 根据 `autoFloorPctBps` 计算新的地板价目标。
+4. 在 V5 默认设置下，该目标是 ATH 的 50%。
+5. 如果新计算出的地板价高于当前 `floorPrice`，地板价会被提高。
+6. 地板价之后不会被降低。
+
+Hook 会为这些变化发出事件：
+
+```solidity
+event ATHUpdated(bytes32 indexed poolId, uint256 oldATH, uint256 newATH);
+event FloorRaised(bytes32 indexed poolId, uint256 oldFloor, uint256 newFloor);
+```
+
+这些事件可用于区块浏览器、索引器、图表和前端动态记录。
+
+## 为什么地板价不能被手动修改
+
+地板价来自链上池状态，不是代币创建者可以在发射后降低的设置。
+
+创建者不能提走流动性，也不能降低地板价来制造传统 LP rug 式崩盘。官方 V5 代币通过协议合约路由，其中 **Uniswap V4 Hook** 控制定价、地板价执行、储备、费用、抵押、借贷和 Hook 回调。
+
+## 有效价格和地板价
+
+Hook 暴露有效价格读取函数：
+
+```solidity
+function getEffectivePrice(bytes32 poolId) view returns (uint256);
+```
+
+有效价格是用户和集成方在显示当前协议价格时应使用的价格。它会尊重地板价。
+
+卖出可以让联合曲线价格下降，但前端不应把有效价格显示为低于当前 `floorPrice`。
+
+## V5 地板价状态
+
+Hook 按 `poolId` 暴露完整代币状态：
+
+```solidity
+function tokenStates(bytes32 poolId)
+    view
+    returns (
+        address token,
+        address creator,
+        uint256 floorPrice,
+        uint256 realETH,
+        uint256 virtualETH,
+        uint256 totalBorrowedETH,
+        uint256 collateralSupply,
+        uint256 allTimeHighPrice,
+        uint256 k,
+        uint256 autoFloorPctBps,
+        bool initialized
+    );
+```
+
+与地板价相关的重要字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `floorPrice` | 当前协议最低价格。 |
+| `allTimeHighPrice` | 该代币达到过的最高有效价格。 |
+| `autoFloorPctBps` | 地板价比例，单位为基点。在 V5 中通常为 `5000`，也就是 ATH 的 50%。 |
+| `realETH` | 池会计中实际可用的原生 BNB。合约字段仍使用 ETH 风格命名。 |
+| `virtualETH` | 借贷会计产生的虚拟支撑。 |
+| `totalBorrowedETH` | 该池当前总借出的原生 BNB。 |
+| `collateralSupply` | 被锁定为借贷抵押品的代币数量。 |
+| `k` | Hook 定价逻辑使用的内部曲线参数。 |
+
+## 读取当前地板价
+
+集成方应始终先解析正确的 `poolId`，然后读取该池的 Hook 状态。
+
+```ts
+const poolId = token.pool_id || token.poolId || await hook.tokenToPoolId(tokenAddress);
+
+const state = await hook.tokenStates(poolId);
+const effectivePrice = await hook.getEffectivePrice(poolId);
+const autoFloorPctBps = await hook.getAutoFloorPct(poolId);
+
+console.log({
+  floorPrice: state.floorPrice.toString(),
+  allTimeHighPrice: state.allTimeHighPrice.toString(),
+  autoFloorPctBps: autoFloorPctBps.toString(), // 通常为 5000 = 50%
+  effectivePrice: effectivePrice.toString()
+});
+```
+
+不要在 V5 中假设只有代币地址就足够读取状态。V5 是基于池路由的。始终解析并使用该代币的 `poolId`。
+
+## 偿付能力保护
+
+主要公开规则是 ATH 的 50%。Hook 同时会通过检查有效支撑来防止不可能兑现的地板价状态。
+
+关键支撑概念是：
+
+```txt
+有效支撑 = realETH + virtualETH
+```
+
+Hook 暴露当前池可支持的最高地板价：
+
+```solidity
+function maxFloorPrice(bytes32 poolId) view returns (uint256);
+```
+
+这个安全检查用于确保地板价可以被协议会计承托。它不会给创建者手动控制地板价的权限，也不会允许已经提高的地板价再被降低。
+
+## 地板价和借贷
+
+借贷基于地板价价值，而不是临时价格尖峰。
+
+当用户用代币借款时，Hook 会使用该代币的地板价价值来计算可借额度。这也是为什么地板价机制和借贷系统直接相关：
+
+- 如果代币达到新的 ATH，地板价可以提高到 ATH 的 50%。
+- 更高的地板价会提高代币抵押品的地板价值。
+- 如果用户已经锁定了抵押品，而之后地板价上升，用户可能可以使用 `borrowMore(poolId)` 借出新增的可用价值。
+- 如果 ATH 之后市场价格下跌，借款基础不会跟着下跌，因为地板价不会降低。
+
+因此，用户界面应该清楚显示：
+
+| 显示值 | 重要原因 |
+| --- | --- |
+| 当前有效价格 | 显示当前协议交易价格。 |
+| ATH | 显示达到过的最高有效价格。 |
+| 地板价 | 显示最低强制价格，以及借贷价值的基础。 |
+| 地板价比例 | 显示 V5 规则是 ATH 的 50%。 |
+
+## 这对用户意味着什么
+
+地板价机制为官方 V5 代币提供了协议内置的下行边界。
+
+这意味着：
+
+- 创建者不能像传统 LP rug 那样移除协议管理的支撑。
+- 当代币创下新的 ATH 时，地板价会上升。
+- 标准 V5 地板价目标是 ATH 的 50%。
+- 一旦地板价提高，就不会再下降。
+- 借贷使用地板价价值，而不是临时市场尖峰。
+
+## 重要风险提示
+
+地板价保护的是 LFG.RICH V5 合约内部的官方协议定价。用户在交易前仍应理解智能合约风险、链风险、钱包风险、路由风险、索引风险和市场风险。

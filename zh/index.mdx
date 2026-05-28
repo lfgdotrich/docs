@@ -1,48 +1,26 @@
 ---
 title: LFG.RICH 文档
-description: 使用 LFG.RICH 创建、交易、借贷并构建集成。
+description: 在 BNB Smart Chain 上创建、交易、借贷并集成 LFG.RICH。
 ---
 
-LFG.RICH 是一个带有内置协议机制的代币 Launchpad：包括 bonding curve 交易、地板价保护、由手续费推动的地板增长，以及基于抵押品的 BNB 借贷。
+LFG.RICH 是运行在 BNB Smart Chain 上的代币发行平台，内置绑定曲线交易、上涨型地板价保护、代币抵押借贷和推荐奖励机制。
 
-平台面向创作者、交易者、社区和开发者，适合希望代币发行从一开始就具备更强链上机制的项目。
+当前协议版本是 **V5**。V5 引入了新的 Hook 架构、固定费率模型、OTOInvite 推荐系统以及更新后的合约交互流程。V3 代币仍然存在，但 V3 已属于旧版/弃用版本，不建议新的集成继续使用。
 
-<CardGroup cols={2}>
-  <Card title="创建代币" icon="rocket" href="/zh/getting-started/create-token">
-    使用名称、符号、Logo、描述、链接和永久交易手续费创建官方 LFG.RICH 代币。
-  </Card>
-  <Card title="交易 LFG 代币" icon="arrow-right-arrow-left" href="/zh/getting-started/buy-sell">
-    在 BNB Smart Chain 上通过 LFG.RICH bonding-curve 流程买入和卖出。
-  </Card>
-  <Card title="抵押借贷" icon="landmark" href="/zh/getting-started/borrow-repay">
-    锁定代币作为抵押品，并基于协议地板价值借出 BNB。
-  </Card>
-  <Card title="构建集成" icon="code" href="/zh/developers/overview">
-    使用 API 和合约参考构建仪表盘、机器人、提醒和数据分析工具。
-  </Card>
-  <Card title="Telegram BuyBot" icon="paper-plane" href="/zh/resources/buybot">
-    将 @lfgdotrich_buybot 添加到 Telegram 群组，跟踪实时买入、借贷、价格和代币信息。
-  </Card>
-  <Card title="交易机器人" icon="chart-line" href="/zh/resources/trading-bot">
-    使用社区交易机器人，在 LFG.RICH 上自动执行买入和卖出策略。
-  </Card>
-</CardGroup>
+## 你可以做什么
 
-## LFG.RICH 有什么不同
-
-LFG.RICH 代币不是简单地进入由创作者控制的流动性池。每一个官方代币都连接到协议逻辑，由协议管理定价、储备、地板价、手续费和借贷。
-
-核心机制包括：
-
-- 官方 LFG.RICH 代币使用 **bonding-curve 交易**。
-- 使用 **协议管理的储备**，而不是创作者持有的 LP 流动性。
-- **地板价保护**，用于防止代币价格跌破协议地板。
-- **Floor boost 机制**，由部分交易手续费驱动。
-- **抵押借贷**，用户可以锁定代币并基于地板价值借出 BNB。
-- 通过公共 API 和链上合约调用提供 **开发者可访问的数据**。
+- 创建官方 LFG.RICH 代币，填写名称、符号、Logo、简介和链接。
+- 创建代币时可选择进行一次初始买入。
+- 通过 LFG.RICH V5 绑定曲线买入和卖出官方代币。
+- 锁定代币作为抵押品，并按协议地板价借出 BNB。
+- 绑定邀请人并参与推荐系统。
+- 使用公开 API 和链上合约构建看板、机器人、提醒和数据分析工具。
+- 将 LFG.RICH Telegram 买入机器人添加到社区群组。
 
 ## 网络
 
-LFG.RICH 运行在 **BNB Smart Chain**。
+LFG.RICH 运行在 **BNB Smart Chain**。用户需要 BNB 支付 Gas、创建代币、买入、卖出、借款和还款。
 
-用户需要 BNB 来支付 Gas、创建代币、买入、卖出、借贷和还款交易。
+## 开发者说明
+
+新的集成应使用 **V5 合约**和 V5 交互流程。不要硬编码旧的 PoolKey。对于每个代币，应尽量读取代币自身的 `FACTORY()` 和 `hook()`，然后从正确的 Factory 获取 PoolKey，再执行买卖操作。

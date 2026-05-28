@@ -1,0 +1,76 @@
+---
+title: V5 and Legacy V3
+description: What changed between legacy V3 contracts and the current V5 Hook-based protocol.
+---
+
+LFG.RICH currently documents the V5 protocol as the active integration target. Legacy V3 contracts may still exist on-chain and may appear in historical data, but new documentation and integrations should use the V5 flow unless they are explicitly working with legacy V3 tokens.
+
+## Current V5 addresses
+
+| Contract | Address |
+| --- | --- |
+| Factory | `0x429a7ef0129649a97bb3f1e961dd56d9bd4ac01f` |
+| Uniswap V4 Hook | `0xc18e6e1926113cdcf53f3ec1a89d3eb84cc6a888` |
+| Swap Router | `0x4018abd5d24ee48c642e7e518a8aef03b59ec150` |
+| Referral / Invite | `0x162e11887f6788ac9625a980e68044bee7f9d746` |
+| Treasury | `0xdb5b8aa5cecf7a6fe1812fb2ccc37723076b19d9` |
+| Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
+
+## Legacy V3 addresses
+
+| Contract | Address |
+| --- | --- |
+| Factory | `0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66` |
+| Uniswap V4 Hook | `0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888` |
+| Swap Router | `0x092043364f39f7f57C4E1D32116f453BfaE37440` |
+| Treasury | `0x46e0F637DcEcE1598C09117b813ce0D2f7F5d34e` |
+| Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
+
+## Main integration differences
+
+| Area | Legacy V3 | Current V5 |
+| --- | --- | --- |
+| Create token | `createToken(name, symbol, totalFeeBps)` | `createToken(name, symbol, devBuyEth)` |
+| Trade fee model | Creator-selected fee and floor boost portion | Fixed 1.25% trade fee split between platform and inviter/platform |
+| Buy estimate | `estimateBuy(poolId, ethIn)` | `estimateBuy(poolId, ethIn, buyer)` |
+| Sell estimate | `estimateSell(poolId, tokenAmount)` | `estimateSell(poolId, tokenAmount, seller)` |
+| Referrals | Not the current V5 fee-routing model | `OTOInvite` controls initial inviter and parent fee routing |
+| Token state | Includes V3 fields like `totalFeeBps`, `floorBoostPool`, `totalReserveAccumulated` | Includes V5 fields like `creator`, `k`, `autoFloorPctBps`; V3-only fields are removed or API-compatible placeholders |
+| Borrow fee | Legacy accounting | Fixed 3% borrow fee with platform/direct-parent split |
+| Integration target | Historical compatibility only | Active docs and active examples |
+
+## Do not mix ABI versions
+
+A common mistake is using a legacy V3 ABI against a V5 token. That can fail because function signatures and returned structs changed.
+
+For V5:
+
+```solidity
+function estimateBuy(bytes32 poolId, uint256 ethIn, address buyer)
+    view
+    returns (uint256 tokensOut, uint256 platformFee, uint256 inviterFee);
+
+function estimateSell(bytes32 poolId, uint256 tokenAmount, address seller)
+    view
+    returns (uint256 ethOut, uint256 platformFee, uint256 inviterFee);
+```
+
+For legacy V3:
+
+```solidity
+function estimateBuy(bytes32 poolId, uint256 ethIn)
+    view
+    returns (uint256 tokensOut, uint256 platformFee, uint256 floorBoostFee);
+
+function estimateSell(bytes32 poolId, uint256 tokenAmount)
+    view
+    returns (uint256 ethOut, uint256 platformFee, uint256 floorBoostFee);
+```
+
+## API compatibility note
+
+Some API responses may keep old field names for compatibility, for example `floorBoostPool` or `totalReserveAccumulated`. For V5 tokens, those fields should be understood as compatibility fields, not proof that the old V3 fee model is still active.
+
+## Documentation rule
+
+Use V5 pages for current integrations. Only use V3 information when explicitly documenting, debugging, or indexing legacy V3 contracts.

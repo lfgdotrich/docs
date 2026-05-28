@@ -1,67 +1,97 @@
 ---
 title: 借贷
-description: 通过锁定 LFG.RICH 代币作为抵押品借出 BNB。
+description: 通过锁定官方 LFG.RICH 代币作为抵押品来借出 BNB。
 ---
 
-LFG.RICH 为官方代币提供抵押借贷功能。
+LFG.RICH V5 为官方代币内置抵押借贷。用户可以锁定代币作为抵押品，并根据代币地板价借出原生 BNB。
 
-用户可以锁定代币作为抵押品，并基于代币的地板价值借出 BNB。借贷基于协议地板，而不是短期市场冲高价格。
+借贷基于协议地板价，而不是短暂市场尖峰。没有清算引擎，也没有持续利息。
 
-## 关键属性
+## 关键特性
 
-- 借贷额度基于地板价值。
-- 借贷仓位有效期间，锁定抵押品会从流通供应中移除。
-- 借贷没有清算机制。
-- 借贷没有持续利息。
-- 固定一次性 **3% 借贷手续费** 会在前端扣除。
-- 这 3% 手续费用于支持并提高代币地板。
+- 借款能力基于地板价价值。
+- 借贷仓位存在期间，锁定抵押品会从流通供应中移除。
+- 没有清算机制。
+- 没有持续利息。
+- 固定一次性 3% 借贷手续费会从借款价值中扣除。
 - 部分还款会按比例解锁抵押品。
 - 全额还款会解锁剩余抵押品。
+- 借贷状态按 `poolId` 和用户保存。
 
-## 借贷流程
+## 借款流程
 
-<Steps>
-  <Step title="选择抵押品">
-    用户选择要锁定的代币数量。
-  </Step>
-  <Step title="授权 Hook">
-    用户授权 Uniswap V4 Hook 转移选定数量的代币。
-  </Step>
-  <Step title="借出 BNB">
-    用户调用 `borrow(poolId, amount)`。
-  </Step>
-  <Step title="抵押品被锁定">
-    Hook 将选定代币转入抵押品记账。
-  </Step>
-  <Step title="BNB 发送给借款人">
-    借款人在固定 3% 手续费扣除后收到净 BNB 数量。
-  </Step>
-</Steps>
+V5 借款流程：
+
+```txt
+1. 解析代币 poolId。
+2. 授权 Hook 转移抵押代币。
+3. 调用 hook.borrow(poolId, amount)。
+4. Hook 将代币转入抵押会计。
+5. Hook 记录债务。
+6. 用户收到扣除借贷手续费后的净 BNB。
+```
+
+函数：
+
+```solidity
+function borrow(bytes32 poolId, uint256 amount);
+```
+
+用户必须授权 Hook，而不是 Swap Router：
+
+```solidity
+approve(HOOK_ADDRESS, amount)
+```
+
+## 借贷手续费
+
+V5 借贷手续费固定为借款毛额的 3%。
+
+```txt
+借款毛额: 1.00 BNB
+借贷手续费: 0.03 BNB
+用户收到: 0.97 BNB
+记录债务: 1.00 BNB
+```
+
+记录的债务是借款毛额，而不仅仅是用户收到的净额。
 
 ## 还款流程
 
 用户通过向以下函数发送 BNB 还款：
 
 ```solidity
-repay(bytes32 poolId)
+function repay(bytes32 poolId) payable;
 ```
 
-如果是部分还款，协议会按比例解锁抵押品。
+如果是部分还款，协议会按比例解锁抵押品。如果还款关闭债务，则解锁剩余全部抵押品。
 
-如果还款关闭全部债务，剩余抵押品会被解锁。
+如果用户发送的金额超过未偿债务，合约按债务金额处理还款并退回多余金额。
 
-## Borrow More
+## Borrow more
 
-如果用户打开借贷仓位后地板价上升，现有抵押品可能支持更多借贷额度。
+如果借款仓位开启后地板价上升，用户现有抵押品可能支持额外借款。
 
-开发者可以使用以下函数估算：
+开发者可以用以下函数估算：
 
 ```solidity
-estimateBorrowMore(bytes32 poolId, address user)
+function estimateBorrowMore(
+    bytes32 poolId,
+    address user
+) view returns (uint256 additionalEth, uint256 fee);
 ```
 
-当存在可用额外额度时，再调用：
+当存在可借的额外价值时，调用：
 
 ```solidity
-borrowMore(bytes32 poolId)
+function borrowMore(bytes32 poolId);
 ```
+
+## 读取函数
+
+```solidity
+function borrowedETH(bytes32 poolId, address user) view returns (uint256);
+function collateralBalance(bytes32 poolId, address user) view returns (uint256);
+```
+
+在 BSC 上这些值代表 BNB，虽然 Solidity 名称中使用了 `ETH`。

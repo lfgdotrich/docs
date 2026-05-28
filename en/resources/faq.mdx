@@ -1,46 +1,286 @@
 ---
-title: FAQ
-description: Common questions about LFG.RICH.
+title: "FAQ"
+description: "Common questions about creating, trading, borrowing, referrals, and security on LFG.RICH."
 ---
 
-<AccordionGroup>
-  <Accordion title="Can the token price go to zero?">
-    Official LFG.RICH tokens use protocol-enforced floor price logic designed to prevent the price from falling below the token's floor while reserve conditions support that floor.
-  </Accordion>
+# FAQ
 
-  <Accordion title="Can the creator remove liquidity?">
-    No. LFG.RICH is designed around protocol-managed reserves and bonding-curve trading, not creator-managed LP tokens.
-  </Accordion>
+Find answers to common questions about LFG.RICH. This page follows the same user-facing FAQ structure used by the app, but the answers are written for the current V5 protocol.
 
-  <Accordion title="Do I need BNB?">
-    Yes. BNB is used for gas and trading on BNB Smart Chain.
-  </Accordion>
+<Info>
+V5 no longer has a creator-selected trading fee. The current protocol uses fixed V5 fees enforced by the contracts.
+</Info>
 
-  <Accordion title="Is token creation free?">
-    Token creation is currently free at the protocol level, but users still need BNB for gas.
-  </Accordion>
+## Getting Started
 
-  <Accordion title="What fees can creators choose?">
-    Creators can choose a permanent trading fee between 1% and 10%.
-  </Accordion>
+### What is LFG.RICH?
 
-  <Accordion title="What is the fixed platform fee?">
-    The fixed platform fee is 0.3% of buy and sell activity.
-  </Accordion>
+LFG.RICH is a token launchpad built around Uniswap V4 Hooks on BNB Smart Chain. Tokens created through the platform use protocol-managed bonding-curve trading, floor price protection, collateral borrowing, and referral rewards.
 
-  <Accordion title="What happens to the rest of the trading fee?">
-    The remaining part of the creator-selected trading fee goes to the token's floor boost mechanics.
-  </Accordion>
+Instead of relying on a normal external liquidity pool, the official LFG.RICH flow routes token creation, trading, pricing, floor tracking, fees, and borrowing through the protocol contracts.
 
-  <Accordion title="What is the borrow fee?">
-    Borrowing has a fixed one-time 3% fee. This fee is used to increase floor price support.
-  </Accordion>
+### How do I create a token?
 
-  <Accordion title="Can I repay partially?">
-    Yes. Partial repayment unlocks a proportional amount of collateral. Full repayment unlocks the remaining collateral.
-  </Accordion>
+Open the app, connect your wallet, and go to **Create Token**.
 
-  <Accordion title="Can developers integrate directly with the contracts?">
-    Yes. Developers can use the Factory, Uniswap V4 Hook, Token, and Swap Router ABIs in the developer section.
-  </Accordion>
-</AccordionGroup>
+You provide:
+
+- token name
+- token symbol
+- token logo
+- optional description
+- optional website
+- optional X/Twitter link
+- optional Telegram link
+- optional QQ group
+- optional initial buy amount
+
+The important V5 change is that creators do **not** select the token trading fee anymore. The form may allow an optional initial buy, but the fee rate is not chosen by the creator.
+
+When you confirm the transaction, the Factory creates the Token, registers it with the Uniswap V4 Hook, initializes the Pool Manager flow, and performs the optional initial buy when `devBuyEth` is greater than zero.
+
+### What do I need to create a token?
+
+You need:
+
+- a compatible wallet
+- BNB for gas
+- enough BNB for the current creation fee, if one is configured
+- optional extra BNB for the initial buy
+
+The creation transaction value is based on the creation fee plus the optional initial buy amount. If the current creation fee is `0`, then only gas and any optional initial buy are needed.
+
+### Can creators choose the token trading fee?
+
+No. This was removed in V5.
+
+In V5, the buy/sell trading fee is fixed by the protocol:
+
+| Fee | Rate | Notes |
+|---|---:|---|
+| Total buy/sell fee | 1.25% | Applied by the Hook during trades |
+| Platform portion | 0.25% | Protocol/platform portion |
+| Referral portion | 1.00% | Goes to the trader's initial inviter when eligible, otherwise to the platform side |
+
+Creators should not look for a fee selector in the V5 create-token form. The only optional value in the creation flow is the initial buy.
+
+### What happens after my token is created?
+
+After creation:
+
+1. the token contract exists on-chain;
+2. the Factory registers the token;
+3. the Hook stores the token state by `poolId`;
+4. the Uniswap V4 Pool Manager flow is initialized;
+5. the token can be bought and sold through the official Swap Router;
+6. the token page can display price, floor, supply, volume, trades, and borrowing data.
+
+Tokens start with no circulating supply until buys mint tokens through the bonding curve. If the creator performs an initial buy, that buy mints the creator's first token balance at launch.
+
+## Trading & Market
+
+### How does buying work?
+
+Users buy with BNB through the Swap Router. The router sends the operation through the Uniswap V4 Pool Manager flow, and the Hook calculates the actual token output using the token's `poolId`.
+
+The buy flow is:
+
+```text
+User -> Swap Router -> Pool Manager -> Uniswap V4 Hook -> Token minted to buyer
+```
+
+The app and integrations must use the correct `poolId` for the token. In V5, Hook state is keyed by `poolId`, so integrations should resolve it from the app API, token metadata, or the Hook/Factory contracts before estimating or executing trades.
+
+### How does selling work?
+
+Users sell tokens through the Swap Router. The user must approve the Swap Router to spend the token first.
+
+The Hook calculates the BNB output, burns the sold tokens, applies the V5 trading fee, and ensures the effective price does not go below the protocol floor.
+
+The sell flow is:
+
+```text
+User approves Token -> Swap Router -> Pool Manager -> Uniswap V4 Hook -> BNB paid to seller
+```
+
+### What is the floor price?
+
+The floor price is the protocol-enforced minimum effective price used by the Hook. In V5, the default floor rule is simple and important:
+
+```text
+floor price = 50% of ATH
+```
+
+`ATH` means the all-time high price recorded by the Hook for that token. When the token reaches a new ATH, the floor can rise. Once the floor rises, it does not go down.
+
+### Can the token price go to zero?
+
+The effective protocol price cannot be pushed below the token's floor once the floor has been established. The floor is enforced by the Hook, and sells are handled through the Hook/Router flow rather than through a normal external liquidity pool.
+
+Very early tokens may still be establishing their first meaningful price and floor state. After the token has trading history and ATH data, the floor mechanism is what prevents the effective protocol price from falling below the recorded floor.
+
+### Why do integrations need to check `poolId`?
+
+Because V5 routes important operations by `poolId`, not only by token address.
+
+The token address identifies the ERC-20 token, but the Hook's state is stored under the pool identifier. Before quoting, buying, selling, borrowing, borrowing more, or repaying, integrations should resolve the correct `poolId` and use it consistently.
+
+Common V5 reads include:
+
+```text
+hook.tokenToPoolId(tokenAddress)
+hook.tokenStates(poolId)
+hook.getEffectivePrice(poolId)
+hook.estimateBuy(poolId, ethIn, buyer)
+hook.estimateSell(poolId, tokenAmount, seller)
+```
+
+### Are there normal liquidity providers?
+
+No. The LFG.RICH V5 model is protocol-managed. Trading is handled through the official Hook and Router flow. Traditional external LP additions are not part of the normal user flow and are rejected by the Hook.
+
+## Borrowing
+
+### How does borrowing work?
+
+Borrowing lets a token holder lock tokens as collateral and borrow BNB against the token's floor value.
+
+The core idea is:
+
+```text
+locked token collateral -> floor value -> borrowable BNB
+```
+
+The borrowed amount is based on the floor price, not a temporary market spike. The user approves the Hook to transfer the tokens, then calls the borrow flow through the app or directly through the Hook.
+
+### Is there liquidation?
+
+No. LFG.RICH borrowing does not use liquidation.
+
+Your collateral is locked in the Hook while you have debt. It is not sold by liquidators, and there is no time limit forcing repayment. To unlock collateral, you repay the borrowed BNB.
+
+### What is the borrow fee?
+
+Borrowing has a one-time V5 borrow fee:
+
+| Fee | Rate | Notes |
+|---|---:|---|
+| Total borrow fee | 3.00% | Applied to the borrowed value |
+| Platform portion | 1.00% | Protocol/platform portion |
+| Parent reward portion | 2.00% | Goes to the borrower's direct parent when eligible, otherwise to the platform side |
+
+There is no ongoing interest rate. The fee is applied when the borrow or borrow-more operation happens.
+
+### What is Borrow More?
+
+If you borrowed against collateral and the token floor later rises, your locked collateral may support more borrowable value. **Borrow More** lets you borrow the additional available amount without adding more collateral.
+
+If there is no additional value available, the borrow-more operation is not available.
+
+### Can I repay partially?
+
+Yes. Partial repayment unlocks a proportional amount of the locked collateral.
+
+For example, if a user repays half of the remaining debt, a proportional part of the locked tokens is released. If the user fully repays the debt, the remaining collateral is unlocked.
+
+### What happens if I overpay?
+
+The Hook only applies the amount needed to reduce or clear the debt. Any excess value is refunded by the contract flow.
+
+## Referrals & Rewards
+
+### Do I need a referral to use LFG.RICH?
+
+No. Users can create tokens, buy, sell, borrow, and repay without binding to a referrer.
+
+Referral binding is optional for the user, but it matters for rewards. If a user is unbound and no eligible referral recipient exists, the referral portion of protocol fees goes to the platform side.
+
+### How does referral binding work?
+
+A user can bind to an inviter through the referral flow. Binding is one-time and permanent.
+
+The inviter must be eligible. In the referral tree, eligible inviters are usually:
+
+- whitelisted root addresses; or
+- users who are already bound under an eligible referral tree.
+
+Once a user is bound, the user has a direct **parent** and an **initial inviter**.
+
+### What is a whitelisted address?
+
+A whitelisted address is a platform-approved root address in the referral system.
+
+Whitelisted addresses can start referral branches. Normal users are then added under those branches as they bind to an eligible inviter.
+
+This whitelist/root logic is important because it prevents arbitrary fake roots and keeps referral rewards tied to approved referral trees.
+
+### What is the difference between parent and initial inviter?
+
+The **parent** is the direct inviter immediately above the user.
+
+The **initial inviter** is the root inviter for that referral branch, usually the whitelisted root address at the top of the user's referral tree.
+
+V5 uses these differently:
+
+| Action | Reward recipient | Reward |
+|---|---|---:|
+| Buy/Sell | Initial inviter | 1.00% of trade amount |
+| Borrow/Borrow More | Direct parent | 2.00% of borrowed value |
+
+This distinction is intentional. Trading rewards follow the initial inviter, while borrowing rewards follow the direct parent.
+
+### How much does a referrer earn from trading?
+
+For buy and sell trades, the referral reward is **1.00% of the trade amount**.
+
+This is the V5 inviter fee portion of the fixed 1.25% total buy/sell fee. If the trader has no eligible initial inviter, or referral rewards are disabled, that portion goes to the platform side.
+
+### How much does a parent earn from borrowing?
+
+For borrow and borrow-more operations, the parent reward is **2.00% of the borrowed value**.
+
+This is not 2% of the 3% fee. It is the parent portion of the borrow fee schedule, calculated from the borrowed value. If the borrower has no eligible parent, or referral rewards are disabled, that portion goes to the platform side.
+
+### Can I change my referrer later?
+
+No. Referral binding is permanent. Users should check the inviter carefully before binding.
+
+## Technical & Security
+
+### Is my wallet safe?
+
+LFG.RICH does not store your private key or seed phrase. Transactions are signed in your wallet. Only connect through official links, review every wallet prompt, and never share your seed phrase.
+
+### Which blockchain does LFG.RICH use?
+
+The current LFG.RICH docs and V5 protocol examples are focused on BNB Smart Chain.
+
+Always check the selected chain in your wallet before creating a token or sending a transaction.
+
+### Can I modify a token after creation?
+
+On-chain token properties such as the token contract, name, and symbol are fixed after creation. Treat the information submitted during creation as final and review it carefully before confirming.
+
+### Are the contracts upgradeable?
+
+The core V5 economic flow is enforced by deployed contracts. Users and integrations should rely on the official contract addresses and ABIs published in the documentation.
+
+Some administrative settings may exist, such as creation-fee configuration, referral contract settings, or reward toggles, depending on the deployed contract. The core trade, floor, and borrow behavior should be understood from the contract references, not from frontend assumptions.
+
+### What happens if the frontend is unavailable?
+
+The tokens and protocol state are on-chain. Advanced users and integrations can still interact directly with the contracts by using the official contract addresses, ABIs, `poolId`, Hook reads, Router functions, and lending functions documented in the developer section.
+
+## Support & Community
+
+### Where can I find the full documentation?
+
+Use the official LFG.RICH documentation for protocol explanations, contract references, API examples, integration examples, and resource guides.
+
+### Where can I get help?
+
+Use the official LFG.RICH community links from the app or documentation. Be careful with fake support accounts and never send private keys, seed phrases, or wallet recovery information to anyone.
+
+### Where should bugs or integration issues be reported?
+
+Report issues through the official community or project channels. For developer issues, include the chain, token address, `poolId`, transaction hash, wallet/network used, and the exact error message where possible.

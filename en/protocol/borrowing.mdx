@@ -1,11 +1,11 @@
 ---
 title: Borrowing
-description: Borrow BNB by locking LFG.RICH tokens as collateral.
+description: Borrow BNB by locking official LFG.RICH tokens as collateral.
 ---
 
-LFG.RICH includes collateral borrowing for official tokens.
+LFG.RICH V5 includes collateral borrowing for official tokens. Users can lock tokens as collateral and borrow native BNB against the token's floor value.
 
-Users can lock tokens as collateral and borrow BNB against the token's floor value. Borrowing is based on the token's protocol floor, not temporary market spikes.
+Borrowing is based on the protocol floor, not temporary market spikes. There is no liquidation engine and no ongoing interest.
 
 ## Key properties
 
@@ -13,42 +13,60 @@ Users can lock tokens as collateral and borrow BNB against the token's floor val
 - Locked collateral is removed from circulating supply while the borrow position is active.
 - Borrowing has no liquidation mechanism.
 - Borrowing has no ongoing interest.
-- A fixed one-time **3% borrow fee** is deducted upfront.
-- The 3% fee is used to support and increase the token's floor.
+- A fixed one-time 3% borrow fee is deducted from the borrowed value.
 - Partial repayment unlocks a proportional amount of collateral.
 - Full repayment unlocks the remaining collateral.
+- Borrow state is stored per `poolId` and user.
 
 ## Borrowing flow
 
-<Steps>
-  <Step title="Choose collateral">
-    The user chooses how many tokens to lock.
-  </Step>
-  <Step title="Approve the hook">
-    The user approves the Uniswap V4 Hook to transfer the selected token amount.
-  </Step>
-  <Step title="Borrow">
-    The user calls `borrow(poolId, amount)`.
-  </Step>
-  <Step title="Collateral is locked">
-    The hook transfers the selected tokens into collateral accounting.
-  </Step>
-  <Step title="BNB is sent to the borrower">
-    The borrower receives the net BNB amount after the fixed 3% fee.
-  </Step>
-</Steps>
+The V5 borrow flow is:
+
+```txt
+1. Resolve token poolId.
+2. Approve the Hook to transfer the collateral tokens.
+3. Call hook.borrow(poolId, amount).
+4. Hook transfers tokens into collateral accounting.
+5. Hook records debt.
+6. User receives net BNB after the borrow fee.
+```
+
+Function:
+
+```solidity
+function borrow(bytes32 poolId, uint256 amount);
+```
+
+The user must approve the Hook, not the Swap Router:
+
+```solidity
+approve(HOOK_ADDRESS, amount)
+```
+
+## Borrow fee
+
+The V5 borrow fee is fixed at 3% of the gross borrowed value.
+
+```txt
+Gross borrow value: 1.00 BNB
+Borrow fee:        0.03 BNB
+User receives:     0.97 BNB
+Debt recorded:     1.00 BNB
+```
+
+Debt is recorded as the gross borrowed value, not only the net amount the user receives.
 
 ## Repayment flow
 
 Users repay by sending BNB to:
 
 ```solidity
-repay(bytes32 poolId)
+function repay(bytes32 poolId) payable;
 ```
 
-If the repayment is partial, the protocol unlocks a proportional amount of collateral.
+If the repayment is partial, the protocol unlocks a proportional amount of collateral. If the repayment closes the debt, the remaining collateral is unlocked.
 
-If the repayment closes the debt, the remaining collateral is unlocked.
+If a user sends more than the outstanding debt, the contract handles repayment according to the debt amount and refunds the excess.
 
 ## Borrow more
 
@@ -57,13 +75,25 @@ If the floor rises after a borrow position is opened, the user's existing collat
 Developers can estimate this with:
 
 ```solidity
-estimateBorrowMore(bytes32 poolId, address user)
+function estimateBorrowMore(
+    bytes32 poolId,
+    address user
+) view returns (uint256 additionalEth, uint256 fee);
 ```
 
-and then call:
+Then call:
 
 ```solidity
-borrowMore(bytes32 poolId)
+function borrowMore(bytes32 poolId);
 ```
 
 when additional value is available.
+
+## Read functions
+
+```solidity
+function borrowedETH(bytes32 poolId, address user) view returns (uint256);
+function collateralBalance(bytes32 poolId, address user) view returns (uint256);
+```
+
+On BSC these values represent BNB, even though the Solidity names use `ETH`.

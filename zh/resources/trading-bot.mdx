@@ -3,35 +3,726 @@ title: 交易机器人
 description: 使用 LFG.RICH 社区交易机器人，为 LFG.RICH 代币自动执行买入和卖出策略。
 ---
 
-LFG.RICH Trading Bot 是一个面向用户和开发者的社区 Python 交易机器人，用于在 **BNB Smart Chain** 上为官方 LFG.RICH 代币自动执行 **买入和卖出策略**。
+LFG.RICH Community Trading Bot 是一个用于 BNB Smart Chain 的 Python 交易机器人示例，通过官方 LFG.RICH 协议合约交易 **官方 LFG.RICH 发射台代币**。
 
-机器人直接连接 LFG.RICH 协议合约。它使用 Hook 的 `Buy` 和 `Sell` 事件构建本地 K 线，获取协议价格估算，并通过官方 LFG.RICH SwapRouter 执行交易。
+此版本仅兼容 **LFG.RICH**：
 
-<Info>
-交易机器人只支持 **买入和卖出**。它不会使用协议的 borrow、borrowMore 或 repay 功能。
-</Info>
+- 通过 LFG.RICH **Swap Router** 买入；
+- 通过 LFG.RICH **Swap Router** 卖出；
+- 根据 LFG.RICH Uniswap V4 Hook 的 `Buy` 和 `Sell` 事件构建 K 线；
+- 使用 LFG.RICH **Uniswap V4 Hook** 获取价格和报价估算；
+- 不使用 PancakeSwap V2；
+- 不使用 PancakeSwap V3；
+- 不执行 borrow、borrow more 或 repay。
 
-## 源代码
+<Warning>
+这是社区交易软件。请使用专用钱包，从小金额开始，并在使用真实资金前充分测试。
+</Warning>
 
-中文版交易机器人可在 GitHub 获取：
+## 机器人如何工作
 
-<Card title="LFG.RICH Trading Bot 中文版" icon="github" href="https://github.com/lfgdotrich/LFG.RICH-Trading-Bot-zh">
-  查看源代码、安装步骤、配置示例和仪表盘说明。
-</Card>
+机器人从 `config.yaml` 监控一个或多个 LFG.RICH 代币。
 
-## 机器人包含什么
+对于每个配置的代币，它会：
 
-- 仅支持 LFG.RICH，通过官方 SwapRouter 自动执行交易。
-- 为官方 LFG.RICH 代币执行买入和卖出。
-- 根据协议 `Buy` 和 `Sell` 事件构建 K 线。
-- 使用 EMA、RSI、趋势、pump、dump 和 bleed 检测生成策略信号。
-- 提供 dry-run 模式，可在真实交易前测试策略决策。
-- 提供 test mode，可执行受控的买入或卖出交易。
-- 使用本地 SQLite 状态数据库保存交易、lots、仓位和 K 线缓存。
-- 可选 Streamlit 仪表盘，用于查看仓位、lots、PnL 和机器人状态。
+1. 通过 LFG.RICH Hook 解析代币池；
+2. 扫描 Hook 的 `Buy` 和 `Sell` 事件；
+3. 构建内部价格 K 线；
+4. 计算 EMA、RSI、趋势、pump、dump 和 bleed 等指标；
+5. 判断应该 `BUY`、`SELL` 还是 `HOLD`；
+6. 如果没有启用 `dry_run`，通过 LFG.RICH Swap Router 执行交易；
+7. 将已确认交易和 lots 写入本地 SQLite 数据库。
 
-## 推荐使用方式
+机器人必须解析并使用代币的 LFG.RICH 池数据。它不应该假设存在传统 pair 地址或 PancakeSwap 风格的池。
 
-建议使用专用钱包，并只放入少量 BNB。先运行 smoke test，再使用 dry-run 模式运行机器人，然后用很小金额测试一次真实买入，最后再启用正常的实时运行。
+## 环境要求
 
-仪表盘依赖机器人本地的 SQLite 数据库。只有当机器人创建或重建了本地交易记录之后，仪表盘才会显示 lots 和 PnL。
+### 测试环境
+
+机器人已在以下环境测试：
+
+```text
+Ubuntu 20.04 / Debian 风格服务器
+Python 3.8
+SQLite 状态数据库
+支持 eth_getLogs 的 BNB Smart Chain RPC
+```
+
+新用户推荐使用：
+
+```text
+Python 3.10 或 Python 3.11
+```
+
+机器人包中包含的固定依赖版本仍然支持 Python 3.8。
+
+不要使用 Python 2 运行机器人。如果看到类似路径：
+
+```text
+/usr/lib/python2.7/...
+```
+
+说明你正在使用错误的 Python 版本。
+
+### 必需系统组件
+
+机器人需要：
+
+- Python 3；
+- Python virtual environment 支持；
+- `pip`；
+- SQLite；
+- 支持 `eth_getLogs` 的 BNB Smart Chain RPC 端点；
+- 用于真实交易的钱包私钥。
+
+### Python 依赖
+
+运行依赖固定在：
+
+```text
+requirements.txt
+```
+
+仪表盘依赖单独固定在：
+
+```text
+requirements-dashboard.txt
+```
+
+重要兼容性说明：
+
+- 故意不使用 `aiohappyeyeballs==2.6.1`，因为它不兼容 Python 3.8。
+- 使用 `streamlit==1.40.1`，因为测试的 Python 3.8 环境无法安装 `1.40.2`。
+- 仪表盘使用 `use_container_width=True`，不是较新的 Streamlit `width="stretch"` 语法。
+- 代码在需要的地方包含 Python 3.8 兼容修复。
+
+## Linux / VPS 安装
+
+以下步骤适用于 Ubuntu/Debian 风格服务器。
+
+### 1. 安装系统包
+
+对于 Python 3.8：
+
+```bash
+apt update
+apt install -y python3.8-venv python3-pip python3-dev build-essential sqlite3
+```
+
+如果服务器使用其他 Python 3 版本，可安装通用 venv 包：
+
+```bash
+apt update
+apt install -y python3-venv python3-pip python3-dev build-essential sqlite3
+```
+
+### 2. 下载或克隆项目
+
+示例：
+
+```bash
+cd /var/www
+git clone https://github.com/lfgdotrich/LFG.RICH-Trading-Bot.git
+cd LFG.RICH-Trading-Bot
+```
+
+如果使用 ZIP，请上传/解压后进入项目目录。
+
+### 3. 创建干净的虚拟环境
+
+```bash
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+终端现在应该显示 `(.venv)`。
+
+### 4. 升级打包工具
+
+```bash
+python -m pip install --upgrade pip setuptools wheel
+```
+
+### 5. 安装机器人依赖
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 6. 创建本地配置文件
+
+```bash
+cp .env.example .env
+cp config.yaml.example config.yaml
+```
+
+### 7. 确认环境
+
+```bash
+which python
+python --version
+python -m pip show web3
+```
+
+预期 `which python` 应该指向本项目内部：
+
+```text
+/var/www/LFG.RICH-Trading-Bot/.venv/bin/python
+```
+
+## Windows 安装
+
+Windows 支持本地测试、开发和社区使用。Linux/VPS 更适合 24/7 长期运行。
+
+使用 PowerShell。
+
+### 1. 安装 Python
+
+从 Python 官方网站安装 Python 3.10 或 3.11。
+
+安装过程中启用：
+
+```text
+Add Python to PATH
+```
+
+### 2. 打开 PowerShell 并进入项目文件夹
+
+示例：
+
+```powershell
+cd C:\path\to\LFG.RICH-Trading-Bot
+```
+
+### 3. 创建并激活虚拟环境
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+如果 PowerShell 阻止激活，运行：
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+然后再次激活：
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### 4. 安装依赖
+
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
+```
+
+### 5. 创建本地配置文件
+
+```powershell
+copy .env.example .env
+copy config.yaml.example config.yaml
+```
+
+## 环境配置
+
+在项目根目录创建 `.env` 文件。
+
+示例：
+
+```env
+# Tested with NowNodes, Quicknode and publicnode. Other RPCs should work as well
+BSC_RPC_URL="https://bsc-rpc.publicnode.com"
+#BSC_RPC_URL="https://bsc.nownodes.io/some-api-key"
+#BSC_RPC_URL="https://fittest-few-fog.bsc.quiknode.pro/some-api-key/"
+PRIVATE_KEY="0xSecret"
+WALLET_ADDRESS="0xWalletAddress"
+```
+
+### `.env` 设置
+
+| 设置 | 是否必需 | 说明 |
+| --- | ---: | --- |
+| `BSC_RPC_URL` | 是 | BNB Smart Chain RPC URL。机器人需要普通合约调用和用于 LFG Hook 事件的 `eth_getLogs`。 |
+| `PRIVATE_KEY` | 真实交易必需 | 用于签名买入、卖出和授权交易的钱包私钥。纯 dry-run 观察模式不需要。 |
+| `WALLET_ADDRESS` | 推荐 | 用于日志和仪表盘上下文的公开钱包地址。 |
+
+永远不要把 `.env` 提交到 GitHub，也不要分享你的私钥。
+
+## 机器人配置
+
+机器人通过以下文件配置：
+
+```text
+config.yaml
+```
+
+先复制示例文件：
+
+```bash
+cp config.yaml.example config.yaml
+```
+
+默认示例代币是 LFGBULL：
+
+```yaml
+watchlist:
+  tokens:
+    - symbol: "LFGBULL"
+      address: "0x29Ede1E1254419Fe5a3c803fC2b015042075A49A"
+      dex: "lfg"
+```
+
+如果你在 LFG.RICH 创建了自己的代币，请替换 `watchlist.tokens[]` 中的 symbol 和 token address。
+
+### LFG.RICH 协议合约
+
+默认配置使用官方 LFG.RICH BSC 合约：
+
+```yaml
+lfg:
+  factory: "0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66"
+  hook: "0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888"
+  swap_router: "0x092043364f39f7f57C4E1D32116f453BfaE37440"
+  pool_manager: "0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF"
+```
+
+除非 LFG.RICH 官方部署新的协议合约，否则不要更改这些地址。
+
+## Smoke test
+
+运行完整机器人前，先运行 smoke test：
+
+```bash
+source .venv/bin/activate
+python -m bot.smoke_test_lfg
+```
+
+Windows PowerShell：
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m bot.smoke_test_lfg
+```
+
+成功的 smoke test 应该输出类似内容：
+
+```text
+token: 0x...
+pool_id: 0x...
+initialized: True
+totalFeeBps: ...
+effective price BNB/token: ...
+estimate buy 0.001 BNB:
+  tokensOut: ...
+  platformFee: ...
+  floorBoostFee: ...
+  totalFee: ...
+```
+
+报价值来自 LFG.RICH Hook。代币数量和 BNB 数量使用 18 位小数。
+
+## 运行机器人
+
+### 1. 从 dry-run 模式开始
+
+真实交易前保持启用：
+
+```yaml
+bot:
+  dry_run: true
+```
+
+运行机器人：
+
+```bash
+source .venv/bin/activate
+python -m bot.main
+```
+
+在 dry-run 模式下，机器人会扫描事件、构建 K 线、计算信号并记录计划交易，但不会发送交易。
+
+### 2. 测试一次小额真实买入
+
+当 dry-run 日志看起来正常后，使用只存有少量 BNB 的专用钱包。
+
+启用 test mode：
+
+```yaml
+bot:
+  dry_run: false
+  test_mode: true
+  test_action: "BUY"
+  test_amount_bnb: 0.005
+  test_once: true
+```
+
+运行：
+
+```bash
+python -m bot.main
+```
+
+测试买入成功后，检查仪表盘并确认 lot 已创建。
+
+### 3. 禁用 test mode 进入正常策略交易
+
+```yaml
+bot:
+  test_mode: false
+```
+
+然后运行：
+
+```bash
+python -m bot.main
+```
+
+### 4. 使用 PM2 保持运行
+
+Linux 可选示例：
+
+```bash
+pm2 start "./.venv/bin/python -m bot.main" --name LFG-TradingBot
+pm2 save
+```
+
+查看日志：
+
+```bash
+pm2 logs LFG-TradingBot --lines 100
+```
+
+## 运行仪表盘
+
+仪表盘是可选的，但有助于查看 open lots、PnL、交易、余额和机器人状态。
+
+### 1. 安装仪表盘依赖
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements-dashboard.txt
+```
+
+Windows：
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dashboard.txt
+```
+
+### 2. 运行仪表盘
+
+从项目根目录运行，不要在 `bot/` 文件夹内部运行：
+
+```bash
+python -m streamlit run bot/dashboard.py --server.address 0.0.0.0 --server.port 8501
+```
+
+Windows 本地使用：
+
+```powershell
+python -m streamlit run bot/dashboard.py --server.port 8501
+```
+
+在浏览器打开：
+
+```text
+http://YOUR_SERVER_IP:8501
+```
+
+本地使用：
+
+```text
+http://localhost:8501
+```
+
+### 3. SSH tunnel 选项
+
+如果不想公开暴露 `8501` 端口：
+
+```bash
+ssh -L 8501:127.0.0.1:8501 root@YOUR_SERVER_IP
+```
+
+然后打开：
+
+```text
+http://localhost:8501
+```
+
+### 4. 使用 PM2 保持仪表盘运行
+
+Linux 可选示例：
+
+```bash
+pm2 start "./.venv/bin/python -m streamlit run bot/dashboard.py --server.address 0.0.0.0 --server.port 8501" --name LFG-TradingBot-Dashboard
+pm2 save
+```
+
+## SQLite 数据库和 lots
+
+机器人使用本地 SQLite 数据库：
+
+```text
+state.db
+```
+
+它会在机器人运行时自动在项目根目录创建。
+
+### 仪表盘依赖机器人
+
+仪表盘读取 `state.db`。
+
+仪表盘本身不交易，也不会自己创建仓位。它依赖机器人创建和更新交易、仓位和 lots。
+
+如果机器人还没有确认任何买入交易，仪表盘可能没有 open lots 可显示。
+
+### 什么是 lots？
+
+**lot** 是机器人对买入仓位的本地记录。
+
+当机器人确认成功买入交易后，会记录一个 lot，包含：
+
+```text
+symbol
+buy transaction
+quantity opened
+cost in BNB
+average entry price
+remaining open quantity
+```
+
+仪表盘使用 open lots 计算：
+
+- 当前仓位价值；
+- 未实现 PnL；
+- 卖出后的已实现 PnL；
+- 平均入场价；
+- 每个代币的 open exposure。
+
+对于 LFG 代币，仪表盘按以下优先级为 open lots 定价：
+
+1. 最新有效 K 线收盘价；
+2. LFG Hook `getEffectivePrice(poolId)` fallback；
+3. 前两者都不可用时才为零。
+
+### 常用 SQLite 命令
+
+```bash
+sqlite3 state.db ".tables"
+sqlite3 state.db "SELECT * FROM trades ORDER BY id DESC LIMIT 10;"
+sqlite3 state.db "SELECT * FROM lots ORDER BY id DESC LIMIT 10;"
+```
+
+除非你明确想重置本地交易历史、lots、冷却时间和 K 线缓存，否则不要删除 `state.db`。
+
+## 配置参考
+
+本节说明 `config.yaml` 中的设置。
+
+### `chain`
+
+| 设置 | 说明 |
+| --- | --- |
+| `chain.name` | 可读的链名称。保持为 `bsc`。 |
+| `chain.chain_id` | BNB Smart Chain 主网 chain ID。保持为 `56`。 |
+
+### `rpc`
+
+| 设置 | 说明 |
+| --- | --- |
+| `rpc.request_timeout_sec` | 单个 RPC 请求的超时时间（秒）。 |
+| `rpc.max_retries` | RPC 调用失败时的重试次数。 |
+| `rpc.backoff_sec` | 重试之间的初始延迟。重复失败时，重试逻辑会增加延迟。 |
+
+### `lfg`
+
+| 设置 | 说明 |
+| --- | --- |
+| `lfg.factory` | LFG.RICH Factory 合约。用于协议元数据和手续费接收者引用。 |
+| `lfg.hook` | LFG.RICH Uniswap V4 Hook。用于事件、代币状态、价格和估算。 |
+| `lfg.swap_router` | LFG.RICH Swap Router。用于执行买入和卖出。 |
+| `lfg.pool_manager` | LFG.RICH 协议使用的 Uniswap V4 Pool Manager。 |
+
+### `bot` 执行设置
+
+| 设置 | 说明 |
+| --- | --- |
+| `bot.polling_interval_sec` | 每次机器人循环之间的秒数。 |
+| `bot.trade_cooldown_sec` | 同一代币交易后再次交易前等待的秒数。 |
+| `bot.min_hold_minutes` | 正常卖出逻辑可以卖出 lot 前的最短持有分钟数。 |
+| `bot.dry_run` | 如果为 `true`，机器人只记录计划交易，不发送交易。 |
+| `bot.warmup_approve` | 如果为 `true`，机器人启动时检查代币对 LFG Swap Router 的 allowance。 |
+| `bot.approve_wait_sec` | 在继续卖出执行前，等待授权交易确认的秒数。 |
+
+### `bot` 风险和交易规模
+
+| 设置 | 说明 |
+| --- | --- |
+| `bot.profit_gate_enabled` | 如果为 `true`，普通卖出需要满足 `min_profit_pct`，除非触发止损。 |
+| `bot.min_profit_pct` | 启用 profit gate 时，普通卖出所需的最低利润百分比。 |
+| `bot.max_loss_pct` | 止损百分比。例如 `10` 表示 lot 亏损 `-10%` 或更多时卖出。 |
+| `bot.max_hold_minutes` | 可选强制退出时间（分钟）。`0` 表示禁用。 |
+| `bot.slippage_bps` | 滑点容忍度，单位为基点。`1200` 表示 12%。它必须覆盖代币手续费和波动。 |
+| `bot.gas_limit` | LFG 买入/卖出交易使用的 gas limit。 |
+| `bot.min_bnb_for_gas` | 保留用于 gas 的 BNB。机器人不会花掉低于该数值的 BNB。 |
+| `bot.min_trade_bnb` | 买入/卖出动作的最低 BNB 金额。 |
+| `bot.max_trade_bnb` | 单次买入/卖出动作的最高 BNB 金额。 |
+
+### `bot` 事件扫描和 K 线
+
+| 设置 | 说明 |
+| --- | --- |
+| `bot.blocks_per_candle` | 每根内部价格 K 线包含的 BSC 区块数。 |
+| `bot.confirmations` | 在将事件视为足够安全/最终前等待的区块数。 |
+| `bot.log_chunk_blocks` | `eth_getLogs` 的区块分块大小。如果公共/免费 RPC 限速或失败，可降低此值。 |
+| `bot.warmup_lookback_blocks` | 首次运行时为旧代币构建历史 K 线而扫描的区块数。如果机器人提示 `not enough data`，可增加。 |
+| `bot.max_history_candles` | 每个代币在内存/缓存中保留的最大 K 线数。 |
+
+### `bot` 策略设置
+
+| 设置 | 说明 |
+| --- | --- |
+| `bot.fast_down_enabled` | 启用快速下跌卖出保护。 |
+| `bot.fast_down_candles` | 用于快速下跌检测的最近真实成交 K 线数量。 |
+| `bot.fast_down_min_drop_pct` | 在 `fast_down_candles` 范围内触发快速下跌的最小跌幅百分比。 |
+| `bot.fast_down_min_steps` | 触发快速下跌所需的最少下跌 K 线步数。 |
+| `bot.trend_confirm_candles` | 用于确认趋势方向的 K 线数量。 |
+| `bot.ema_deadband_pct` | EMA 死区百分比。用于避免 EMAs 非常接近时频繁噪音翻转。 |
+| `bot.dump_lookback` | 用于检测快速 dump 的 K 线数量。 |
+| `bot.dump_drop_pct` | 在 `dump_lookback` 范围内触发 dump 的跌幅百分比。 |
+| `bot.pump_lookback` | 用于检测快速 pump 的 K 线数量。 |
+| `bot.pump_rise_pct` | 在 `pump_lookback` 范围内触发 pump 的涨幅百分比。 |
+| `bot.bleed_lookback` | 用于检测缓慢 bleed/下跌趋势的 K 线数量。 |
+| `bot.bleed_drop_pct` | 参与 bleed 检测的跌幅百分比。 |
+| `bot.bleed_rise_pct` | 用于区分恢复和 bleed 的上涨阈值。 |
+| `bot.bleed_min_steps` | 触发 bleed 检测所需的最少下跌步数。 |
+
+### `bot` test mode
+
+| 设置 | 说明 |
+| --- | --- |
+| `bot.test_mode` | 如果为 `true`，强制使用 `test_action`，而不是策略信号。适合测试真实买入/卖出。 |
+| `bot.test_action` | `BUY` 或 `SELL`。仅在 `test_mode` 为 true 时使用。 |
+| `bot.test_amount_bnb` | test mode 交易使用的 BNB 金额。 |
+| `bot.test_once` | 如果为 `true`，执行一次测试动作后退出。 |
+
+### `watchlist.tokens[]`
+
+每个 token entry 定义一个要监控和交易的 LFG.RICH 代币。
+
+| 设置 | 说明 |
+| --- | --- |
+| `symbol` | 代币符号/ticker。 |
+| `address` | LFG.RICH 代币合约地址。 |
+| `max_alloc_bnb` | 该代币允许的最大总 BNB 分配。 |
+| `add_step_bnb` | 当策略决定买入/增加仓位时添加的 BNB 数量。 |
+| `timeframe_sec` | 预期策略时间周期（秒）。保留用于策略设置/日志兼容。 |
+| `ema_fast` | 策略使用的快速 EMA 周期。 |
+| `ema_slow` | 策略使用的慢速 EMA 周期。 |
+| `rsi_period` | 策略使用的 RSI 周期。 |
+| `dust_size` | 低于该数量的代币在本地 lot 记账中视为 dust/closed。 |
+| `dex` | 交易场所。保持为 `lfg`。 |
+
+## 排查问题
+
+### 出现 `/usr/lib/python2.7/...` 的 `SyntaxError`
+
+你正在使用 Python 2。
+
+激活 venv 并使用 Python 3：
+
+```bash
+source .venv/bin/activate
+python --version
+python -m bot.main
+```
+
+### `ModuleNotFoundError: No module named 'web3'`
+
+当前环境没有安装依赖：
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+### `ensurepip is not available`
+
+安装 venv 包：
+
+```bash
+apt install -y python3.8-venv python3-pip
+```
+
+然后重新创建 venv：
+
+```bash
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### `pip: command not found`
+
+安装 pip：
+
+```bash
+apt install -y python3-pip
+```
+
+### `No matching distribution found for aiohappyeyeballs==2.6.1`
+
+你正在使用来自较新 Python 环境的旧/冻结依赖列表。
+
+请使用 LFG.RICH 机器人包中包含的 `requirements.txt`。
+
+### `No matching distribution found for streamlit==1.40.2`
+
+使用包含以下固定版本的 `requirements-dashboard.txt`：
+
+```text
+streamlit==1.40.1
+```
+
+### `invalid argument 0: hex string without 0x prefix`
+
+请使用最新的 LFG.RICH 机器人包。LFG pool id 和事件 topic 处理已更新，会规范化为带 `0x` 前缀的值。
+
+### 仪表盘显示 `lot_pnl_pct` 为空或 `None`
+
+仪表盘需要有效的当前价格。
+
+对于 LFG 代币，仪表盘现在使用：
+
+1. 最新有效 K 线收盘价；
+2. LFG Hook `getEffectivePrice(poolId)` fallback；
+3. 前两者都不可用时才为零。
+
+如果该值仍然为空，请确认机器人和仪表盘使用同一个 `state.db` 和 `config.yaml`。
+
+## 安全运行检查表
+
+真实运行前：
+
+1. 使用专用钱包。
+2. 钱包中只保留少量 BNB。
+3. 从 `dry_run: true` 开始。
+4. 运行 `python -m bot.smoke_test_lfg`。
+5. 运行机器人并确认 K 线/信号看起来正确。
+6. 使用 `test_mode: true`、`test_action: "BUY"` 和很小的 `test_amount_bnb` 进行测试。
+7. 确认仪表盘显示已创建的 lot。
+8. 然后再禁用 `test_mode`。
+
+## 社区说明
+
+这个机器人是对 LFG.RICH 社区的贡献，用于支持开发者、建设者和交易者探索 LFG.RICH 发射台和协议。
+
+你可以使用、修改、改进和分享该项目。真实交易前，请检查配置、小额测试，并根据自己的需求调整策略。
+
+该项目的目标是帮助 LFG.RICH 的采用、实验和社区驱动开发。

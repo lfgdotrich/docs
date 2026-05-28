@@ -1,40 +1,46 @@
 ---
 title: Developer Overview
-description: Build bots, dashboards, analytics, and integrations around LFG.RICH.
+description: Build integrations around LFG.RICH V5.
 ---
 
-Developers can integrate with LFG.RICH through the public API and on-chain contracts.
+This section is for developers building dashboards, trading tools, bots, alerts, analytics, and wallet integrations for LFG.RICH.
 
-<CardGroup cols={2}>
-  <Card title="Use the public API" icon="server" href="/en/developers/api">
-    Fetch token lists, token details, trades, candles, balances, native price, and contract config.
-  </Card>
-  <Card title="Call contracts directly" icon="code" href="/en/developers/contracts">
-    Read protocol state, estimate trades, and build on-chain integrations using BSC RPC.
-  </Card>
-  <Card title="Protocol examples" icon="terminal" href="/en/developers/protocol-examples">
-    Use Node.js and Python examples for estimates, buy, sell, borrow, borrowMore, and repay.
-  </Card>
-  <Card title="ABI reference" icon="braces" href="/en/developers/abis/factory">
-    Copy the Factory, Hook, Token, and Swap Router ABIs used by integrations.
-  </Card>
-</CardGroup>
+## V5 is the current integration target
 
-## Common integration use cases
+Use V5 contracts for new integrations. V3 exists only for legacy tokens and should be treated as deprecated.
 
-- Token launch dashboards.
-- Buy/sell quoting tools.
-- Telegram and Discord buybots.
-- Portfolio and collateral dashboards.
-- Borrow position tracking.
-- Protocol analytics.
-- Custom trading interfaces.
+## Core integration flow
 
-## Main integration contracts
+For token interactions, do not hardcode an old factory, hook, or PoolKey. Instead:
 
-| Contract | Purpose |
+1. Read the token's `FACTORY()` and `hook()` values when available.
+2. Use the correct Factory to call `getPoolKey(token)`.
+3. Use the returned PoolKey with the SwapRouter for buy/sell.
+4. Use the token's Hook and poolId for estimates, borrowing, repayment, and price reads.
+
+## Price precision
+
+V5 price-like values are scaled by `1e22`:
+
+- `getEffectivePrice(poolId)`
+- `floorPrice`
+- `allTimeHighPrice`
+- `newPrice` emitted by V5 buy/sell events
+
+To show BNB per token:
+
+```ts
+const priceBnb = Number(priceScaled) / 1e22;
+```
+
+Do not treat V5 price values as `1e18` prices, or your integration will show values 10,000x too high.
+
+## Contracts
+
+| Contract | Address |
 | --- | --- |
-| Factory | Find official tokens, token info, pool IDs, and pool keys. |
-| Uniswap V4 Hook | Read protocol state and estimate buys, sells, and borrowMore. |
-| Swap Router | Execute buys and sells through simple user-facing methods. |
-| Token | ERC20 token interactions, approvals, balances, and collateral approvals. |
+| Factory | `0x429a7ef0129649a97bb3f1e961dd56d9bd4ac01f` |
+| Hook | `0xc18e6e1926113cdcf53f3ec1a89d3eb84cc6a888` |
+| SwapRouter | `0x4018abd5d24ee48c642e7e518a8aef03b59ec150` |
+| OTOInvite | `0x162e11887f6788ac9625a980e68044bee7f9d746` |
+| Treasury | `0xdb5b8aa5cecf7a6fe1812fb2ccc37723076b19d9` |

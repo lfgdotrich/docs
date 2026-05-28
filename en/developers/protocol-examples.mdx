@@ -1,620 +1,740 @@
 ---
-title: Protocol Contract Examples
-description: Viem, Ethers, and Python examples for estimates, buy, sell, borrow, borrowMore, and repay.
+title: Protocol Examples
+description: V5 contract interaction examples for LFG.RICH using Ethers, Viem, Web3.js, and Python Web3.py.
 ---
 
-This page shows direct contract examples for developers building bots, dashboards, scripts, or custom interfaces.
+These examples follow the same V5 pattern used by the LFG.RICH application:
 
-The examples use BNB Smart Chain and the deployed LFG.RICH contracts.
+1. Resolve the token's `poolId`.
+2. Resolve or build the token's `PoolKey`.
+3. Quote through the Hook.
+4. Execute buys and sells through the Swap Router.
+5. Execute borrow, borrow more, and repay through the Hook.
 
-## Contract addresses
+<Warning>
+Do not use old V3 examples for V5 tokens. In V5, `estimateBuy` and `estimateSell` include the user address, `createToken` takes `devBuyEth`, and token trades must be routed with the correct `PoolKey`.
+</Warning>
+
+## Shared V5 concepts
+
+```ts
+type PoolKey = {
+  currency0: `0x${string}`; // native BNB represented as address(0)
+  currency1: `0x${string}`; // token address
+  fee: number;              // usually 3000
+  tickSpacing: number;      // usually 60
+  hooks: `0x${string}`;     // Hook contract
+};
+```
+
+The app can use `token.pool_id` from the API, but integrations should also know the fallback:
 
 ```txt
-Factory:          0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66
-Uniswap V4 Hook:  0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888
-Swap Router:      0x092043364f39f7f57C4E1D32116f453BfaE37440
+poolId = token.pool_id || token.poolId || hook.tokenToPoolId(tokenAddress)
 ```
 
-## ABI format
+For swaps, prefer `factory.getPoolKey(tokenAddress)` when available. If you already know the network constants, the same PoolKey can be built as:
 
-Viem, Ethers, and Web3.py all accept an ABI as an array of JSON ABI items.
-
-```ts
-import { FACTORY_ABI } from './abis/factory';
-```
-
-or, if your build/runtime supports JSON imports:
-
-```ts
-import FACTORY_ABI from './abis/Factory.abi.json';
-```
-
-For TypeScript and Viem, `as const` gives better type inference. Ethers does not require `as const`; it can use the same array directly.
-
-## Common flow
-
-<Steps>
-  <Step title="Get the pool ID">
-    Use `Factory.getTokenInfo(token)` or `Hook.tokenToPoolId(token)`.
-  </Step>
-  <Step title="Get the pool key">
-    Use `Factory.getPoolKey(token)`.
-  </Step>
-  <Step title="Estimate the action">
-    Use `estimateBuy`, `estimateSell`, or `estimateBorrowMore` on the Hook.
-  </Step>
-  <Step title="Approve tokens when needed">
-    Sells approve the Swap Router. Borrows approve the Hook.
-  </Step>
-  <Step title="Execute">
-    Use the Swap Router for buys/sells and the Hook for borrow/repay actions.
-  </Step>
-</Steps>
-
----
-
-# Node.js with Viem
-
-## Setup
-
-```bash
-npm install viem
-```
-
-```ts
-import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { bsc } from 'viem/chains';
-
-import { FACTORY_ABI } from './abis/factory';
-import { UNISWAP_V4_HOOK_ABI } from './abis/uniswap-v4-hook';
-import { SWAP_ROUTER_ABI } from './abis/swap-router';
-import { TOKEN_ABI } from './abis/token';
-
-const FACTORY = '0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66';
-const HOOK = '0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888';
-const SWAP_ROUTER = '0x092043364f39f7f57C4E1D32116f453BfaE37440';
-
-const publicClient = createPublicClient({
-  chain: bsc,
-  transport: http(process.env.BSC_RPC_URL)
-});
-
-const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
-
-const walletClient = createWalletClient({
-  account,
-  chain: bsc,
-  transport: http(process.env.BSC_RPC_URL)
-});
-```
-
-## Get pool info
-
-```ts
-const token = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
-
-const tokenInfo = await publicClient.readContract({
-  address: FACTORY,
-  abi: FACTORY_ABI,
-  functionName: 'getTokenInfo',
-  args: [token]
-});
-
-const poolId = tokenInfo.poolId;
-
-const poolKey = await publicClient.readContract({
-  address: FACTORY,
-  abi: FACTORY_ABI,
-  functionName: 'getPoolKey',
-  args: [token]
-});
-```
-
-## Estimate buy and buy
-
-```ts
-const ethIn = parseEther('0.1');
-
-const [tokensOut, platformFee, floorBoostFee] = await publicClient.readContract({
-  address: HOOK,
-  abi: UNISWAP_V4_HOOK_ABI,
-  functionName: 'estimateBuy',
-  args: [poolId, ethIn]
-});
-
-console.log('tokensOut:', tokensOut.toString());
-console.log('platformFee BNB:', formatEther(platformFee));
-console.log('floorBoostFee BNB:', formatEther(floorBoostFee));
-
-const slippageBps = 500n; // 5%
-const minTokensOut = (tokensOut * (10_000n - slippageBps)) / 10_000n;
-
-const buyHash = await walletClient.writeContract({
-  address: SWAP_ROUTER,
-  abi: SWAP_ROUTER_ABI,
-  functionName: 'buy',
-  args: [poolKey, minTokensOut],
-  value: ethIn
-});
-
-console.log('buy tx:', buyHash);
-```
-
-## Estimate sell, approve, and sell
-
-```ts
-const tokenAmount = parseEther('1000');
-
-const [ethOut, sellPlatformFee, sellFloorBoostFee] = await publicClient.readContract({
-  address: HOOK,
-  abi: UNISWAP_V4_HOOK_ABI,
-  functionName: 'estimateSell',
-  args: [poolId, tokenAmount]
-});
-
-const allowance = await publicClient.readContract({
-  address: token,
-  abi: TOKEN_ABI,
-  functionName: 'allowance',
-  args: [account.address, SWAP_ROUTER]
-});
-
-if (allowance < tokenAmount) {
-  const approveHash = await walletClient.writeContract({
-    address: token,
-    abi: TOKEN_ABI,
-    functionName: 'approve',
-    args: [SWAP_ROUTER, tokenAmount]
-  });
-
-  await publicClient.waitForTransactionReceipt({ hash: approveHash });
-}
-
-const minEthOut = (ethOut * 95n) / 100n; // 5% slippage
-
-const sellHash = await walletClient.writeContract({
-  address: SWAP_ROUTER,
-  abi: SWAP_ROUTER_ABI,
-  functionName: 'sell',
-  args: [poolKey, tokenAmount, minEthOut]
-});
-
-console.log('sell tx:', sellHash);
-```
-
-## Borrow
-
-Borrowing locks tokens as collateral. Approve the Hook, then call `borrow(poolId, amount)`.
-
-```ts
-const collateralAmount = parseEther('1000');
-
-const borrowAllowance = await publicClient.readContract({
-  address: token,
-  abi: TOKEN_ABI,
-  functionName: 'allowance',
-  args: [account.address, HOOK]
-});
-
-if (borrowAllowance < collateralAmount) {
-  const approveBorrowHash = await walletClient.writeContract({
-    address: token,
-    abi: TOKEN_ABI,
-    functionName: 'approve',
-    args: [HOOK, collateralAmount]
-  });
-
-  await publicClient.waitForTransactionReceipt({ hash: approveBorrowHash });
-}
-
-const borrowHash = await walletClient.writeContract({
-  address: HOOK,
-  abi: UNISWAP_V4_HOOK_ABI,
-  functionName: 'borrow',
-  args: [poolId, collateralAmount]
-});
-
-console.log('borrow tx:', borrowHash);
-```
-
-## Estimate borrowMore and borrowMore
-
-```ts
-const [additionalEth, borrowMoreFee] = await publicClient.readContract({
-  address: HOOK,
-  abi: UNISWAP_V4_HOOK_ABI,
-  functionName: 'estimateBorrowMore',
-  args: [poolId, account.address]
-});
-
-console.log('additional BNB:', formatEther(additionalEth));
-console.log('fee BNB:', formatEther(borrowMoreFee));
-
-if (additionalEth > 0n) {
-  const borrowMoreHash = await walletClient.writeContract({
-    address: HOOK,
-    abi: UNISWAP_V4_HOOK_ABI,
-    functionName: 'borrowMore',
-    args: [poolId]
-  });
-
-  console.log('borrowMore tx:', borrowMoreHash);
+```js
+{
+  currency0: '0x0000000000000000000000000000000000000000',
+  currency1: tokenAddress,
+  fee: 3000,
+  tickSpacing: 60,
+  hooks: hookAddress
 }
 ```
 
-## Repay
+## Ethers.js v5
 
-```ts
-const repayAmount = parseEther('0.05');
+### Shared setup
 
-const repayHash = await walletClient.writeContract({
-  address: HOOK,
-  abi: UNISWAP_V4_HOOK_ABI,
-  functionName: 'repay',
-  args: [poolId],
-  value: repayAmount
-});
-
-console.log('repay tx:', repayHash);
-```
-
----
-
-# Node.js with Ethers
-
-## Setup
-
-```bash
-npm install ethers
-```
-
-```ts
+```js
 import { ethers } from 'ethers';
 
-import { FACTORY_ABI } from './abis/factory';
-import { UNISWAP_V4_HOOK_ABI } from './abis/uniswap-v4-hook';
-import { SWAP_ROUTER_ABI } from './abis/swap-router';
-import { TOKEN_ABI } from './abis/token';
+const API_BASE = 'https://lfg.rich/api/bsc/tokens';
+const ZERO = ethers.constants.AddressZero;
 
-const FACTORY = '0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66';
-const HOOK = '0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888';
-const SWAP_ROUTER = '0x092043364f39f7f57C4E1D32116f453BfaE37440';
-
-const provider = new ethers.JsonRpcProvider(process.env.BSC_RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-
-const factory = new ethers.Contract(FACTORY, FACTORY_ABI, wallet);
-const hook = new ethers.Contract(HOOK, UNISWAP_V4_HOOK_ABI, wallet);
-const router = new ethers.Contract(SWAP_ROUTER, SWAP_ROUTER_ABI, wallet);
-```
-
-## Get pool info
-
-```ts
-const token = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
-
-const tokenInfo = await factory.getTokenInfo(token);
-const poolId = tokenInfo.poolId;
-const poolKey = await factory.getPoolKey(token);
-
-console.log({ poolId, poolKey });
-```
-
-## Estimate buy and buy
-
-```ts
-const ethIn = ethers.parseEther('0.1');
-
-const [tokensOut, platformFee, floorBoostFee] = await hook.estimateBuy(poolId, ethIn);
-
-console.log('tokensOut:', tokensOut.toString());
-console.log('platformFee BNB:', ethers.formatEther(platformFee));
-console.log('floorBoostFee BNB:', ethers.formatEther(floorBoostFee));
-
-const slippageBps = 500n; // 5%
-const minTokensOut = (tokensOut * (10_000n - slippageBps)) / 10_000n;
-
-const buyTx = await router.buy(poolKey, minTokensOut, {
-  value: ethIn
-});
-
-console.log('buy tx:', buyTx.hash);
-await buyTx.wait();
-```
-
-## Estimate sell, approve, and sell
-
-```ts
-const tokenContract = new ethers.Contract(token, TOKEN_ABI, wallet);
-const tokenAmount = ethers.parseEther('1000');
-
-const [ethOut, sellPlatformFee, sellFloorBoostFee] = await hook.estimateSell(
-  poolId,
-  tokenAmount
-);
-
-const allowance = await tokenContract.allowance(wallet.address, SWAP_ROUTER);
-
-if (allowance < tokenAmount) {
-  const approveTx = await tokenContract.approve(SWAP_ROUTER, tokenAmount);
-  await approveTx.wait();
+async function loadContractsConfig() {
+  const res = await fetch(`${API_BASE}/config/contracts`);
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Failed to load contract config');
+  return json.data;
 }
 
-const minEthOut = (ethOut * 95n) / 100n; // 5% slippage
-
-const sellTx = await router.sell(poolKey, tokenAmount, minEthOut);
-console.log('sell tx:', sellTx.hash);
-await sellTx.wait();
-```
-
-## Borrow
-
-```ts
-const tokenContract = new ethers.Contract(token, TOKEN_ABI, wallet);
-const collateralAmount = ethers.parseEther('1000');
-
-const borrowAllowance = await tokenContract.allowance(wallet.address, HOOK);
-
-if (borrowAllowance < collateralAmount) {
-  const approveBorrowTx = await tokenContract.approve(HOOK, collateralAmount);
-  await approveBorrowTx.wait();
+async function loadToken(tokenAddress) {
+  const res = await fetch(`${API_BASE}/${tokenAddress}`);
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Failed to load token');
+  return json.data;
 }
 
-const borrowTx = await hook.borrow(poolId, collateralAmount);
-console.log('borrow tx:', borrowTx.hash);
-await borrowTx.wait();
-```
+async function getPoolContext({ tokenAddress, provider }) {
+  const cfg = await loadContractsConfig();
+  const token = await loadToken(tokenAddress);
 
-## Estimate borrowMore and borrowMore
+  const factory = new ethers.Contract(cfg.factoryAddress, cfg.factoryABI, provider);
+  const hook = new ethers.Contract(cfg.hookAddress, cfg.hookABI, provider);
 
-```ts
-const [additionalEth, fee] = await hook.estimateBorrowMore(poolId, wallet.address);
+  let poolId = token.pool_id || token.poolId;
+  if (!poolId || poolId === '0x') {
+    poolId = await hook.tokenToPoolId(tokenAddress);
+  }
 
-console.log('additional BNB:', ethers.formatEther(additionalEth));
-console.log('fee BNB:', ethers.formatEther(fee));
+  let poolKey;
+  try {
+    poolKey = await factory.getPoolKey(tokenAddress);
+  } catch {
+    poolKey = {
+      currency0: ZERO,
+      currency1: tokenAddress,
+      fee: 3000,
+      tickSpacing: 60,
+      hooks: cfg.hookAddress
+    };
+  }
 
-if (additionalEth > 0n) {
-  const borrowMoreTx = await hook.borrowMore(poolId);
-  console.log('borrowMore tx:', borrowMoreTx.hash);
-  await borrowMoreTx.wait();
+  return { cfg, token, poolId, poolKey, factory, hook };
+}
+
+function applySlippage(value, slippagePct = 5) {
+  return ethers.BigNumber.from(value).mul(100 - slippagePct).div(100);
 }
 ```
 
-## Repay
+### Estimate buy
+
+```js
+async function estimateBuy({ tokenAddress, bnbAmount, walletAddress, provider }) {
+  const { hook, poolId } = await getPoolContext({ tokenAddress, provider });
+  const ethWei = ethers.utils.parseEther(bnbAmount);
+
+  const quote = await hook.estimateBuy(
+    poolId,
+    ethWei,
+    walletAddress || ethers.constants.AddressZero
+  );
+
+  return {
+    tokensOut: quote.tokensOut.toString(),
+    platformFee: quote.platformFee.toString(),
+    inviterFee: quote.inviterFee.toString(),
+    totalFee: quote.platformFee.add(quote.inviterFee || 0).toString()
+  };
+}
+```
+
+### Buy tokens
+
+```js
+async function buyToken({ tokenAddress, bnbAmount, slippagePct = 5, signer }) {
+  const provider = signer.provider;
+  const walletAddress = await signer.getAddress();
+  const { cfg, hook, poolId, poolKey } = await getPoolContext({ tokenAddress, provider });
+
+  const router = new ethers.Contract(cfg.swapRouterAddress, cfg.swapRouterABI, signer);
+  const value = ethers.utils.parseEther(bnbAmount);
+
+  const quote = await hook.estimateBuy(poolId, value, walletAddress);
+  const minTokensOut = applySlippage(quote.tokensOut, slippagePct);
+
+  const tx = await router.buy(poolKey, minTokensOut, { value });
+  return await tx.wait();
+}
+```
+
+### Estimate sell
+
+```js
+async function estimateSell({ tokenAddress, tokenAmount, walletAddress, provider }) {
+  const { hook, poolId } = await getPoolContext({ tokenAddress, provider });
+  const tokenWei = ethers.utils.parseEther(tokenAmount);
+
+  const quote = await hook.estimateSell(
+    poolId,
+    tokenWei,
+    walletAddress || ethers.constants.AddressZero
+  );
+
+  return {
+    ethOut: quote.ethOut.toString(),
+    platformFee: quote.platformFee.toString(),
+    inviterFee: quote.inviterFee.toString(),
+    totalFee: quote.platformFee.add(quote.inviterFee || 0).toString()
+  };
+}
+```
+
+### Sell tokens
+
+```js
+async function sellToken({ tokenAddress, tokenAmount, slippagePct = 5, signer }) {
+  const provider = signer.provider;
+  const walletAddress = await signer.getAddress();
+  const { cfg, hook, poolId, poolKey } = await getPoolContext({ tokenAddress, provider });
+
+  const token = new ethers.Contract(tokenAddress, cfg.tokenABI, signer);
+  const router = new ethers.Contract(cfg.swapRouterAddress, cfg.swapRouterABI, signer);
+
+  const amountWei = ethers.utils.parseEther(tokenAmount);
+
+  const allowance = await token.allowance(walletAddress, cfg.swapRouterAddress);
+  if (allowance.lt(amountWei)) {
+    const approveTx = await token.approve(cfg.swapRouterAddress, ethers.constants.MaxUint256);
+    await approveTx.wait();
+  }
+
+  const quote = await hook.estimateSell(poolId, amountWei, walletAddress);
+  const minEthOut = applySlippage(quote.ethOut, slippagePct);
+
+  const tx = await router.sell(poolKey, amountWei, minEthOut);
+  return await tx.wait();
+}
+```
+
+### Borrow
+
+```js
+async function borrowAgainstToken({ tokenAddress, tokenAmount, signer }) {
+  const provider = signer.provider;
+  const walletAddress = await signer.getAddress();
+  const { cfg, poolId } = await getPoolContext({ tokenAddress, provider });
+
+  const hook = new ethers.Contract(cfg.hookAddress, cfg.hookABI, signer);
+  const token = new ethers.Contract(tokenAddress, cfg.tokenABI, signer);
+  const amountWei = ethers.utils.parseEther(tokenAmount);
+
+  const allowance = await token.allowance(walletAddress, cfg.hookAddress);
+  if (allowance.lt(amountWei)) {
+    const approveTx = await token.approve(cfg.hookAddress, ethers.constants.MaxUint256);
+    await approveTx.wait();
+  }
+
+  const tx = await hook.borrow(poolId, amountWei);
+  return await tx.wait();
+}
+```
+
+### Borrow more
+
+```js
+async function borrowMore({ tokenAddress, signer }) {
+  const { cfg, poolId } = await getPoolContext({
+    tokenAddress,
+    provider: signer.provider
+  });
+
+  const hook = new ethers.Contract(cfg.hookAddress, cfg.hookABI, signer);
+  const tx = await hook.borrowMore(poolId);
+  return await tx.wait();
+}
+```
+
+### Repay
+
+```js
+async function repayBorrow({ tokenAddress, bnbAmount, signer }) {
+  const { cfg, poolId } = await getPoolContext({
+    tokenAddress,
+    provider: signer.provider
+  });
+
+  const hook = new ethers.Contract(cfg.hookAddress, cfg.hookABI, signer);
+  const value = ethers.utils.parseEther(bnbAmount);
+
+  const tx = await hook.repay(poolId, { value });
+  return await tx.wait();
+}
+```
+
+### Read user borrow state
+
+```js
+async function getBorrowState({ tokenAddress, walletAddress, provider }) {
+  const { hook, poolId } = await getPoolContext({ tokenAddress, provider });
+
+  const [borrowedETH, collateralBalance, borrowMoreEstimate] = await Promise.all([
+    hook.borrowedETH(poolId, walletAddress),
+    hook.collateralBalance(poolId, walletAddress),
+    hook.estimateBorrowMore(poolId, walletAddress).catch(() => null)
+  ]);
+
+  return {
+    poolId,
+    borrowedETH: borrowedETH.toString(),
+    collateralBalance: collateralBalance.toString(),
+    borrowMoreEstimate: borrowMoreEstimate
+      ? {
+          additionalEth: borrowMoreEstimate.additionalEth.toString(),
+          fee: borrowMoreEstimate.fee.toString()
+        }
+      : null
+  };
+}
+```
+
+## Viem
 
 ```ts
-const repayAmount = ethers.parseEther('0.05');
+import { createPublicClient, createWalletClient, custom, http, parseAbi, parseEther, zeroAddress } from 'viem';
+import { bsc } from 'viem/chains';
 
-const repayTx = await hook.repay(poolId, {
-  value: repayAmount
-});
+const API_BASE = 'https://lfg.rich/api/bsc/tokens';
 
-console.log('repay tx:', repayTx.hash);
-await repayTx.wait();
+async function getConfig() {
+  const res = await fetch(`${API_BASE}/config/contracts`);
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'Failed to load config');
+  return {
+    ...json.data,
+    factoryABI: parseAbi(json.data.factoryABI),
+    hookABI: parseAbi(json.data.hookABI),
+    swapRouterABI: parseAbi(json.data.swapRouterABI),
+    tokenABI: parseAbi(json.data.tokenABI),
+  };
+}
+
+async function getPoolId(publicClient, cfg, tokenAddress, apiToken) {
+  return apiToken.pool_id || apiToken.poolId || await publicClient.readContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'tokenToPoolId',
+    args: [tokenAddress],
+  });
+}
+
+function poolKey(tokenAddress, hookAddress) {
+  return {
+    currency0: zeroAddress,
+    currency1: tokenAddress,
+    fee: 3000,
+    tickSpacing: 60,
+    hooks: hookAddress,
+  };
+}
 ```
 
----
+### Buy with Viem
 
-# Python with Web3.py
+```ts
+async function viemBuy(tokenAddress, bnbAmount, account) {
+  const cfg = await getConfig();
+  const apiToken = await fetch(`${API_BASE}/${tokenAddress}`).then(r => r.json()).then(j => j.data);
 
-## Setup
+  const publicClient = createPublicClient({ chain: bsc, transport: http(cfg.rpcUrl) });
+  const walletClient = createWalletClient({ account, chain: bsc, transport: custom(window.ethereum) });
 
-```bash
-pip install web3
+  const poolId = await getPoolId(publicClient, cfg, tokenAddress, apiToken);
+  const value = parseEther(bnbAmount);
+
+  const quote = await publicClient.readContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'estimateBuy',
+    args: [poolId, value, account],
+  });
+
+  const minTokensOut = quote[0] * 95n / 100n;
+
+  return walletClient.writeContract({
+    address: cfg.swapRouterAddress,
+    abi: cfg.swapRouterABI,
+    functionName: 'buy',
+    args: [poolKey(tokenAddress, cfg.hookAddress), minTokensOut],
+    value,
+  });
+}
 ```
+
+### Sell with Viem
+
+```ts
+async function viemSell(tokenAddress, tokenAmount, account) {
+  const cfg = await getConfig();
+  const apiToken = await fetch(`${API_BASE}/${tokenAddress}`).then(r => r.json()).then(j => j.data);
+
+  const publicClient = createPublicClient({ chain: bsc, transport: http(cfg.rpcUrl) });
+  const walletClient = createWalletClient({ account, chain: bsc, transport: custom(window.ethereum) });
+
+  const amount = parseEther(tokenAmount);
+  const poolId = await getPoolId(publicClient, cfg, tokenAddress, apiToken);
+
+  const allowance = await publicClient.readContract({
+    address: tokenAddress,
+    abi: cfg.tokenABI,
+    functionName: 'allowance',
+    args: [account, cfg.swapRouterAddress],
+  });
+
+  if (allowance < amount) {
+    await walletClient.writeContract({
+      address: tokenAddress,
+      abi: cfg.tokenABI,
+      functionName: 'approve',
+      args: [cfg.swapRouterAddress, 2n ** 256n - 1n],
+    });
+  }
+
+  const quote = await publicClient.readContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'estimateSell',
+    args: [poolId, amount, account],
+  });
+
+  const minEthOut = quote[0] * 95n / 100n;
+
+  return walletClient.writeContract({
+    address: cfg.swapRouterAddress,
+    abi: cfg.swapRouterABI,
+    functionName: 'sell',
+    args: [poolKey(tokenAddress, cfg.hookAddress), amount, minEthOut],
+  });
+}
+```
+
+### Borrow, borrow more, and repay with Viem
+
+```ts
+async function viemBorrow(tokenAddress, tokenAmount, account) {
+  const cfg = await getConfig();
+  const publicClient = createPublicClient({ chain: bsc, transport: http(cfg.rpcUrl) });
+  const walletClient = createWalletClient({ account, chain: bsc, transport: custom(window.ethereum) });
+
+  const amount = parseEther(tokenAmount);
+  const poolId = await publicClient.readContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'tokenToPoolId',
+    args: [tokenAddress],
+  });
+
+  const allowance = await publicClient.readContract({
+    address: tokenAddress,
+    abi: cfg.tokenABI,
+    functionName: 'allowance',
+    args: [account, cfg.hookAddress],
+  });
+
+  if (allowance < amount) {
+    await walletClient.writeContract({
+      address: tokenAddress,
+      abi: cfg.tokenABI,
+      functionName: 'approve',
+      args: [cfg.hookAddress, 2n ** 256n - 1n],
+    });
+  }
+
+  return walletClient.writeContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'borrow',
+    args: [poolId, amount],
+  });
+}
+
+async function viemBorrowMore(tokenAddress, account) {
+  const cfg = await getConfig();
+  const publicClient = createPublicClient({ chain: bsc, transport: http(cfg.rpcUrl) });
+  const walletClient = createWalletClient({ account, chain: bsc, transport: custom(window.ethereum) });
+
+  const poolId = await publicClient.readContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'tokenToPoolId',
+    args: [tokenAddress],
+  });
+
+  return walletClient.writeContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'borrowMore',
+    args: [poolId],
+  });
+}
+
+async function viemRepay(tokenAddress, bnbAmount, account) {
+  const cfg = await getConfig();
+  const publicClient = createPublicClient({ chain: bsc, transport: http(cfg.rpcUrl) });
+  const walletClient = createWalletClient({ account, chain: bsc, transport: custom(window.ethereum) });
+
+  const poolId = await publicClient.readContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'tokenToPoolId',
+    args: [tokenAddress],
+  });
+
+  return walletClient.writeContract({
+    address: cfg.hookAddress,
+    abi: cfg.hookABI,
+    functionName: 'repay',
+    args: [poolId],
+    value: parseEther(bnbAmount),
+  });
+}
+```
+
+## Web3.js
+
+```js
+import Web3 from 'web3';
+
+const API_BASE = 'https://lfg.rich/api/bsc/tokens';
+const ZERO = '0x0000000000000000000000000000000000000000';
+
+async function web3Context(tokenAddress, web3) {
+  const cfg = (await (await fetch(`${API_BASE}/config/contracts`)).json()).data;
+  const tokenData = (await (await fetch(`${API_BASE}/${tokenAddress}`)).json()).data;
+
+  const factory = new web3.eth.Contract(cfg.factoryABI, cfg.factoryAddress);
+  const hook = new web3.eth.Contract(cfg.hookABI, cfg.hookAddress);
+  const router = new web3.eth.Contract(cfg.swapRouterABI, cfg.swapRouterAddress);
+  const token = new web3.eth.Contract(cfg.tokenABI, tokenAddress);
+
+  const poolId = tokenData.pool_id || tokenData.poolId || await hook.methods.tokenToPoolId(tokenAddress).call();
+
+  let key;
+  try {
+    key = await factory.methods.getPoolKey(tokenAddress).call();
+  } catch {
+    key = [ZERO, tokenAddress, 3000, 60, cfg.hookAddress];
+  }
+
+  return { cfg, tokenData, factory, hook, router, token, poolId, key };
+}
+
+async function web3Buy({ tokenAddress, bnbAmount, from, web3 }) {
+  const { hook, router, poolId, key } = await web3Context(tokenAddress, web3);
+  const value = web3.utils.toWei(bnbAmount, 'ether');
+
+  const quote = await hook.methods.estimateBuy(poolId, value, from).call();
+  const minTokensOut = (BigInt(quote.tokensOut || quote[0]) * 95n / 100n).toString();
+
+  return router.methods.buy(key, minTokensOut).send({ from, value });
+}
+
+async function web3Sell({ tokenAddress, tokenAmount, from, web3 }) {
+  const { cfg, hook, router, token, poolId, key } = await web3Context(tokenAddress, web3);
+  const amount = web3.utils.toWei(tokenAmount, 'ether');
+
+  const allowance = await token.methods.allowance(from, cfg.swapRouterAddress).call();
+  if (BigInt(allowance) < BigInt(amount)) {
+    await token.methods.approve(cfg.swapRouterAddress, web3.utils.toTwosComplement(-1)).send({ from });
+  }
+
+  const quote = await hook.methods.estimateSell(poolId, amount, from).call();
+  const minEthOut = (BigInt(quote.ethOut || quote[0]) * 95n / 100n).toString();
+
+  return router.methods.sell(key, amount, minEthOut).send({ from });
+}
+
+async function web3Borrow({ tokenAddress, tokenAmount, from, web3 }) {
+  const { cfg, hook, token, poolId } = await web3Context(tokenAddress, web3);
+  const amount = web3.utils.toWei(tokenAmount, 'ether');
+
+  const allowance = await token.methods.allowance(from, cfg.hookAddress).call();
+  if (BigInt(allowance) < BigInt(amount)) {
+    await token.methods.approve(cfg.hookAddress, web3.utils.toTwosComplement(-1)).send({ from });
+  }
+
+  return hook.methods.borrow(poolId, amount).send({ from });
+}
+
+async function web3BorrowMore({ tokenAddress, from, web3 }) {
+  const { hook, poolId } = await web3Context(tokenAddress, web3);
+  return hook.methods.borrowMore(poolId).send({ from });
+}
+
+async function web3Repay({ tokenAddress, bnbAmount, from, web3 }) {
+  const { hook, poolId } = await web3Context(tokenAddress, web3);
+  const value = web3.utils.toWei(bnbAmount, 'ether');
+  return hook.methods.repay(poolId).send({ from, value });
+}
+```
+
+## Python Web3.py
 
 ```python
-import json
-import os
 from web3 import Web3
+import requests
 
-FACTORY = Web3.to_checksum_address("0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66")
-HOOK = Web3.to_checksum_address("0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888")
-SWAP_ROUTER = Web3.to_checksum_address("0x092043364f39f7f57C4E1D32116f453BfaE37440")
+API_BASE = "https://lfg.rich/api/bsc/tokens"
+ZERO = "0x0000000000000000000000000000000000000000"
 
-w3 = Web3(Web3.HTTPProvider(os.environ["BSC_RPC_URL"]))
-account = w3.eth.account.from_key(os.environ["PRIVATE_KEY"])
+def load_config():
+    data = requests.get(f"{API_BASE}/config/contracts", timeout=20).json()
+    if not data.get("success"):
+        raise RuntimeError(data.get("error", "Failed to load config"))
+    return data["data"]
 
-with open("abis/Factory.abi.json") as f:
-    FACTORY_ABI = json.load(f)
+def load_token(token_address):
+    data = requests.get(f"{API_BASE}/{token_address}", timeout=20).json()
+    if not data.get("success"):
+        raise RuntimeError(data.get("error", "Failed to load token"))
+    return data["data"]
 
-with open("abis/UniswapV4Hook.abi.json") as f:
-    HOOK_ABI = json.load(f)
+def pool_context(w3: Web3, token_address: str):
+    cfg = load_config()
+    token_data = load_token(token_address)
 
-with open("abis/SwapRouter.abi.json") as f:
-    SWAP_ROUTER_ABI = json.load(f)
+    factory = w3.eth.contract(address=Web3.to_checksum_address(cfg["factoryAddress"]), abi=cfg["factoryABI"])
+    hook = w3.eth.contract(address=Web3.to_checksum_address(cfg["hookAddress"]), abi=cfg["hookABI"])
+    router = w3.eth.contract(address=Web3.to_checksum_address(cfg["swapRouterAddress"]), abi=cfg["swapRouterABI"])
+    token = w3.eth.contract(address=Web3.to_checksum_address(token_address), abi=cfg["tokenABI"])
 
-with open("abis/Token.abi.json") as f:
-    TOKEN_ABI = json.load(f)
+    pool_id = token_data.get("pool_id") or token_data.get("poolId")
+    if not pool_id:
+        pool_id = hook.functions.tokenToPoolId(Web3.to_checksum_address(token_address)).call()
 
-factory = w3.eth.contract(address=FACTORY, abi=FACTORY_ABI)
-hook = w3.eth.contract(address=HOOK, abi=HOOK_ABI)
-router = w3.eth.contract(address=SWAP_ROUTER, abi=SWAP_ROUTER_ABI)
+    try:
+        key = factory.functions.getPoolKey(Web3.to_checksum_address(token_address)).call()
+    except Exception:
+        key = (
+            ZERO,
+            Web3.to_checksum_address(token_address),
+            3000,
+            60,
+            Web3.to_checksum_address(cfg["hookAddress"]),
+        )
+
+    return cfg, token_data, factory, hook, router, token, pool_id, key
+
+def sign_and_send(w3: Web3, tx, private_key: str):
+    signed = w3.eth.account.sign_transaction(tx, private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
+    return w3.eth.wait_for_transaction_receipt(tx_hash)
 ```
 
-## Get pool info
+### Buy with Python
 
 ```python
-token = Web3.to_checksum_address("0x29Ede1E1254419Fe5a3c803fC2b015042075A49A")
+def buy_token(w3, token_address, bnb_amount, wallet, private_key, slippage_pct=5):
+    cfg, token_data, factory, hook, router, token, pool_id, key = pool_context(w3, token_address)
+    wallet = Web3.to_checksum_address(wallet)
+    wei_in = w3.to_wei(bnb_amount, "ether")
 
-token_info = factory.functions.getTokenInfo(token).call()
-pool_id = token_info[5]
-pool_key = factory.functions.getPoolKey(token).call()
+    tokens_out, platform_fee, inviter_fee = hook.functions.estimateBuy(pool_id, wei_in, wallet).call()
+    min_tokens_out = tokens_out * (100 - slippage_pct) // 100
 
-print("pool_id:", pool_id.hex() if hasattr(pool_id, "hex") else pool_id)
-print("pool_key:", pool_key)
-```
-
-## Estimate buy and buy
-
-```python
-eth_in = w3.to_wei(0.1, "ether")
-
-tokens_out, platform_fee, floor_boost_fee = hook.functions.estimateBuy(
-    pool_id,
-    eth_in
-).call()
-
-print("tokens_out:", tokens_out)
-print("platform_fee BNB:", w3.from_wei(platform_fee, "ether"))
-print("floor_boost_fee BNB:", w3.from_wei(floor_boost_fee, "ether"))
-
-min_tokens_out = tokens_out * 95 // 100  # 5% slippage
-
-buy_tx = router.functions.buy(
-    pool_key,
-    min_tokens_out
-).build_transaction({
-    "from": account.address,
-    "value": eth_in,
-    "nonce": w3.eth.get_transaction_count(account.address),
-    "gas": 700000,
-    "gasPrice": w3.eth.gas_price,
-})
-
-signed_buy = account.sign_transaction(buy_tx)
-buy_hash = w3.eth.send_raw_transaction(signed_buy.raw_transaction)
-print("buy tx:", buy_hash.hex())
-```
-
-## Estimate sell, approve, and sell
-
-```python
-token_contract = w3.eth.contract(address=token, abi=TOKEN_ABI)
-token_amount = w3.to_wei(1000, "ether")
-
-eth_out, platform_fee, floor_boost_fee = hook.functions.estimateSell(
-    pool_id,
-    token_amount
-).call()
-
-allowance = token_contract.functions.allowance(
-    account.address,
-    SWAP_ROUTER
-).call()
-
-if allowance < token_amount:
-    approve_tx = token_contract.functions.approve(
-        SWAP_ROUTER,
-        token_amount
-    ).build_transaction({
-        "from": account.address,
-        "nonce": w3.eth.get_transaction_count(account.address),
-        "gas": 120000,
+    tx = router.functions.buy(key, min_tokens_out).build_transaction({
+        "from": wallet,
+        "value": wei_in,
+        "nonce": w3.eth.get_transaction_count(wallet),
+        "gas": 650000,
         "gasPrice": w3.eth.gas_price,
+        "chainId": 56,
     })
-
-    signed_approve = account.sign_transaction(approve_tx)
-    approve_hash = w3.eth.send_raw_transaction(signed_approve.raw_transaction)
-    w3.eth.wait_for_transaction_receipt(approve_hash)
-
-min_eth_out = eth_out * 95 // 100
-
-sell_tx = router.functions.sell(
-    pool_key,
-    token_amount,
-    min_eth_out
-).build_transaction({
-    "from": account.address,
-    "nonce": w3.eth.get_transaction_count(account.address),
-    "gas": 700000,
-    "gasPrice": w3.eth.gas_price,
-})
-
-signed_sell = account.sign_transaction(sell_tx)
-sell_hash = w3.eth.send_raw_transaction(signed_sell.raw_transaction)
-print("sell tx:", sell_hash.hex())
+    return sign_and_send(w3, tx, private_key)
 ```
 
-## Borrow
+### Sell with Python
 
 ```python
-collateral_amount = w3.to_wei(1000, "ether")
+def sell_token(w3, token_address, token_amount, wallet, private_key, slippage_pct=5):
+    cfg, token_data, factory, hook, router, token, pool_id, key = pool_context(w3, token_address)
+    wallet = Web3.to_checksum_address(wallet)
+    amount = w3.to_wei(token_amount, "ether")
 
-borrow_allowance = token_contract.functions.allowance(
-    account.address,
-    HOOK
-).call()
+    allowance = token.functions.allowance(wallet, Web3.to_checksum_address(cfg["swapRouterAddress"])).call()
+    nonce = w3.eth.get_transaction_count(wallet)
 
-if borrow_allowance < collateral_amount:
-    approve_tx = token_contract.functions.approve(
-        HOOK,
-        collateral_amount
-    ).build_transaction({
-        "from": account.address,
-        "nonce": w3.eth.get_transaction_count(account.address),
-        "gas": 120000,
+    if allowance < amount:
+        approve_tx = token.functions.approve(
+            Web3.to_checksum_address(cfg["swapRouterAddress"]),
+            2**256 - 1
+        ).build_transaction({
+            "from": wallet,
+            "nonce": nonce,
+            "gas": 120000,
+            "gasPrice": w3.eth.gas_price,
+            "chainId": 56,
+        })
+        sign_and_send(w3, approve_tx, private_key)
+        nonce += 1
+
+    eth_out, platform_fee, inviter_fee = hook.functions.estimateSell(pool_id, amount, wallet).call()
+    min_eth_out = eth_out * (100 - slippage_pct) // 100
+
+    tx = router.functions.sell(key, amount, min_eth_out).build_transaction({
+        "from": wallet,
+        "nonce": nonce,
+        "gas": 650000,
         "gasPrice": w3.eth.gas_price,
+        "chainId": 56,
     })
-
-    signed_approve = account.sign_transaction(approve_tx)
-    approve_hash = w3.eth.send_raw_transaction(signed_approve.raw_transaction)
-    w3.eth.wait_for_transaction_receipt(approve_hash)
-
-borrow_tx = hook.functions.borrow(
-    pool_id,
-    collateral_amount
-).build_transaction({
-    "from": account.address,
-    "nonce": w3.eth.get_transaction_count(account.address),
-    "gas": 600000,
-    "gasPrice": w3.eth.gas_price,
-})
-
-signed_borrow = account.sign_transaction(borrow_tx)
-borrow_hash = w3.eth.send_raw_transaction(signed_borrow.raw_transaction)
-print("borrow tx:", borrow_hash.hex())
+    return sign_and_send(w3, tx, private_key)
 ```
 
-## Estimate borrowMore and borrowMore
+### Borrow, borrow more, and repay with Python
 
 ```python
-additional_eth, fee = hook.functions.estimateBorrowMore(
-    pool_id,
-    account.address
-).call()
+def borrow_token(w3, token_address, token_amount, wallet, private_key):
+    cfg, token_data, factory, hook, router, token, pool_id, key = pool_context(w3, token_address)
+    wallet = Web3.to_checksum_address(wallet)
+    amount = w3.to_wei(token_amount, "ether")
+    nonce = w3.eth.get_transaction_count(wallet)
 
-print("additional BNB:", w3.from_wei(additional_eth, "ether"))
-print("fee BNB:", w3.from_wei(fee, "ether"))
+    allowance = token.functions.allowance(wallet, Web3.to_checksum_address(cfg["hookAddress"])).call()
+    if allowance < amount:
+        approve_tx = token.functions.approve(
+            Web3.to_checksum_address(cfg["hookAddress"]),
+            2**256 - 1
+        ).build_transaction({
+            "from": wallet,
+            "nonce": nonce,
+            "gas": 120000,
+            "gasPrice": w3.eth.gas_price,
+            "chainId": 56,
+        })
+        sign_and_send(w3, approve_tx, private_key)
+        nonce += 1
 
-if additional_eth > 0:
+    tx = hook.functions.borrow(pool_id, amount).build_transaction({
+        "from": wallet,
+        "nonce": nonce,
+        "gas": 650000,
+        "gasPrice": w3.eth.gas_price,
+        "chainId": 56,
+    })
+    return sign_and_send(w3, tx, private_key)
+
+def borrow_more(w3, token_address, wallet, private_key):
+    cfg, token_data, factory, hook, router, token, pool_id, key = pool_context(w3, token_address)
+    wallet = Web3.to_checksum_address(wallet)
+
     tx = hook.functions.borrowMore(pool_id).build_transaction({
-        "from": account.address,
-        "nonce": w3.eth.get_transaction_count(account.address),
-        "gas": 500000,
+        "from": wallet,
+        "nonce": w3.eth.get_transaction_count(wallet),
+        "gas": 650000,
         "gasPrice": w3.eth.gas_price,
+        "chainId": 56,
     })
+    return sign_and_send(w3, tx, private_key)
 
-    signed = account.sign_transaction(tx)
-    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
-    print("borrowMore tx:", tx_hash.hex())
+def repay(w3, token_address, bnb_amount, wallet, private_key):
+    cfg, token_data, factory, hook, router, token, pool_id, key = pool_context(w3, token_address)
+    wallet = Web3.to_checksum_address(wallet)
+
+    tx = hook.functions.repay(pool_id).build_transaction({
+        "from": wallet,
+        "value": w3.to_wei(bnb_amount, "ether"),
+        "nonce": w3.eth.get_transaction_count(wallet),
+        "gas": 650000,
+        "gasPrice": w3.eth.gas_price,
+        "chainId": 56,
+    })
+    return sign_and_send(w3, tx, private_key)
 ```
 
-## Repay
+## Common mistakes
 
-```python
-repay_amount = w3.to_wei(0.05, "ether")
-
-repay_tx = hook.functions.repay(pool_id).build_transaction({
-    "from": account.address,
-    "value": repay_amount,
-    "nonce": w3.eth.get_transaction_count(account.address),
-    "gas": 500000,
-    "gasPrice": w3.eth.gas_price,
-})
-
-signed_repay = account.sign_transaction(repay_tx)
-repay_hash = w3.eth.send_raw_transaction(signed_repay.raw_transaction)
-print("repay tx:", repay_hash.hex())
-```
-
-## Notes
-
-- All token amounts use 18 decimals.
-- BNB values are passed in wei.
-- Always use slippage limits for buys and sells.
-- For selling, approve the Swap Router.
-- For borrowing, approve the Uniswap V4 Hook.
-- `borrowMore` only works when the user's existing collateral supports more borrowable value.
-- `repay` can be partial or full depending on the BNB value sent.
+| Mistake | Fix |
+| --- | --- |
+| Calling `estimateBuy(poolId, ethIn)` | Use `estimateBuy(poolId, ethIn, buyer)` |
+| Calling `estimateSell(poolId, tokenAmount)` | Use `estimateSell(poolId, tokenAmount, seller)` |
+| Building a router call without the correct token `PoolKey` | Call `factory.getPoolKey(tokenAddress)` or build the V5 PoolKey exactly |
+| Borrowing without token approval | Approve the Hook address before `hook.borrow(poolId, amount)` |
+| Selling without token approval | Approve the Swap Router address before `router.sell(...)` |
+| Using a stale or missing `poolId` | Use `token.pool_id`, `factory.getTokenInfo(token).poolId`, or `hook.tokenToPoolId(token)` |
+| Expecting old fee output names | V5 returns `platformFee` and `inviterFee`, not `floorBoostFee` |

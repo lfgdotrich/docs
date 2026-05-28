@@ -1,83 +1,91 @@
 ---
-title: Uniswap V4 Hook Architecture
-description: How LFG.RICH uses a hook-based architecture for trading, floor protection, fees, and borrowing.
+title: Uniswap V4 Hooks
+description: How LFG.RICH uses a Uniswap V4 Hook to route trades, pricing, floor logic, fees, and lending.
 ---
 
-LFG.RICH uses a Uniswap V4 hook architecture to make official token launches protocol-managed from the start.
+LFG.RICH is built around a Uniswap V4 Hook architecture. The Hook is not just a helper contract. It is the protocol component that enforces the bonding curve, floor-price accounting, fee routing, referral-aware fee splits, and collateral borrowing rules for official LFG.RICH tokens.
 
-The hook is the core protocol contract. It handles bonding-curve trades, reserve accounting, floor-price logic, floor-boost accounting, collateral borrowing, and repay flows.
+The user-facing swap flow is intentionally simple, but the on-chain route is precise:
 
-## Contract roles
+```txt
+User wallet
+  -> Swap Router
+  -> Pool Manager unlock(...)
+  -> Pool Manager swap(...)
+  -> Uniswap V4 Hook beforeSwap(...)
+  -> custom curve, floor, fee, and accounting logic
+  -> Pool Manager settlement / take
+```
 
-| Contract role | Purpose |
+## Main contracts
+
+| Contract | Responsibility |
 | --- | --- |
 | Factory | Creates official LFG.RICH tokens and registers them with the hook. |
 | Uniswap V4 Hook | Handles pricing, floors, reserves, fees, collateral, borrowing, and hook callbacks. |
-| Swap Router | Provides simple `buy` and `sell` functions for users and integrations. |
+| Swap Router | Provides simple buy and sell functions for users and integrations. |
 | Token | ERC20-compatible token contract created by the Factory. |
 | Pool Manager | Uniswap V4 Pool Manager used by the hook and router flow. |
 
-## BNB Smart Chain addresses
+## BSC V5 addresses
 
 | Contract | Address |
 | --- | --- |
-| Factory | `0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66` |
-| Uniswap V4 Hook | `0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888` |
-| Swap Router | `0x092043364f39f7f57C4E1D32116f453BfaE37440` |
+| Factory | `0x429a7ef0129649a97bb3f1e961dd56d9bd4ac01f` |
+| Uniswap V4 Hook | `0xc18e6e1926113cdcf53f3ec1a89d3eb84cc6a888` |
+| Swap Router | `0x4018abd5d24ee48c642e7e518a8aef03b59ec150` |
+| Token | Created per launch by the Factory. |
 | Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
 
-## How official tokens are registered
+## PoolKey and poolId
 
-When a creator launches a token:
+Each official token has its own Uniswap V4 `PoolKey` and its own `poolId`.
 
-<Steps>
-  <Step title="Factory deploys the token">
-    The Factory creates a new ERC20-compatible token using the selected name and symbol.
-  </Step>
-  <Step title="Factory locks the token hook">
-    The Factory calls `setHook(address)` on the token. This can only happen once.
-  </Step>
-  <Step title="Factory creates the pool key">
-    The Factory builds the Uniswap V4 pool key for native BNB and the new token.
-  </Step>
-  <Step title="Hook registers the token">
-    The Factory calls `registerToken(token, poolId, totalFeeBps)` on the hook.
-  </Step>
-  <Step title="Pool is initialized">
-    The Factory initializes the Uniswap V4 pool using the protocol's initial square-root price.
-  </Step>
-</Steps>
+```solidity
+struct PoolKey {
+    address currency0;   // native BNB represented as address(0)
+    address currency1;   // token address
+    uint24 fee;          // 3000
+    int24 tickSpacing;   // 60
+    address hooks;       // Uniswap V4 Hook
+}
+```
 
-## Hook responsibilities
+For integrations, the important rule is: **do not guess the pool**. Resolve the `poolId` and `PoolKey` for the token you are interacting with.
 
-The hook is responsible for:
+```txt
+poolId = token.pool_id || token.poolId || hook.tokenToPoolId(tokenAddress)
+key    = factory.getPoolKey(tokenAddress)
+```
 
-- Buy and sell calculations.
-- Minting tokens on buys.
-- Burning tokens on sells.
-- Charging the creator-selected trading fee.
-- Sending the fixed platform fee to the Factory.
-- Allocating the remaining trading fee to floor boost.
-- Tracking `realETH`, `virtualETH`, `floorPrice`, `floorBoostPool`, and total reserve data.
-- Locking collateral for borrowing.
-- Unlocking collateral on repayment.
-- Updating floor and all-time-high price accounting.
+The site code always treats the token's `poolId` as part of the interaction context. Estimates use `poolId`; swaps use `PoolKey`.
 
-## Why liquidity additions are blocked
+## Why the Hook matters
 
-LFG.RICH does not use creator-managed liquidity positions for official launches.
+The Hook prevents the token from behaving like a normal unmanaged LP token. Creators do not receive LP tokens to remove. Traders do not interact with arbitrary third-party pools. Official trades are routed through the protocol contracts, where the Hook enforces the same pricing, floor, fee, referral, and collateral rules for everyone.
 
-The hook rejects normal external liquidity additions so that official token mechanics remain controlled by the protocol's bonding-curve, reserve, and floor logic.
+This gives the protocol a consistent execution path:
 
-## Developer references
+- buys and sells use the official Swap Router;
+- pricing is calculated by the Hook;
+- token mints and burns are controlled by the Hook;
+- collateral lending uses the same `poolId`-based state;
+- floor updates are tied to the token's own protocol state;
+- referral rewards are decided by on-chain invite bindings.
 
-Use the contract reference and examples pages when integrating directly:
+## Important integration rule
 
-<CardGroup cols={2}>
-  <Card title="Contract Reference" icon="code" href="/en/developers/contracts">
-    Addresses, ABI pages, and core contract functions.
-  </Card>
-  <Card title="Protocol Examples" icon="terminal" href="/en/developers/protocol-examples">
-    Node.js and Python examples for estimates, buy, sell, borrow, and repay.
-  </Card>
-</CardGroup>
+<Warning>
+Older V3 examples are not safe for V5 integrations. V5 estimates include the user address, token creation uses `devBuyEth`, and buys/sells must be routed with the token's correct `PoolKey`.
+</Warning>
+
+Use this V5 pattern:
+
+```txt
+1. Load token data.
+2. Resolve poolId.
+3. Resolve PoolKey.
+4. Estimate with Hook + poolId + user address.
+5. Execute buy/sell with Swap Router + PoolKey.
+6. Execute borrow, borrowMore, and repay with Hook + poolId.
+```

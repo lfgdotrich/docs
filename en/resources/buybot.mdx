@@ -13,20 +13,52 @@ Bot username:
 
 The bot tracks official LFG.RICH tokens on **BNB Smart Chain** and can post live alerts when a tracked token receives new buy or borrow activity.
 
-## Add the bot to your group
+<Info>
+The BuyBot is an information and notification tool. It does not trade for users, it does not ask for private keys, and it does not need wallet access.
+</Info>
 
-1. Open Telegram and search for `@lfgdotrich_buybot`.
-2. Add the bot to your Telegram group. This must be done by the group owner or by an admin who has permission to add admins.
-3. Make sure the bot is allowed to send messages in the group by granting admin rights to the bot.
-4. Run `/settoken` in the group.
-5. Choose the group language.
-6. Send the LFG.RICH token contract address when the bot asks for it.
+## What the BuyBot does
+
+The BuyBot can help a token community:
+
+- track one or more official LFG.RICH tokens inside a Telegram group;
+- post live buy alerts when users buy the tracked token;
+- post borrow alerts when users borrow against the tracked token;
+- show current price information;
+- show floor price information;
+- show market cap, pool amount, 24h volume, 24h trades, holders, and chart links;
+- support English and Chinese group messages.
+
+## Before you start
+
+You need:
+
+- a Telegram group;
+- permission to add the bot to the group;
+- permission to give the bot admin rights so it can send messages;
+- the LFG.RICH token contract address you want to track.
 
 The token address must be a valid BSC contract address and must belong to a token created on LFG.RICH.
 
+## Add the bot to your group
+
+1. Open Telegram.
+2. Search for `@lfgdotrich_buybot`.
+3. Add the bot to your Telegram group.
+4. Give the bot admin rights so it can send messages.
+5. In the group, run `/settoken`.
+6. Choose the group language.
+7. Send the LFG.RICH token contract address when the bot asks for it.
+
 <Info>
-Group setup must be completed by the group owner or by a group admin who has permission to add admins, because the bot needs admin rights to send alerts in the group. If Telegram does not show the bot's commands in your group, you can also use the command with the bot username, for example `/settoken@lfgdotrich_buybot`.
+Group setup must be completed by the group owner or by a group admin who has permission to add admins, because the bot needs admin rights to send alerts in the group.
 </Info>
+
+If Telegram does not show the bot commands in your group, use the command with the bot username:
+
+```txt
+/settoken@lfgdotrich_buybot
+```
 
 ## Track a token
 
@@ -46,6 +78,10 @@ Example token address:
 
 After the token is added, the bot starts tracking new activity for that token in the group.
 
+<Warning>
+Only use the official LFG.RICH token contract address. Do not send pair addresses, pool IDs, or random copied addresses.
+</Warning>
+
 ## Commands
 
 | Command | Who can use it | What it does |
@@ -63,24 +99,30 @@ After the token is added, the bot starts tracking new activity for that token in
 
 When a tracked token receives new activity, the bot can post alerts in the group.
 
+### Buy alerts
+
 Buy alerts include:
 
-- BNB amount.
-- Token amount.
-- Buyer wallet shortcut.
-- Current token price.
-- Market cap.
-- Pool amount.
-- Transaction link.
+- BNB amount;
+- token amount;
+- buyer wallet shortcut;
+- current token price;
+- market cap;
+- pool amount;
+- transaction link;
 - LFG.RICH token page link.
+
+### Borrow alerts
 
 Borrow alerts include:
 
-- Borrowed BNB amount.
-- Collateral token amount.
-- Borrower wallet shortcut.
-- Transaction link.
+- borrowed BNB amount;
+- collateral token amount;
+- borrower wallet shortcut;
+- transaction link;
 - LFG.RICH token page link.
+
+Borrow alerts are based on LFG.RICH protocol activity. They are informational only and do not mean the BuyBot is borrowing or trading for anyone.
 
 ## Price information
 
@@ -92,9 +134,11 @@ Use:
 
 The bot shows price information for every tracked token in the group, including:
 
-- Current token price in USD and BNB.
-- Floor price.
+- current token price in USD and BNB;
+- floor price;
 - 24h price change.
+
+The floor price is protocol data. For LFG.RICH V5 tokens, the floor is maintained by the Uniswap V4 Hook and is based on the token's all-time-high floor logic.
 
 ## Detailed token information
 
@@ -106,15 +150,25 @@ Use:
 
 The bot shows detailed information for every tracked token in the group, including:
 
-- Price.
-- Floor price.
-- Market cap.
-- Pool amount.
-- 24h volume.
-- 24h trades.
-- Holder count.
-- 24h price change.
-- Token page chart link.
+- price;
+- floor price;
+- market cap;
+- pool amount;
+- 24h volume;
+- 24h trades;
+- holder count;
+- 24h price change;
+- token page chart link.
+
+## List tracked tokens
+
+Use:
+
+```txt
+/tokens
+```
+
+This shows the tokens currently tracked in the Telegram group.
 
 ## Remove a token
 
@@ -126,7 +180,7 @@ Run:
 
 The bot will show the currently tracked tokens and let a group admin choose which one to remove.
 
-## Language
+## Change language
 
 Run:
 
@@ -135,3 +189,29 @@ Run:
 ```
 
 The bot currently supports English and Chinese group messages.
+
+## Troubleshooting
+
+### The commands do not appear in Telegram
+
+Use the command with the bot username:
+
+```txt
+/settoken@lfgdotrich_buybot
+```
+
+Also confirm the bot is still in the group and has permission to send messages.
+
+### The bot does not send alerts
+
+Check these points:
+
+1. The token was added with `/settoken`.
+2. The address is the token contract address, not a transaction hash, pair address, or pool ID.
+3. The token was created on LFG.RICH.
+4. The bot has permission to send messages in the group.
+5. There has been new buy or borrow activity after the token was added.
+
+### The token address is rejected
+
+Make sure you copied the token contract address from the LFG.RICH token page or an official source. The bot only tracks official LFG.RICH tokens.

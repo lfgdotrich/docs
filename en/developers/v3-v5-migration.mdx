@@ -1,0 +1,29 @@
+---
+title: V3 to V5 Migration Notes
+description: What changed for developers after the V5 release.
+---
+
+V5 is the current protocol version for LFG.RICH. V3 still exists for legacy tokens, but new integrations should use V5 by default.
+
+## What changed
+
+| Area | V3 / old docs | V5 / current docs |
+| --- | --- | --- |
+| Token creation | Creator-selected trading fee | Fixed V5 fee model and optional initial buy |
+| Trading | Older factory/router/hook deployment | Active V5 Factory, Hook, and SwapRouter |
+| Referrals | Not fully documented | OTOInvite referral system |
+| Prices | Older assumptions around precision | V5 price values are scaled by 1e22 |
+| Borrowing | Older fee/floor docs | V5 3% borrow fee and direct-parent borrow reward |
+| Compatibility | Hardcoded contract assumptions | Resolve token's Factory/Hook and PoolKey dynamically |
+
+## Dynamic token context
+
+Legacy tokens may report old factory or hook addresses through `FACTORY()` and `hook()`. New integrations should read those values from the token and use them when present.
+
+## Do not hardcode PoolKey
+
+Hardcoding PoolKey values can make swaps fail because PoolManager expects the exact initialized pool. Always call `factory.getPoolKey(tokenAddress)` using the correct Factory.
+
+## V5 price scaling
+
+V5 prices are scaled by `1e22`. If your integration divides V5 price values by `1e18`, token prices, market caps, borrow estimates, and PnL can appear 10,000x too high.

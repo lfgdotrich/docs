@@ -1,83 +1,91 @@
 ---
-title: Uniswap V4 Hook 架构
-description: LFG.RICH 如何使用 Hook 架构实现交易、地板保护、手续费和借贷。
+title: Uniswap V4 Hooks
+description: LFG.RICH 如何使用 Uniswap V4 Hook 路由交易、定价、地板价、手续费和借贷逻辑。
 ---
 
-LFG.RICH 使用 Uniswap V4 Hook 架构，让官方代币从发行开始就由协议管理。
+LFG.RICH 基于 Uniswap V4 Hook 架构构建。Hook 不只是辅助合约，而是官方代币协议逻辑的核心：联合曲线、地板价会计、手续费路由、推荐奖励分配、抵押借贷规则，全部由 Hook 执行。
 
-Hook 是核心协议合约，负责 bonding-curve 交易、储备记账、地板价逻辑、floor boost 记账、抵押借贷和还款流程。
+用户看到的交易流程很简单，但链上路径是固定的：
 
-## 合约角色
+```txt
+用户钱包
+  -> Swap Router
+  -> Pool Manager unlock(...)
+  -> Pool Manager swap(...)
+  -> Uniswap V4 Hook beforeSwap(...)
+  -> 自定义曲线、地板价、手续费和会计逻辑
+  -> Pool Manager settle / take 结算
+```
 
-| 合约角色 | 用途 |
+## 主要合约
+
+| 合约 | 职责 |
 | --- | --- |
-| Factory | 创建官方 LFG.RICH 代币，并将它们注册到 Hook。 |
-| Uniswap V4 Hook | 处理定价、地板、储备、手续费、抵押品、借贷和 Hook 回调。 |
-| Swap Router | 为用户和集成方提供简单的 `buy` 和 `sell` 函数。 |
+| Factory | 创建官方 LFG.RICH 代币，并将它们注册到 hook。 |
+| Uniswap V4 Hook | 处理定价、地板价、储备、手续费、抵押、借贷和 hook 回调。 |
+| Swap Router | 为用户和集成方提供简单的买入和卖出函数。 |
 | Token | 由 Factory 创建的 ERC20 兼容代币合约。 |
-| Pool Manager | Hook 和 Router 流程使用的 Uniswap V4 Pool Manager。 |
+| Pool Manager | hook 和 router 流程使用的 Uniswap V4 Pool Manager。 |
 
-## BNB Smart Chain 地址
+## BSC V5 地址
 
-| Contract | Address |
+| 合约 | 地址 |
 | --- | --- |
-| Factory | `0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66` |
-| Uniswap V4 Hook | `0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888` |
-| Swap Router | `0x092043364f39f7f57C4E1D32116f453BfaE37440` |
+| Factory | `0x429a7ef0129649a97bb3f1e961dd56d9bd4ac01f` |
+| Uniswap V4 Hook | `0xc18e6e1926113cdcf53f3ec1a89d3eb84cc6a888` |
+| Swap Router | `0x4018abd5d24ee48c642e7e518a8aef03b59ec150` |
+| Token | 由 Factory 为每次创建单独部署。 |
 | Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
 
-## 官方代币如何注册
+## PoolKey 和 poolId
 
-当创作者发行代币时：
+每个官方代币都有自己的 Uniswap V4 `PoolKey` 和自己的 `poolId`。
 
-<Steps>
-  <Step title="Factory 部署代币">
-    Factory 使用选定的名称和符号创建新的 ERC20 兼容代币。
-  </Step>
-  <Step title="Factory 锁定代币 Hook">
-    Factory 在代币上调用 `setHook(address)`。该操作只能执行一次。
-  </Step>
-  <Step title="Factory 创建 Pool Key">
-    Factory 为原生 BNB 和新代币构建 Uniswap V4 pool key。
-  </Step>
-  <Step title="Hook 注册代币">
-    Factory 在 Hook 上调用 `registerToken(token, poolId, totalFeeBps)`。
-  </Step>
-  <Step title="Pool 初始化">
-    Factory 使用协议初始平方根价格初始化 Uniswap V4 pool。
-  </Step>
-</Steps>
+```solidity
+struct PoolKey {
+    address currency0;   // 原生 BNB，用 address(0) 表示
+    address currency1;   // 代币地址
+    uint24 fee;          // 3000
+    int24 tickSpacing;   // 60
+    address hooks;       // Uniswap V4 Hook
+}
+```
 
-## Hook 的职责
+集成时最重要的规则是：**不要猜测使用哪个池**。必须为当前代币解析 `poolId` 和 `PoolKey`。
 
-Hook 负责：
+```txt
+poolId = token.pool_id || token.poolId || hook.tokenToPoolId(tokenAddress)
+key    = factory.getPoolKey(tokenAddress)
+```
 
-- 买入和卖出计算。
-- 买入时铸造代币。
-- 卖出时销毁代币。
-- 收取创作者选择的交易手续费。
-- 将固定平台手续费发送到 Factory。
-- 将剩余交易手续费分配到 floor boost。
-- 跟踪 `realETH`、`virtualETH`、`floorPrice`、`floorBoostPool` 和总储备数据。
-- 锁定借贷抵押品。
-- 还款时解锁抵押品。
-- 更新地板价和历史最高价格记账。
+网站代码会把代币的 `poolId` 视为交易上下文的一部分。估算使用 `poolId`，买卖执行使用 `PoolKey`。
 
-## 为什么禁止添加流动性
+## 为什么 Hook 很重要
 
-LFG.RICH 的官方发行不使用创作者管理的流动性仓位。
+Hook 让代币不再像普通的、由创建者管理 LP 的代币。创建者不会拿到可移除的 LP token。交易者也不会与随意的第三方池交互。官方交易会进入协议合约，由 Hook 对所有人执行同一套定价、地板价、手续费、推荐和抵押规则。
 
-Hook 会拒绝普通外部添加流动性操作，确保官方代币机制始终由协议的 bonding curve、储备和地板逻辑控制。
+协议执行路径保持一致：
 
-## 开发者参考
+- 买入和卖出使用官方 Swap Router；
+- 定价由 Hook 计算；
+- 代币铸造和销毁由 Hook 控制；
+- 抵押借贷使用同一个基于 `poolId` 的状态；
+- 地板价更新与该代币自身协议状态绑定；
+- 推荐奖励由链上邀请绑定决定。
 
-直接集成时，请使用合约参考和示例页面：
+## 重要集成规则
 
-<CardGroup cols={2}>
-  <Card title="合约参考" icon="code" href="/zh/developers/contracts">
-    地址、ABI 页面和核心合约函数。
-  </Card>
-  <Card title="协议示例" icon="terminal" href="/zh/developers/protocol-examples">
-    买入、卖出、借贷和还款的 Node.js 与 Python 示例。
-  </Card>
-</CardGroup>
+<Warning>
+旧 V3 示例不能直接用于 V5。V5 的估算函数包含用户地址，创建代币使用 `devBuyEth`，买卖必须使用该代币正确的 `PoolKey` 路由。
+</Warning>
+
+V5 应使用以下模式：
+
+```txt
+1. 加载代币数据。
+2. 解析 poolId。
+3. 解析 PoolKey。
+4. 使用 Hook + poolId + 用户地址估算。
+5. 使用 Swap Router + PoolKey 执行买入/卖出。
+6. 使用 Hook + poolId 执行 borrow、borrowMore 和 repay。
+```

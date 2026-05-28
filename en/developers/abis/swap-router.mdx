@@ -1,16 +1,27 @@
 ---
-title: Swap Router ABI
-description: Runtime ABI for buying and selling LFG.RICH tokens through the protocol router.
+title: SwapRouter ABI
+description: Full JSON ABI for SwapRouter.
 ---
 
-Use this ABI as a copy-paste-ready JavaScript/TypeScript constant with Viem, Ethers, bots, dashboards, and custom integrations.
+This page contains the full public JSON ABI for `SwapRouter` used by LFG.RICH integrations.
 
-<Note>
-This is the deployed runtime ABI for connecting to the existing Swap Router contract. Constructor entries are not needed when creating `ethers.Contract`, `viem` contract calls, or Web3.py contract objects for an already-deployed contract.
-</Note>
-
-```ts
-export const SWAP_ROUTER_ABI = [
+```json
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_poolManager",
+        "type": "address",
+        "internalType": "contract IPoolManager"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
   {
     "type": "function",
     "name": "poolManager",
@@ -18,7 +29,8 @@ export const SWAP_ROUTER_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "contract IPoolManager"
       }
     ],
     "stateMutability": "view"
@@ -30,32 +42,39 @@ export const SWAP_ROUTER_ABI = [
       {
         "name": "key",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "minTokensOut",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -68,36 +87,44 @@ export const SWAP_ROUTER_ABI = [
       {
         "name": "key",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "tokenAmount",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "minEthOut",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -109,13 +136,15 @@ export const SWAP_ROUTER_ABI = [
     "inputs": [
       {
         "name": "data",
-        "type": "bytes"
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bytes"
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "stateMutability": "nonpayable"
@@ -139,12 +168,6 @@ export const SWAP_ROUTER_ABI = [
     "type": "error",
     "name": "ZeroAmount",
     "inputs": []
-  },
-  {
-    "type": "receive",
-    "stateMutability": "payable"
   }
-] as const;
+]
 ```
-
-You can also import the matching JSON file from `/abis/SwapRouter.abi.json` if your build setup supports JSON imports.

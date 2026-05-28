@@ -1,16 +1,27 @@
 ---
-title: Swap Router ABI
-description: 通过协议路由器买入和卖出 LFG.RICH 代币的运行时 ABI。
+title: SwapRouter ABI
+description: SwapRouter 的完整 JSON ABI。
 ---
 
-将此 ABI 作为可直接复制的 JavaScript/TypeScript 常量，用于 Viem、Ethers、机器人、仪表盘和自定义集成。
+本页包含 `SwapRouter` 的完整公开 JSON ABI，可用于 LFG.RICH 集成。
 
-<Note>
-这是连接已部署 Swap Router 合约的运行时 ABI。针对已经部署的合约创建 `ethers.Contract`、`viem` 调用或 Web3.py 合约对象时，不需要 constructor 条目。
-</Note>
-
-```ts
-export const SWAP_ROUTER_ABI = [
+```json
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_poolManager",
+        "type": "address",
+        "internalType": "contract IPoolManager"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
   {
     "type": "function",
     "name": "poolManager",
@@ -18,7 +29,8 @@ export const SWAP_ROUTER_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "contract IPoolManager"
       }
     ],
     "stateMutability": "view"
@@ -30,32 +42,39 @@ export const SWAP_ROUTER_ABI = [
       {
         "name": "key",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "minTokensOut",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -68,36 +87,44 @@ export const SWAP_ROUTER_ABI = [
       {
         "name": "key",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "tokenAmount",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "minEthOut",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -109,13 +136,15 @@ export const SWAP_ROUTER_ABI = [
     "inputs": [
       {
         "name": "data",
-        "type": "bytes"
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bytes"
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "stateMutability": "nonpayable"
@@ -139,10 +168,6 @@ export const SWAP_ROUTER_ABI = [
     "type": "error",
     "name": "ZeroAmount",
     "inputs": []
-  },
-  {
-    "type": "receive",
-    "stateMutability": "payable"
   }
-] as const;
+]
 ```

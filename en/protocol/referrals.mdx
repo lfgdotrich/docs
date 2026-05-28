@@ -1,0 +1,321 @@
+---
+title: Referrals
+description: How LFG.RICH V5 referral binding, whitelist roots, parents, initial inviters, and reward routing work.
+---
+
+LFG.RICH V5 uses an on-chain referral contract to bind wallets into referral trees. This referral state is used by the protocol to decide where the referral portions of trading fees and borrowing fees are sent.
+
+Referral binding is optional for normal protocol use. A wallet can create tokens, buy, sell, borrow, repay, and use the app without binding to an inviter. Binding is only required if the wallet wants to join a referral tree and make its activity eligible for referral reward routing.
+
+<Warning>
+Referral binding is permanent. Once a wallet is bound to an inviter, it cannot unbind, change inviter, or move to another referral tree.
+</Warning>
+
+## Core idea
+
+The referral system has two different reward paths:
+
+| Activity | Reward rate | Paid to | Why |
+| --- | ---: | --- | --- |
+| Buy / Sell | 1.00% of the trade amount | The trader's **initial inviter** | Trading rewards go to the whitelisted root of the referral branch. |
+| Borrow / Borrow more | 2.00% of the borrowed value | The borrower's **direct parent** | Borrow rewards go to the address that directly invited the borrower. |
+
+This distinction is important. The **initial inviter** and the **parent** can be the same address in a direct invite, but they can be different addresses in a deeper referral tree.
+
+## Fee split summary
+
+### Trading fees
+
+Every V5 buy and sell has a total trading fee of **1.25%** of the trade amount.
+
+| Trader state | Platform | Initial inviter | Total trading fee |
+| --- | ---: | ---: | ---: |
+| Bound user | 0.25% | 1.00% | 1.25% |
+| Unbound user | 1.25% | 0.00% | 1.25% |
+
+When the trader is bound, the 1.00% inviter reward goes to the trader's **initial inviter**. When the trader is not bound, there is no inviter to reward, so the full 1.25% goes to the platform side.
+
+### Borrow fees
+
+Every V5 borrow and borrow-more action has a total borrow fee of **3.00%** of the borrowed value.
+
+| Borrower state | Platform | Direct parent | Total borrow fee |
+| --- | ---: | ---: | ---: |
+| Bound user with parent | 1.00% | 2.00% | 3.00% |
+| Unbound user / no parent | 3.00% | 0.00% | 3.00% |
+
+The **2.00%** parent reward is part of the total 3.00% borrow fee. It is **2.00% of the borrowed value**, not 2.00% of the 3.00% fee.
+
+## Referral roles
+
+| Role | Meaning |
+| --- | --- |
+| Whitelisted address | A root address approved by the platform owner. Whitelisted addresses act as root nodes in the referral system. |
+| Parent | The address that directly invited a user. This is one level above the user. |
+| Initial inviter | The first whitelisted address at the top of the user's referral branch. This is the root that receives the 1.00% trading reward. |
+| Bound user | A wallet that has already called `bind(inviter)` successfully. |
+| Unbound user | A wallet that has not joined any referral tree. |
+
+## Whitelisted addresses
+
+Whitelisted addresses are very important because they start the referral trees.
+
+When the platform owner whitelists an address:
+
+1. that address becomes an approved referral root;
+2. that address is treated as already bound by the referral system;
+3. that address becomes its own initial inviter;
+4. users can bind directly to that address;
+5. non-whitelisted users below it inherit that same initial inviter.
+
+A normal wallet cannot become the root of a new referral tree by itself. A normal wallet can invite others only after it is already bound under an existing whitelisted root.
+
+## Binding rules
+
+| Rule | Explanation |
+| --- | --- |
+| Binding is one-time | A wallet cannot bind twice. |
+| Binding is permanent | The inviter cannot be changed later. |
+| Inviter must be eligible | The inviter must already be bound or whitelisted. |
+| Self-binding is not allowed | A user cannot bind to their own referral code or wallet. |
+| One parent | Each bound user has exactly one direct parent. |
+| One initial inviter | Each bound user has exactly one initial inviter inherited from the tree root. |
+| Whitelist is owner-controlled | Only the referral contract owner can add or remove whitelisted root addresses. |
+
+The app normally applies referral codes instead of asking users to paste raw wallet addresses. The frontend resolves the referral code to an inviter wallet, checks that the inviter is eligible, and then calls the on-chain `bind(inviter)` function.
+
+## How the chain is assigned
+
+When user `A` binds to inviter `B`:
+
+```txt
+A.parent = B
+```
+
+Then the initial inviter is assigned like this:
+
+```txt
+if B is whitelisted:
+    A.initialInviter = B
+else:
+    A.initialInviter = B.initialInviter
+```
+
+That means the initial inviter remains the whitelisted root of the branch, even if the tree becomes many levels deep.
+
+## Direct invite example
+
+Setup:
+
+```txt
+W1 is whitelisted
+Alice binds to W1
+```
+
+Tree:
+
+```txt
+W1 (whitelisted root)
+ └── Alice
+```
+
+Alice's referral state:
+
+| Field | Value |
+| --- | --- |
+| `parent` | `W1` |
+| `initialInviter` | `W1` |
+
+If Alice buys 1 BNB of tokens:
+
+| Fee part | Amount | Recipient |
+| --- | ---: | --- |
+| Platform fee | 0.0025 BNB | Platform |
+| Inviter reward | 0.0100 BNB | `W1` |
+| Net to bonding curve | 0.9875 BNB | Token pool accounting |
+
+If Alice borrows 1 BNB of value:
+
+| Fee part | Amount | Recipient |
+| --- | ---: | --- |
+| Platform fee | 0.0100 BNB | Platform |
+| Parent reward | 0.0200 BNB | `W1` |
+| Net to Alice | 0.9700 BNB | Alice |
+
+In a direct invite, the parent and the initial inviter are the same address, so the same wallet receives both kinds of reward.
+
+## Two-level example
+
+Setup:
+
+```txt
+W1 is whitelisted
+Alice binds to W1
+Bob binds to Alice
+```
+
+Tree:
+
+```txt
+W1 (whitelisted root)
+ └── Alice (parent = W1, initialInviter = W1)
+      └── Bob (parent = Alice, initialInviter = W1)
+```
+
+Bob's referral state:
+
+| Field | Value |
+| --- | --- |
+| `parent` | `Alice` |
+| `initialInviter` | `W1` |
+
+If Bob buys or sells, the **1.00% trading reward goes to W1**, because W1 is Bob's initial inviter.
+
+If Bob borrows or borrows more, the **2.00% borrow reward goes to Alice**, because Alice is Bob's direct parent.
+
+<Note>
+This is the key V5 rule: trading rewards follow the initial inviter, while borrow rewards follow the direct parent.
+</Note>
+
+## Deep-chain example
+
+Setup:
+
+```txt
+W1 is whitelisted
+Alice binds to W1
+Bob binds to Alice
+Charlie binds to Bob
+Diana binds to Charlie
+```
+
+Tree:
+
+```txt
+W1 (whitelisted root)
+ └── Alice (parent = W1, initialInviter = W1)
+      └── Bob (parent = Alice, initialInviter = W1)
+           └── Charlie (parent = Bob, initialInviter = W1)
+                └── Diana (parent = Charlie, initialInviter = W1)
+```
+
+Diana's trading activity:
+
+| Activity | Reward | Recipient | Reason |
+| --- | ---: | --- | --- |
+| Buy | 1.00% of trade amount | `W1` | W1 is Diana's initial inviter. |
+| Sell | 1.00% of trade amount | `W1` | W1 is Diana's initial inviter. |
+
+Diana's borrowing activity:
+
+| Activity | Reward | Recipient | Reason |
+| --- | ---: | --- | --- |
+| Borrow | 2.00% of borrowed value | `Charlie` | Charlie is Diana's direct parent. |
+| Borrow more | 2.00% of additional borrowed value | `Charlie` | Charlie is Diana's direct parent. |
+
+## Multiple whitelisted roots
+
+Different whitelisted addresses create independent referral trees.
+
+```txt
+W1 (whitelisted root)             W2 (whitelisted root)
+ └── Alice                         └── Bob
+      └── Charlie                       └── Diana
+```
+
+| User | Parent | Initial inviter |
+| --- | --- | --- |
+| Alice | W1 | W1 |
+| Charlie | Alice | W1 |
+| Bob | W2 | W2 |
+| Diana | Bob | W2 |
+
+If Charlie trades, the 1.00% trading reward goes to `W1`. If Diana trades, the 1.00% trading reward goes to `W2`.
+
+Referral trees do not merge. Once a user is bound under one whitelisted root, that user's branch remains under that root permanently.
+
+## Unbound-user example
+
+If Eve never binds to an inviter, she is unbound.
+
+If Eve buys 1 BNB of tokens:
+
+| Fee part | Amount | Recipient |
+| --- | ---: | --- |
+| Platform fee | 0.0125 BNB | Platform |
+| Inviter reward | 0.0000 BNB | Nobody |
+| Net to bonding curve | 0.9875 BNB | Token pool accounting |
+
+If Eve borrows 1 BNB of value:
+
+| Fee part | Amount | Recipient |
+| --- | ---: | --- |
+| Platform fee | 0.0300 BNB | Platform |
+| Parent reward | 0.0000 BNB | Nobody |
+| Net to Eve | 0.9700 BNB | Eve |
+
+The user can still use the protocol. The difference is only fee routing: without a valid referral binding, there is no initial inviter or parent to receive rewards.
+
+## Reward routing table
+
+| User activity | Bound user: platform | Bound user: referral recipient | Unbound user: platform | Unbound user: referral recipient |
+| --- | ---: | ---: | ---: | ---: |
+| Buy | 0.25% | 1.00% to initial inviter | 1.25% | none |
+| Sell | 0.25% | 1.00% to initial inviter | 1.25% | none |
+| Borrow | 1.00% | 2.00% to direct parent | 3.00% | none |
+| Borrow more | 1.00% | 2.00% to direct parent | 3.00% | none |
+
+## Contract functions
+
+The referral contract exposes the referral state used by the app, integrations, and protocol fee routing:
+
+```solidity
+function isWhitelist(address user) view returns (bool);
+function initialInviter(address user) view returns (address);
+function parent(address user) view returns (address);
+function inviteCount(address user) view returns (uint256);
+function isBound(address user) view returns (bool);
+function bind(address inviter);
+function getInfo(address user)
+    view
+    returns (
+        address _initialInviter,
+        address _parent,
+        uint256 _inviteCount,
+        bool _isBound
+    );
+```
+
+Useful checks before showing or applying a referral binding:
+
+```txt
+isBound(user)       -> whether the user already joined a referral tree
+parent(user)        -> direct inviter
+initialInviter(user)-> whitelisted root used for trade rewards
+isWhitelist(user)   -> whether the address is an approved root
+getInfo(user)       -> all common referral fields in one call
+```
+
+## Frontend referral-code flow
+
+The site uses referral codes and referral links for user experience, but the on-chain binding is still wallet based.
+
+```txt
+1. User opens a referral link or pastes a referral code.
+2. The frontend extracts the referral code.
+3. The API resolves the code to an inviter wallet.
+4. The frontend checks that the inviter is eligible.
+5. The user confirms the binding.
+6. The frontend calls referral.bind(inviterAddress).
+7. The backend mirror records the binding transaction for dashboard/indexing purposes.
+```
+
+The referral code is only a convenient way to find the inviter wallet. The permanent source of truth is the on-chain referral contract.
+
+## Important integration notes
+
+- Always check whether the user is already bound before showing an apply-referral action.
+- Always check whether the inviter is bound or whitelisted before attempting to bind.
+- Do not offer users a way to change their inviter after binding.
+- Do not calculate referral rewards from frontend assumptions only. Read the referral contract and protocol fee data.
+- Do not confuse the 1.00% trading reward with the 2.00% borrow reward. They use different recipients.

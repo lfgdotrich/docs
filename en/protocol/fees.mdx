@@ -1,67 +1,94 @@
 ---
 title: Fee Structure
-description: Creation, trading, platform, floor boost, and borrowing fees.
+description: V5 creation, trading, referral, borrowing, treasury, and legacy fee notes.
 ---
 
-LFG.RICH fees are handled automatically by the protocol.
+LFG.RICH V5 fees are handled automatically by the protocol contracts.
+
+<Warning>
+Older documentation that described creator-selected 1% to 10% trading fees belongs to the legacy V3 flow. V5 uses fixed protocol fee constants.
+</Warning>
 
 ## Token creation fee
 
-Token creation is currently free at the protocol level: `0 BNB`.
+Token creation uses the Factory's current creation fee:
 
-Creators still need BNB for gas.
+```solidity
+function creationFee() view returns (uint256);
+```
+
+The V5 creation function also accepts `devBuyEth`, which is the optional initial buy amount by the creator:
+
+```solidity
+function createToken(
+    string name,
+    string symbol,
+    uint256 devBuyEth
+) payable returns (address token, bytes32 poolId);
+```
+
+`msg.value` must cover:
+
+```txt
+creationFee + devBuyEth
+```
+
+Any extra value is expected to be refunded by the contract flow.
 
 ## Trading fees
 
-Each official LFG.RICH token has a permanent trading fee chosen by the creator during launch.
+V5 buy and sell trades use a fixed total trade fee:
 
-Supported range: **1% to 10%**.
+| Fee component | Rate | Recipient |
+| --- | ---: | --- |
+| Total trade fee | 1.25% | Split by referral state |
+| Platform fee | 0.25% | Platform / Factory side |
+| Inviter fee | 1.00% | User's initial inviter, or platform if no inviter |
 
-The total trading fee is split into two parts:
+The Hook exposes the constants:
 
-| Fee part | Purpose |
-| --- | --- |
-| Platform fee | Fixed LFG.RICH platform portion. |
-| Floor boost | Remaining fee portion that strengthens the token's floor boost pool. |
-
-The platform fee is **0.3%**.
-
-## Trading fee examples
-
-| Creator-selected total fee | Platform fee | Floor boost portion |
-| --- | --- | --- |
-| 1% | 0.3% | 0.7% |
-| 3% | 0.3% | 2.7% |
-| 5% | 0.3% | 4.7% |
-| 10% | 0.3% | 9.7% |
-
-## Borrowing fee
-
-Borrowing has a fixed one-time **3% fee**.
-
-The borrow fee is separate from the creator-selected trading fee. The creator-selected fee applies to buys and sells. The fixed borrow fee applies only when a user borrows against locked collateral.
-
-The borrow fee is deducted upfront from the gross borrow value.
-
-Example:
-
-```txt
-Gross borrow value: 1.00 BNB
-Borrow fee:         0.03 BNB
-Borrower receives:  0.97 BNB
-Debt recorded:      1.00 BNB
+```solidity
+function TOTAL_FEE_BPS() view returns (uint256);       // 125
+function PLATFORM_FEE_BPS() view returns (uint256);    // 25
+function INVITER_FEE_BPS() view returns (uint256);     // 100
+function BPS_DENOMINATOR() view returns (uint256);     // 10000
 ```
 
-## How the borrow fee is used
+Example buy:
 
-The **3% borrow fee is 100% used to increase floor price support**.
+```txt
+User sends:        1.0000 BNB
+Total fee:         0.0125 BNB
+Platform portion:  0.0025 BNB
+Inviter portion:   0.0100 BNB
+Net to curve:      0.9875 BNB
+```
 
-The fee remains inside the token's protocol reserve accounting and contributes to the floor boost system. It is not an extra creator fee and it is not the same as the fixed platform fee.
+If the trader is not bound to a referral tree, the inviter portion goes to the platform side instead of a user inviter.
 
-## Residual BNB and floor cleanup
+## Borrowing fees
 
-When a token falls to its floor and trading activity becomes very small, tiny residual BNB amounts can remain because of 18-decimal precision, rounding, and floor-price limits.
+Borrowing has a fixed one-time 3% fee:
 
-The protocol includes cleanup logic for these tiny residual amounts so BNB is not permanently stuck when a token effectively dies out.
+| Fee component | Rate | Recipient |
+| --- | ---: | --- |
+| Total borrow fee | 3.00% | Split by referral state |
+| Borrow platform fee | 1.00% | Platform / Factory side |
+| Borrow parent fee | 2.00% | User's direct parent, or platform if no parent |
 
-This cleanup is not part of the normal trading-fee or borrow-fee flow. The borrow fee is used to support and increase the token's floor.
+Hook constants:
+
+```solidity
+function BORROW_FEE_BPS() view returns (uint256);           // 300
+function BORROW_PLATFORM_FEE_BPS() view returns (uint256);  // 100
+function BORROW_PARENT_FEE_BPS() view returns (uint256);    // 200
+```
+
+Important distinction:
+
+- trading rewards go to the user's **initial inviter**;
+- borrow rewards go to the user's **direct parent**.
+
+## Legacy V3 fee model
+
+Legacy V3 examples may include token-level creator-selected trading fees and a floor boost portion. Do not use that model for new V5 docs or V5 examples unless the page is explicitly documenting legacy V3.

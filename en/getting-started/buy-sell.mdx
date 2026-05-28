@@ -3,58 +3,29 @@ title: Buy and Sell
 description: Trade official LFG.RICH tokens through the app.
 ---
 
-Official LFG.RICH tokens can be bought and sold through the LFG.RICH app.
+Official LFG.RICH tokens are bought and sold through the protocol trading flow.
 
-The trading flow uses BNB on BNB Smart Chain and applies each token's bonding-curve, fee, reserve, and floor logic.
+## Buy tokens
 
-## Buying
+1. Open a token page.
+2. Choose **Buy**.
+3. Enter the BNB amount.
+4. Review the estimated tokens received and fees.
+5. Confirm the transaction in your wallet.
 
-<Steps>
-  <Step title="Open a token page">
-    Choose the official LFG.RICH token you want to buy.
-  </Step>
-  <Step title="Enter BNB amount">
-    Enter how much BNB you want to spend.
-  </Step>
-  <Step title="Review estimate">
-    Review the estimated token amount, price impact, and fees.
-  </Step>
-  <Step title="Confirm transaction">
-    Confirm the buy transaction in your wallet.
-  </Step>
-</Steps>
+## Sell tokens
 
-## Selling
-
-<Steps>
-  <Step title="Open a token page">
-    Choose the official LFG.RICH token you want to sell.
-  </Step>
-  <Step title="Enter token amount">
-    Enter how many tokens you want to sell.
-  </Step>
-  <Step title="Review estimate">
-    Review the estimated BNB output, price impact, and fees.
-  </Step>
-  <Step title="Approve if needed">
-    If the token allowance is not enough, approve the token first.
-  </Step>
-  <Step title="Confirm transaction">
-    Confirm the sell transaction in your wallet.
-  </Step>
-</Steps>
-
-## Fees
-
-Each token has a creator-selected trading fee between **1% and 10%**.
-
-The fee is split into:
-
-- **0.3%** platform fee.
-- The remaining percentage for floor boost.
+1. Open a token page.
+2. Choose **Sell**.
+3. Enter the token amount.
+4. Approve the SwapRouter if needed.
+5. Review the estimated BNB output and fees.
+6. Confirm the sell transaction in your wallet.
 
 ## Slippage
 
-Slippage protects users from receiving much less than expected when market conditions change between estimation and transaction confirmation.
+The app estimates the output and applies slippage protection. If the final output is below the protected minimum, the transaction reverts instead of executing at a worse result.
 
-Use conservative slippage settings when trading volatile tokens.
+## Fees
+
+Buy and sell trades have a total fee of 1.25%. If the trader is in a valid referral chain, 1% goes to the whitelisted/root initial inviter. Otherwise, the full trading fee goes to the platform.

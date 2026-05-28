@@ -1,0 +1,76 @@
+---
+title: V5 与旧版 V3
+description: 当前 V5 Hook 协议与旧 V3 合约之间的变化。
+---
+
+LFG.RICH 当前文档以 V5 协议作为活跃集成目标。旧 V3 合约可能仍存在于链上，也可能出现在历史数据中，但新文档和新集成应使用 V5 流程，除非明确在处理旧 V3 代币。
+
+## 当前 V5 地址
+
+| 合约 | 地址 |
+| --- | --- |
+| Factory | `0x429a7ef0129649a97bb3f1e961dd56d9bd4ac01f` |
+| Uniswap V4 Hook | `0xc18e6e1926113cdcf53f3ec1a89d3eb84cc6a888` |
+| Swap Router | `0x4018abd5d24ee48c642e7e518a8aef03b59ec150` |
+| Referral / Invite | `0x162e11887f6788ac9625a980e68044bee7f9d746` |
+| Treasury | `0xdb5b8aa5cecf7a6fe1812fb2ccc37723076b19d9` |
+| Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
+
+## 旧 V3 地址
+
+| 合约 | 地址 |
+| --- | --- |
+| Factory | `0xaf6d6F359a630Ec6eb2BaFDc338b86d3E84CaF66` |
+| Uniswap V4 Hook | `0xCA8D8D8d3d97cfac290a3850d32c2E8330CCe888` |
+| Swap Router | `0x092043364f39f7f57C4E1D32116f453BfaE37440` |
+| Treasury | `0x46e0F637DcEcE1598C09117b813ce0D2f7F5d34e` |
+| Pool Manager | `0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF` |
+
+## 主要集成差异
+
+| 项目 | 旧 V3 | 当前 V5 |
+| --- | --- | --- |
+| 创建代币 | `createToken(name, symbol, totalFeeBps)` | `createToken(name, symbol, devBuyEth)` |
+| 交易手续费模型 | 创建者选择手续费和 floor boost 部分 | 固定 1.25% 交易手续费，在平台与邀请人/平台之间拆分 |
+| 买入估算 | `estimateBuy(poolId, ethIn)` | `estimateBuy(poolId, ethIn, buyer)` |
+| 卖出估算 | `estimateSell(poolId, tokenAmount)` | `estimateSell(poolId, tokenAmount, seller)` |
+| 推荐机制 | 不是当前 V5 费用路由模型 | `OTOInvite` 控制 initial inviter 和 parent 费用路由 |
+| 代币状态 | 包含 `totalFeeBps`、`floorBoostPool`、`totalReserveAccumulated` 等 V3 字段 | 包含 `creator`、`k`、`autoFloorPctBps` 等 V5 字段；V3-only 字段被移除或仅作为 API 兼容占位 |
+| 借贷手续费 | 旧版会计 | 固定 3% 借贷手续费，在平台/直接 parent 之间拆分 |
+| 集成目标 | 仅用于历史兼容 | 当前活跃文档和示例 |
+
+## 不要混用 ABI 版本
+
+常见错误是用旧 V3 ABI 调用 V5 代币。由于函数签名和返回结构已经变化，这可能会失败。
+
+V5：
+
+```solidity
+function estimateBuy(bytes32 poolId, uint256 ethIn, address buyer)
+    view
+    returns (uint256 tokensOut, uint256 platformFee, uint256 inviterFee);
+
+function estimateSell(bytes32 poolId, uint256 tokenAmount, address seller)
+    view
+    returns (uint256 ethOut, uint256 platformFee, uint256 inviterFee);
+```
+
+旧 V3：
+
+```solidity
+function estimateBuy(bytes32 poolId, uint256 ethIn)
+    view
+    returns (uint256 tokensOut, uint256 platformFee, uint256 floorBoostFee);
+
+function estimateSell(bytes32 poolId, uint256 tokenAmount)
+    view
+    returns (uint256 ethOut, uint256 platformFee, uint256 floorBoostFee);
+```
+
+## API 兼容说明
+
+部分 API 响应可能为了兼容保留旧字段名，例如 `floorBoostPool` 或 `totalReserveAccumulated`。对于 V5 代币，这些字段应理解为兼容字段，而不是旧 V3 手续费模型仍然生效的证明。
+
+## 文档规则
+
+当前集成使用 V5 页面。只有在明确记录、调试或索引旧 V3 合约时才使用 V3 信息。

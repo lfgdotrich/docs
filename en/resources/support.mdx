@@ -7,18 +7,128 @@ For help with LFG.RICH, use the official links from the app and docs navigation.
 
 ## Before asking for help
 
-Please include:
+Please include the details that allow someone to understand the issue without guessing.
 
-- Token address.
-- Wallet address, if relevant.
-- Transaction hash, if relevant.
-- Screenshot or exact error message.
-- What you expected to happen.
-- What actually happened.
+Useful information:
+
+- token address;
+- wallet address, if relevant;
+- transaction hash, if relevant;
+- screenshot or exact error message;
+- browser and wallet used;
+- what you expected to happen;
+- what actually happened;
+- whether the issue is on the app, BuyBot, Trading Bot, docs, or a custom integration.
+
+<Warning>
+Never send your seed phrase or private key. Support does not need it.
+</Warning>
 
 ## Common checks
 
-- Wallet network: make sure you are on BNB Smart Chain.
-- BNB balance: make sure you have enough BNB for gas.
-- Transaction status: check the transaction on BscScan.
-- Token page: refresh the token page after a confirmed transaction.
+Before reporting a problem, check:
+
+- **Wallet network**: make sure you are on BNB Smart Chain.
+- **BNB balance**: make sure you have enough BNB for gas.
+- **Transaction status**: check the transaction on BscScan.
+- **Token address**: make sure you are using the token contract address, not a transaction hash or pool ID.
+- **Token page**: refresh the token page after a confirmed transaction.
+- **RPC state**: if your wallet or app is stale, wait a moment and refresh.
+
+## If a buy or sell failed
+
+Include:
+
+- token address;
+- transaction hash if the transaction was submitted;
+- the BNB amount or token amount;
+- wallet address;
+- error message from the wallet or app;
+- whether you were using the app or a bot/integration.
+
+For integrations, confirm you resolved the correct `poolId` and used the official Hook/Router flow.
+
+## If borrowing or repayment failed
+
+Include:
+
+- token address;
+- transaction hash if submitted;
+- wallet address;
+- whether the action was borrow, borrow more, or repay;
+- amount entered;
+- error message.
+
+Also check whether the collateral is already locked, whether the repay value is correct, and whether you have enough BNB for gas.
+
+## If the BuyBot is not working
+
+Check:
+
+1. The bot is in the Telegram group.
+2. The bot has permission to send messages.
+3. The group admin ran `/settoken`.
+4. The token address belongs to an official LFG.RICH token.
+5. There has been new activity after the token was added.
+
+If commands do not appear, try:
+
+```txt
+/settoken@lfgdotrich_buybot
+```
+
+## If the Trading Bot is not working
+
+Include:
+
+- OS and Python version;
+- command you ran;
+- full error message;
+- relevant `config.yaml` section with private values removed;
+- whether `dry_run` or `test_mode` is enabled;
+- whether the smoke test passed.
+
+Common first checks:
+
+```bash
+source .venv/bin/activate
+python --version
+python -m pip show web3
+python -m bot.smoke_test_lfg
+```
+
+Never share `.env` with a real private key.
+
+## If the dashboard is empty
+
+The dashboard reads the bot's local `state.db`.
+
+If the bot has not created or rebuilt local trade records, there may be no lots or PnL to show.
+
+Check:
+
+```bash
+sqlite3 state.db ".tables"
+sqlite3 state.db "SELECT * FROM trades ORDER BY id DESC LIMIT 10;"
+sqlite3 state.db "SELECT * FROM lots ORDER BY id DESC LIMIT 10;"
+```
+
+Make sure the bot and dashboard are using the same project folder and the same `state.db`.
+
+## If you are a developer
+
+When reporting an API or contract integration issue, include:
+
+- endpoint or contract function used;
+- request payload or call parameters, with private data removed;
+- response or revert message;
+- token address;
+- resolved `poolId`, if relevant;
+- chain ID;
+- library used, such as ethers, viem, web3.js, or Web3.py.
+
+## Official safety reminder
+
+Anyone can create fake groups, fake support accounts, fake websites, and fake tokens.
+
+Use official links from the LFG.RICH app and documentation. Do not trust random direct messages.

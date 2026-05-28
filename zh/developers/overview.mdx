@@ -1,40 +1,46 @@
 ---
 title: 开发者概览
-description: 围绕 LFG.RICH 构建机器人、仪表盘、分析和集成。
+description: 围绕 LFG.RICH V5 构建集成。
 ---
 
-开发者可以通过公共 API 和链上合约集成 LFG.RICH。
+本节面向围绕 LFG.RICH 构建看板、交易工具、机器人、提醒、分析和钱包集成的开发者。
 
-<CardGroup cols={2}>
-  <Card title="使用公共 API" icon="server" href="/zh/developers/api">
-    获取代币列表、代币详情、交易、K 线、余额、原生币价格和合约配置。
-  </Card>
-  <Card title="直接调用合约" icon="code" href="/zh/developers/contracts">
-    读取协议状态、估算交易，并使用 BSC RPC 构建链上集成。
-  </Card>
-  <Card title="协议示例" icon="terminal" href="/zh/developers/protocol-examples">
-    使用 Node.js 和 Python 示例完成估算、买入、卖出、借贷、borrowMore 和还款。
-  </Card>
-  <Card title="ABI 参考" icon="braces" href="/zh/developers/abis/factory">
-    复制集成中使用的 Factory、Hook、Token 和 Swap Router ABI。
-  </Card>
-</CardGroup>
+## V5 是当前集成目标
 
-## 常见集成场景
+新的集成应使用 V5 合约。V3 只用于旧代币兼容，应视为弃用版本。
 
-- 代币发行仪表盘。
-- 买入/卖出报价工具。
-- Telegram 和 Discord BuyBot。
-- 投资组合和抵押品仪表盘。
-- 借贷仓位追踪。
-- 协议分析。
-- 自定义交易界面。
+## 核心集成流程
 
-## 主要集成合约
+代币交互不要硬编码旧 Factory、Hook 或 PoolKey。请按以下流程：
 
-| 合约 | 用途 |
+1. 尽量读取代币的 `FACTORY()` 和 `hook()`。
+2. 使用正确的 Factory 调用 `getPoolKey(token)`。
+3. 用返回的 PoolKey 通过 SwapRouter 买入/卖出。
+4. 使用代币的 Hook 和 poolId 进行预估、借贷、还款和价格读取。
+
+## 价格精度
+
+V5 价格类数值按 `1e22` 缩放：
+
+- `getEffectivePrice(poolId)`
+- `floorPrice`
+- `allTimeHighPrice`
+- V5 买卖事件中的 `newPrice`
+
+显示每个代币的 BNB 价格：
+
+```ts
+const priceBnb = Number(priceScaled) / 1e22;
+```
+
+不要把 V5 价格当作 `1e18` 价格，否则集成显示的价格会高出 10,000 倍。
+
+## 合约
+
+| 合约 | 地址 |
 | --- | --- |
-| Factory | 查找官方代币、代币信息、pool ID 和 pool key。 |
-| Uniswap V4 Hook | 读取协议状态并估算买入、卖出和 borrowMore。 |
-| Swap Router | 通过简单面向用户的方法执行买入和卖出。 |
-| Token | ERC20 交互、授权、余额和抵押品授权。 |
+| Factory | `0x429a7ef0129649a97bb3f1e961dd56d9bd4ac01f` |
+| Hook | `0xc18e6e1926113cdcf53f3ec1a89d3eb84cc6a888` |
+| SwapRouter | `0x4018abd5d24ee48c642e7e518a8aef03b59ec150` |
+| OTOInvite | `0x162e11887f6788ac9625a980e68044bee7f9d746` |
+| Treasury | `0xdb5b8aa5cecf7a6fe1812fb2ccc37723076b19d9` |

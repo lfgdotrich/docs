@@ -5,43 +5,135 @@ description: Security notes and risk reminders for LFG.RICH users and developers
 
 LFG.RICH is a smart-contract platform. Users and developers should understand the risks before interacting with contracts or building integrations.
 
-## What LFG.RICH is designed to protect against
+<Warning>
+Never share your seed phrase or private key. LFG.RICH support, admins, bots, and documentation will never need your private key.
+</Warning>
+
+## What LFG.RICH is designed to reduce
 
 LFG.RICH reduces common launch risks by using:
 
-- Protocol-managed reserves.
-- Bonding-curve trading.
-- Floor price protection.
-- Permanent creator-selected trade fees.
-- Collateral borrowing based on floor value.
+- protocol-managed reserves;
+- bonding-curve trading;
+- Uniswap V4 Hook settlement;
+- floor price protection;
+- permanent creator-selected trade fees;
+- collateral borrowing based on protocol-recognized floor value;
+- official contract routing through Factory, Hook, Swap Router, Token, and Pool Manager.
 
 These mechanics are designed to make official launches more transparent and more resistant to traditional liquidity rug mechanics.
 
-## What still requires caution
+## What LFG.RICH does not remove
 
-No smart-contract platform removes every risk.
+No smart-contract platform removes every risk. Users should still consider:
 
-Users should still consider:
+- smart contract risk;
+- frontend risk;
+- RPC/provider risk;
+- wallet-signing risk;
+- chain/network risk;
+- oracle/API/display risk;
+- market risk;
+- third-party integration bugs;
+- phishing and fake contract links.
 
-- Smart contract risk.
-- Frontend risk.
-- RPC/provider risk.
-- Wallet-signing risk.
-- Chain/network risk.
-- Market risk.
-- Integration bugs from third-party tools.
+The existence of a floor mechanism does not mean a token is guaranteed to be profitable, risk-free, or liquid under every condition.
 
-## Contract verification
+## Verify official contracts
 
 Use official LFG.RICH links and APIs when checking contract addresses.
 
+The public contract labels are:
+
+| Name | Purpose |
+| --- | --- |
+| Factory | Creates official LFG.RICH tokens and registers them with the hook. |
+| Uniswap V4 Hook | Handles pricing, floors, reserves, fees, collateral, borrowing, and hook callbacks. |
+| Swap Router | Provides simple buy and sell functions for users and integrations. |
+| Token | ERC20-compatible token contract created by the Factory. |
+| Pool Manager | Uniswap V4 Pool Manager used by the hook and router flow. |
+
 Developers should verify addresses and bytecode before integrating with real value.
+
+## Safer wallet practices
+
+Use a dedicated wallet when experimenting with new tokens, bots, or integrations.
+
+Recommended practices:
+
+- keep only the BNB you intend to use;
+- keep extra BNB for gas;
+- do not reuse your long-term cold wallet for bot testing;
+- double-check every transaction before signing;
+- avoid signing unknown approvals;
+- revoke unused approvals when no longer needed.
+
+## Safer BuyBot usage
+
+The Telegram BuyBot is a notification tool only.
+
+It does not need:
+
+- your seed phrase;
+- your private key;
+- wallet connection;
+- signing permission;
+- token approvals.
+
+If anyone claiming to be a bot or admin asks for those, treat it as a scam.
+
+## Safer trading bot usage
+
+The community Trading Bot is live trading software when `dry_run` is disabled.
+
+Before running live:
+
+1. use a dedicated wallet;
+2. keep only a small amount of BNB in that wallet;
+3. start with `dry_run: true`;
+4. run the smoke test;
+5. test one tiny buy;
+6. confirm the dashboard and lots are correct;
+7. only then consider normal live operation.
+
+Do not run a trading bot with a wallet containing funds you cannot afford to risk.
 
 ## Safer integration practices
 
-- Read contract addresses from the app API when possible.
-- Use read-only calls first.
-- Simulate transactions before sending real value.
-- Use conservative slippage limits.
-- Handle failed or reverted transactions cleanly.
-- Never ask users for seed phrases or private keys.
+Developers should:
+
+- read contract addresses from official configuration endpoints when possible;
+- use read-only calls first;
+- resolve the correct `poolId` before V5 estimates or transactions;
+- simulate transactions before sending real value;
+- use conservative slippage limits;
+- handle failed or reverted transactions cleanly;
+- check decimals and 18-decimal BNB/token values carefully;
+- avoid hard-coding stale contract addresses when an official config endpoint is available;
+- never ask users for seed phrases or private keys.
+
+## Common red flags
+
+Be careful if you see:
+
+- a website that looks like LFG.RICH but uses a different domain;
+- a token claiming to be official but not created by the official Factory;
+- a Telegram account asking for your private key;
+- a bot asking for wallet approval to send alerts;
+- a transaction that approves unlimited spending for an unknown contract;
+- links sent through DMs pretending to be support.
+
+## What to include in a security report
+
+When reporting a suspected security issue, include:
+
+- affected page or contract;
+- chain and network;
+- token address, if relevant;
+- transaction hash, if relevant;
+- wallet address, if relevant;
+- exact error or unexpected behavior;
+- reproduction steps;
+- screenshots or logs when useful.
+
+Do not include private keys, seed phrases, or sensitive credentials.

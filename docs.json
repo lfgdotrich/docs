@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "LFG.RICH",
   "colors": {
-    "primary": "#F0B90B",
-    "light": "#FACC15",
-    "dark": "#D97706"
+    "primary": "#E2AA5D",
+    "light": "#F0C682",
+    "dark": "#D89445"
   },
   "favicon": "/favicon.png",
   "logo": {
@@ -56,11 +56,13 @@
               {
                 "group": "Protocol",
                 "pages": [
-                  "en/protocol/uniswap-v4-hooks",
+                  "en/protocol/v5-and-legacy-v3",
                   "en/protocol/bonding-curve",
                   "en/protocol/floor-price",
+                  "en/protocol/fees",
+                  "en/protocol/referrals",
                   "en/protocol/borrowing",
-                  "en/protocol/fees"
+                  "en/protocol/uniswap-v4-hooks"
                 ]
               },
               {
@@ -79,13 +81,16 @@
                   "en/developers/protocol-examples",
                   "en/developers/api",
                   "en/developers/examples",
+                  "en/developers/v3-v5-migration",
                   {
                     "group": "ABIs",
                     "pages": [
                       "en/developers/abis/factory",
                       "en/developers/abis/uniswap-v4-hook",
+                      "en/developers/abis/swap-router",
                       "en/developers/abis/token",
-                      "en/developers/abis/swap-router"
+                      "en/developers/abis/referral",
+                      "en/developers/abis/treasury"
                     ]
                   }
                 ]
@@ -126,11 +131,13 @@
               {
                 "group": "协议",
                 "pages": [
-                  "zh/protocol/uniswap-v4-hooks",
+                  "zh/protocol/v5-and-legacy-v3",
                   "zh/protocol/bonding-curve",
                   "zh/protocol/floor-price",
+                  "zh/protocol/fees",
+                  "zh/protocol/referrals",
                   "zh/protocol/borrowing",
-                  "zh/protocol/fees"
+                  "zh/protocol/uniswap-v4-hooks"
                 ]
               },
               {
@@ -149,13 +156,16 @@
                   "zh/developers/protocol-examples",
                   "zh/developers/api",
                   "zh/developers/examples",
+                  "zh/developers/v3-v5-migration",
                   {
                     "group": "ABI",
                     "pages": [
                       "zh/developers/abis/factory",
                       "zh/developers/abis/uniswap-v4-hook",
+                      "zh/developers/abis/swap-router",
                       "zh/developers/abis/token",
-                      "zh/developers/abis/swap-router"
+                      "zh/developers/abis/referral",
+                      "zh/developers/abis/treasury"
                     ]
                   }
                 ]

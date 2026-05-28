@@ -1,16 +1,42 @@
 ---
-title: Uniswap V4 Hook ABI
-description: Hook runtime ABI for estimates, borrowing, pool state, and protocol callbacks.
+title: Hook ABI
+description: Full JSON ABI for Uniswap V4 Hook.
 ---
 
-Use this ABI as a copy-paste-ready JavaScript/TypeScript constant with Viem, Ethers, bots, dashboards, and custom integrations.
+This page contains the full public JSON ABI for `Uniswap V4 Hook` used by LFG.RICH integrations.
 
-<Note>
-This is the deployed runtime ABI for connecting to the existing Uniswap V4 Hook contract. Constructor entries are not needed when creating `ethers.Contract`, `viem` contract calls, or Web3.py contract objects for an already-deployed contract.
-</Note>
-
-```ts
-export const UNISWAP_V4_HOOK_ABI = [
+```json
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "poolManager",
+        "type": "address",
+        "internalType": "contract IPoolManager"
+      },
+      {
+        "name": "treasury",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "factory",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "k",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
   {
     "type": "function",
     "name": "BPS_DENOMINATOR",
@@ -18,7 +44,21 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "TOTAL_FEE_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -30,7 +70,21 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "INVITER_FEE_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -42,31 +96,34 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "BASE_FLOOR_RATIO_BPS",
+    "name": "BORROW_PLATFORM_FEE_BPS",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "FLOOR_RESERVE_MAX_BPS",
+    "name": "BORROW_PARENT_FEE_BPS",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -78,19 +135,8 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "MAX_SUPPLY",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -102,31 +148,8 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "TARGET_ETH",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "SQRT_TARGET_ETH",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -138,7 +161,21 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "DEFAULT_AUTO_FLOOR_PCT_BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -150,7 +187,8 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint24"
+        "type": "uint24",
+        "internalType": "uint24"
       }
     ],
     "stateMutability": "view"
@@ -162,7 +200,21 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "contract IPoolManager"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "TREASURY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -174,7 +226,8 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -186,7 +239,34 @@ export const UNISWAP_V4_HOOK_ABI = [
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "inviteContract",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "inviteRewardsEnabled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -196,54 +276,66 @@ export const UNISWAP_V4_HOOK_ABI = [
     "name": "tokenStates",
     "inputs": [
       {
-        "name": "poolId",
-        "type": "bytes32"
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
       {
         "name": "token",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "name": "totalFeeBps",
-        "type": "uint256"
+        "name": "creator",
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "floorPrice",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "realETH",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "virtualETH",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "totalBorrowedETH",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "collateralSupply",
-        "type": "uint256"
-      },
-      {
-        "name": "floorBoostPool",
-        "type": "uint256"
-      },
-      {
-        "name": "totalReserveAccumulated",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "allTimeHighPrice",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "k",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "autoFloorPctBps",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "initialized",
-        "type": "bool"
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -253,14 +345,16 @@ export const UNISWAP_V4_HOOK_ABI = [
     "name": "tokenToPoolId",
     "inputs": [
       {
-        "name": "token",
-        "type": "address"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "stateMutability": "view"
@@ -270,18 +364,21 @@ export const UNISWAP_V4_HOOK_ABI = [
     "name": "borrowedETH",
     "inputs": [
       {
-        "name": "poolId",
-        "type": "bytes32"
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
-        "name": "user",
-        "type": "address"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -291,18 +388,21 @@ export const UNISWAP_V4_HOOK_ABI = [
     "name": "collateralBalance",
     "inputs": [
       {
-        "name": "poolId",
-        "type": "bytes32"
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
-        "name": "user",
-        "type": "address"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -312,37 +412,19 @@ export const UNISWAP_V4_HOOK_ABI = [
     "name": "totalPurchasedETH",
     "inputs": [
       {
-        "name": "user",
-        "type": "address"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "registerToken",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "name": "poolId",
-        "type": "bytes32"
-      },
-      {
-        "name": "totalFeeBps",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -350,13 +432,15 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -367,13 +451,15 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -384,13 +470,72 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "maxFloorPrice",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTokenK",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAutoFloorPct",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -401,25 +546,35 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
         "name": "ethIn",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "buyer",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "tokensOut",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "platformFee",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "floorBoostFee",
-        "type": "uint256"
+        "name": "inviterFee",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -430,25 +585,35 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
         "name": "tokenAmount",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "seller",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "ethOut",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "platformFee",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "floorBoostFee",
-        "type": "uint256"
+        "name": "inviterFee",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -459,21 +624,25 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
         "name": "user",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
         "name": "additionalEth",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "fee",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -486,62 +655,77 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "",
         "type": "tuple",
+        "internalType": "struct Hooks.Permissions",
         "components": [
           {
             "name": "beforeInitialize",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterInitialize",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "beforeAddLiquidity",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterAddLiquidity",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "beforeRemoveLiquidity",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterRemoveLiquidity",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "beforeSwap",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterSwap",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "beforeDonate",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterDonate",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "beforeSwapReturnDelta",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterSwapReturnDelta",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterAddLiquidityReturnDelta",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "afterRemoveLiquidityReturnDelta",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           }
         ]
       }
@@ -550,15 +734,84 @@ export const UNISWAP_V4_HOOK_ABI = [
   },
   {
     "type": "function",
+    "name": "registerToken",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateCreator",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newCreator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setInviteContract",
+    "inputs": [
+      {
+        "name": "_invite",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setInviteRewardsEnabled",
+    "inputs": [
+      {
+        "name": "_enabled",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "borrow",
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
         "name": "amount",
-        "type": "uint256"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -570,7 +823,8 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [],
@@ -582,7 +836,26 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "poolId",
-        "type": "bytes32"
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "devMint",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "dev",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -594,46 +867,116 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "key",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "",
-        "type": "uint160"
+        "type": "uint160",
+        "internalType": "uint160"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bytes4"
+        "type": "bytes4",
+        "internalType": "bytes4"
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "afterInitialize",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "uint160",
+        "internalType": "uint160"
+      },
+      {
+        "name": "",
+        "type": "int24",
+        "internalType": "int24"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -641,68 +984,361 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "",
         "type": "tuple",
+        "internalType": "struct ModifyLiquidityParams",
         "components": [
           {
             "name": "tickLower",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "tickUpper",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "liquidityDelta",
-            "type": "int256"
+            "type": "int256",
+            "internalType": "int256"
           },
           {
             "name": "salt",
-            "type": "bytes32"
+            "type": "bytes32",
+            "internalType": "bytes32"
           }
         ]
       },
       {
         "name": "",
-        "type": "bytes"
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bytes4"
+        "type": "bytes4",
+        "internalType": "bytes4"
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "afterAddLiquidity",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct ModifyLiquidityParams",
+        "components": [
+          {
+            "name": "tickLower",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "tickUpper",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "liquidityDelta",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "salt",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "beforeRemoveLiquidity",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct ModifyLiquidityParams",
+        "components": [
+          {
+            "name": "tickLower",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "tickUpper",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "liquidityDelta",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "salt",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "afterRemoveLiquidity",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct ModifyLiquidityParams",
+        "components": [
+          {
+            "name": "tickLower",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "tickUpper",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "liquidityDelta",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "salt",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -710,72 +1346,307 @@ export const UNISWAP_V4_HOOK_ABI = [
     "inputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "key",
         "type": "tuple",
+        "internalType": "struct PoolKey",
         "components": [
           {
             "name": "currency0",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "currency1",
-            "type": "address"
+            "type": "address",
+            "internalType": "Currency"
           },
           {
             "name": "fee",
-            "type": "uint24"
+            "type": "uint24",
+            "internalType": "uint24"
           },
           {
             "name": "tickSpacing",
-            "type": "int24"
+            "type": "int24",
+            "internalType": "int24"
           },
           {
             "name": "hooks",
-            "type": "address"
+            "type": "address",
+            "internalType": "contract IHooks"
           }
         ]
       },
       {
         "name": "params",
         "type": "tuple",
+        "internalType": "struct SwapParams",
         "components": [
           {
             "name": "zeroForOne",
-            "type": "bool"
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "amountSpecified",
-            "type": "int256"
+            "type": "int256",
+            "internalType": "int256"
           },
           {
             "name": "sqrtPriceLimitX96",
-            "type": "uint160"
+            "type": "uint160",
+            "internalType": "uint160"
           }
         ]
       },
       {
         "name": "hookData",
-        "type": "bytes"
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [
       {
         "name": "selector",
-        "type": "bytes4"
+        "type": "bytes4",
+        "internalType": "bytes4"
       },
       {
         "name": "delta",
-        "type": "int256"
+        "type": "int256",
+        "internalType": "BeforeSwapDelta"
       },
       {
         "name": "lpFeeOverride",
-        "type": "uint24"
+        "type": "uint24",
+        "internalType": "uint24"
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "afterSwap",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct SwapParams",
+        "components": [
+          {
+            "name": "zeroForOne",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "amountSpecified",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "sqrtPriceLimitX96",
+            "type": "uint160",
+            "internalType": "uint160"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "BalanceDelta"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      },
+      {
+        "name": "",
+        "type": "int128",
+        "internalType": "int128"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "beforeDonate",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "afterDonate",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "event",
@@ -784,19 +1655,23 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "token",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
-        "name": "totalFeeBps",
-        "type": "uint256",
-        "indexed": false
+        "name": "creator",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -805,29 +1680,35 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "buyer",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "ethIn",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "tokensOut",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "newPrice",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -836,29 +1717,35 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "seller",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "tokensIn",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "ethOut",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "newPrice",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -867,19 +1754,23 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "oldFloor",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "newFloor",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -888,19 +1779,48 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "oldATH",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "newATH",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "KUpdated",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "oldK",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newK",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -909,29 +1829,35 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "user",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "tokensLocked",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "ethBorrowed",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "fee",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -940,24 +1866,29 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "user",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "additionalEth",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "fee",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -966,24 +1897,29 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "user",
         "type": "address",
-        "indexed": true
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "ethRepaid",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "tokensUnlocked",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -992,14 +1928,17 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "amount",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -1008,14 +1947,74 @@ export const UNISWAP_V4_HOOK_ABI = [
       {
         "name": "poolId",
         "type": "bytes32",
-        "indexed": true
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
         "name": "amount",
         "type": "uint256",
-        "indexed": false
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CreatorUpdated",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "oldCreator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newCreator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InviteContractUpdated",
+    "inputs": [
+      {
+        "name": "oldInvite",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newInvite",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InviteRewardsToggled",
+    "inputs": [
+      {
+        "name": "enabled",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "error",
@@ -1055,11 +2054,6 @@ export const UNISWAP_V4_HOOK_ABI = [
   {
     "type": "error",
     "name": "MintZero",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "MaxSupplyExceeded",
     "inputs": []
   },
   {
@@ -1116,12 +2110,6 @@ export const UNISWAP_V4_HOOK_ABI = [
     "type": "error",
     "name": "TokenAlreadyRegistered",
     "inputs": []
-  },
-  {
-    "type": "receive",
-    "stateMutability": "payable"
   }
-] as const;
+]
 ```
-
-You can also import the matching JSON file from `/abis/UniswapV4Hook.abi.json` if your build setup supports JSON imports.

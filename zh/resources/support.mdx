@@ -7,18 +7,128 @@ description: 在哪里获得 LFG.RICH 帮助。
 
 ## 请求帮助前
 
-请包含：
+请提供足够信息，让别人不需要猜测就能理解问题。
 
-- 代币地址。
-- 钱包地址（如相关）。
-- 交易哈希（如相关）。
-- 截图或完整错误消息。
-- 你原本预期发生什么。
-- 实际发生了什么。
+有用信息：
+
+- 代币地址；
+- 钱包地址（如相关）；
+- 交易哈希（如相关）；
+- 截图或完整错误消息；
+- 使用的浏览器和钱包；
+- 你原本预期发生什么；
+- 实际发生了什么；
+- 问题发生在应用、BuyBot、Trading Bot、文档还是自定义集成中。
+
+<Warning>
+永远不要发送助记词或私钥。支持人员不需要它。
+</Warning>
 
 ## 常见检查
 
-- 钱包网络：确认你在 BNB Smart Chain。
-- BNB 余额：确认你有足够的 BNB 支付 Gas。
-- 交易状态：在 BscScan 上检查交易。
-- 代币页面：交易确认后刷新代币页面。
+报告问题前，请检查：
+
+- **钱包网络**：确认你在 BNB Smart Chain。
+- **BNB 余额**：确认你有足够的 BNB 支付 Gas。
+- **交易状态**：在 BscScan 上检查交易。
+- **代币地址**：确认你使用的是代币合约地址，不是交易哈希或 pool ID。
+- **代币页面**：交易确认后刷新代币页面。
+- **RPC 状态**：如果钱包或应用状态过旧，稍等片刻后刷新。
+
+## 如果买入或卖出失败
+
+请提供：
+
+- 代币地址；
+- 如果交易已提交，请提供交易哈希；
+- BNB 数量或代币数量；
+- 钱包地址；
+- 钱包或应用中的错误消息；
+- 是使用应用，还是使用机器人/集成。
+
+对于集成，请确认已解析正确的 `poolId`，并使用官方 Hook/Router 流程。
+
+## 如果借贷或还款失败
+
+请提供：
+
+- 代币地址；
+- 如果交易已提交，请提供交易哈希；
+- 钱包地址；
+- 操作是 borrow、borrow more 还是 repay；
+- 输入金额；
+- 错误消息。
+
+同时检查抵押品是否已经锁定、repay value 是否正确，以及是否有足够 BNB 支付 Gas。
+
+## 如果 BuyBot 不工作
+
+检查：
+
+1. 机器人是否在 Telegram 群组中。
+2. 机器人是否有发送消息权限。
+3. 群组管理员是否运行了 `/settoken`。
+4. 代币地址是否属于官方 LFG.RICH 代币。
+5. 添加代币后是否发生了新的活动。
+
+如果命令没有显示，尝试：
+
+```txt
+/settoken@lfgdotrich_buybot
+```
+
+## 如果 Trading Bot 不工作
+
+请提供：
+
+- 操作系统和 Python 版本；
+- 运行的命令；
+- 完整错误消息；
+- 已移除私密内容的相关 `config.yaml` 部分；
+- 是否启用了 `dry_run` 或 `test_mode`；
+- smoke test 是否通过。
+
+常见第一步检查：
+
+```bash
+source .venv/bin/activate
+python --version
+python -m pip show web3
+python -m bot.smoke_test_lfg
+```
+
+永远不要分享包含真实私钥的 `.env`。
+
+## 如果仪表盘为空
+
+仪表盘读取机器人本地的 `state.db`。
+
+如果机器人还没有创建或重建本地交易记录，可能没有 lots 或 PnL 可显示。
+
+检查：
+
+```bash
+sqlite3 state.db ".tables"
+sqlite3 state.db "SELECT * FROM trades ORDER BY id DESC LIMIT 10;"
+sqlite3 state.db "SELECT * FROM lots ORDER BY id DESC LIMIT 10;"
+```
+
+确认机器人和仪表盘使用同一个项目目录和同一个 `state.db`。
+
+## 如果你是开发者
+
+报告 API 或合约集成问题时，请提供：
+
+- 使用的 endpoint 或合约函数；
+- 请求 payload 或调用参数，并移除私密数据；
+- response 或 revert message；
+- 代币地址；
+- 解析出的 `poolId`（如相关）；
+- chain ID；
+- 使用的库，例如 ethers、viem、web3.js 或 Web3.py。
+
+## 官方安全提醒
+
+任何人都可以创建假群组、假支持账号、假网站和假代币。
+
+请使用 LFG.RICH 应用和文档中的官方链接。不要相信随机私信。

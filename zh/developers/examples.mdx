@@ -1,21 +1,38 @@
 ---
 title: 开发者示例
-description: LFG.RICH 集成的合约交互示例，以及通过公共 API 获取代币、交易、K 线和协议数据的片段。
+description: 读取 LFG.RICH 代币、交易、K 线、投资组合数据、协议配置和用户状态的实用 API 示例。
 ---
 
-构建机器人、仪表盘、自定义发行页面、交易工具或钱包集成时，可以使用这些协议示例。
+本页用于公开 REST API。直接合约调用请查看协议示例页面。
 
-<Card title="协议合约示例" icon="code" href="/zh/developers/protocol-examples">
-  查看用于估算、买入、卖出、借贷、borrowMore 和还款的 Viem、Ethers 与 Python/Web3.py 示例。
-</Card>
+<CardGroup cols={2}>
+  <Card title="协议合约示例" icon="code" href="/zh/developers/protocol-examples">
+    V5 的 Ethers、Viem、Web3.js 和 Python Web3.py 示例，包括估算、买入、卖出、借款、borrowMore 和还款。
+  </Card>
+  <Card title="合约参考" icon="braces" href="/zh/developers/contracts">
+    V5 地址和可读 ABI 字符串数组。
+  </Card>
+</CardGroup>
 
-<Card title="合约参考" icon="braces" href="/zh/developers/contracts">
-  查看已部署合约地址和 ABI 页面。
-</Card>
+## Base URL
 
-<Card title="API 参考" icon="globe" href="/zh/developers/api">
-  查看代币、交易、K 线和协议配置的公共 REST API 端点。
-</Card>
+```txt
+https://lfg.rich/api/bsc/tokens
+```
+
+所有示例都假设接口返回以下结构：
+
+```js
+{
+  "success": true,
+  "data": "...",
+  "total": 123,
+  "page": 1,
+  "limit": 20
+}
+```
+
+当 `success` 为 `false` 时，请检查 `error`。
 
 ## 获取最新代币
 
@@ -23,28 +40,98 @@ description: LFG.RICH 集成的合约交互示例，以及通过公共 API 获�
 const res = await fetch('https://lfg.rich/api/bsc/tokens?sort=latest&page=1&limit=20');
 const json = await res.json();
 
-if (!json.success) {
-  throw new Error('Failed to fetch tokens');
-}
+if (!json.success) throw new Error(json.error || 'Failed to fetch latest tokens');
 
 console.log(json.data);
 ```
 
-## 获取一个代币及其交易
+## 获取最高成交量、活跃代币或涨幅榜
+
+```js
+const sorts = ['volume', 'active', 'gainers', 'latest'];
+
+for (const sort of sorts) {
+  const res = await fetch(`https://lfg.rich/api/bsc/tokens?sort=${sort}&page=1&limit=20`);
+  const json = await res.json();
+  console.log(sort, json.data);
+}
+```
+
+## 搜索代币
+
+```js
+const query = 'bull';
+
+const res = await fetch(
+  `https://lfg.rich/api/bsc/tokens?search=${encodeURIComponent(query)}&page=1&limit=20`
+);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Search failed');
+
+console.log(json.data);
+```
+
+搜索会匹配代币名称、符号或代币地址。
+
+## 只获取已验证代币
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens?verified=true&page=1&limit=20');
+const json = await res.json();
+
+console.log(json.data);
+```
+
+当后端把代币与已验证代币表进行关联时，每个代币会包含 `is_verified`。
+
+## 获取代币详情
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}`);
+const json = await res.json();
+
+if (!json.success || !json.data) throw new Error('Token not found');
+
+console.log(json.data.pool_id);
+console.log(json.data.current_price);
+console.log(json.data.floor_price);
+```
+
+<Info>
+`pool_id` 字段对 V5 很重要。Hook 读取和估算需要使用它。如果外部集成中没有该字段，可以用 `hook.tokenToPoolId(tokenAddress)` 解析。
+</Info>
+
+## 获取代币及其交易记录
 
 ```js
 const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
 
 const [tokenRes, tradesRes] = await Promise.all([
   fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}`),
-  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/trades?page=1&limit=25`)
+  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/trades?page=1&limit=50`)
 ]);
 
 const token = await tokenRes.json();
 const trades = await tradesRes.json();
 
+if (!token.success) throw new Error('Token request failed');
+if (!trades.success) throw new Error('Trades request failed');
+
 console.log(token.data);
 console.log(trades.data);
+```
+
+交易类型可能包括：
+
+```txt
+buy
+sell
+borrow
+borrowmore
+repay
 ```
 
 ## 获取 K 线
@@ -55,16 +142,248 @@ const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
 const res = await fetch(
   `https://lfg.rich/api/bsc/tokens/${tokenAddress}/candles?interval=5m&limit=100`
 );
-
 const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch candles');
+
 console.log(json.data);
+console.log(json.floorData);
 ```
 
-## 获取协议配置
+网站常用的 interval：
+
+```txt
+1m
+5m
+1h
+1d
+```
+
+## 交易后刷新代币数据
+
+钱包操作后，应用会触发一次后端 sync，然后重新获取代币、交易记录和 K 线。
+
+```js
+async function refreshTokenAfterTrade(tokenAddress, interval = '5m') {
+  fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/sync`, {
+    method: 'POST'
+  }).catch(() => {});
+
+  const [tokenRes, tradesRes, candlesRes] = await Promise.all([
+    fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}?_nocache=1`),
+    fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/trades?page=1&limit=50`),
+    fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/candles?interval=${interval}`)
+  ]);
+
+  return {
+    token: await tokenRes.json(),
+    trades: await tradesRes.json(),
+    candles: await candlesRes.json()
+  };
+}
+```
+
+## 获取协议合约配置
 
 ```js
 const res = await fetch('https://lfg.rich/api/bsc/tokens/config/contracts');
 const json = await res.json();
 
+if (!json.success) throw new Error(json.error || 'Failed to fetch contracts config');
+
+console.log(json.data.factoryAddress);
+console.log(json.data.hookAddress);
+console.log(json.data.swapRouterAddress);
+console.log(json.data.referralAddress);
+console.log(json.data.treasuryAddress);
+console.log(json.data.poolManagerAddress);
+console.log(json.data.abiVersion);
+console.log(json.data.factoryABI);
+```
+
+该路由返回人类可读 ABI 字符串数组。
+
+## 获取 JSON ABI 配置
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens/jsonconfig/contracts');
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch JSON ABI config');
+
+console.log(json.data.hookABI);
+```
+
+只有当工具需要标准 JSON ABI 对象时，才使用这个接口。
+
+## 获取原生 BNB 价格
+
+```js
+const res = await fetch('https://lfg.rich/api/bsc/tokens/config/native-price');
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch native price');
+
+console.log(json.data.nativeUsdPrice);
+```
+
+## 获取创建者代币
+
+```js
+const creator = '0xYourWalletAddress';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/creator/${creator}`);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch creator tokens');
+
 console.log(json.data);
+```
+
+## 获取投资组合持仓
+
+```js
+const wallet = '0xYourWalletAddress';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/portfolio/${wallet}`);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch portfolio');
+
+console.log(json.data);
+```
+
+portfolio 接口会读取当前代币余额，并结合交易历史计算持仓统计。
+
+## 获取投资组合借款仓位
+
+```js
+const wallet = '0xYourWalletAddress';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/portfolio/${wallet}/borrows`);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch borrow portfolio');
+
+console.log(json.data);
+```
+
+## 获取用户的代币余额和 BNB 余额
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+const wallet = '0xYourWalletAddress';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/user-data/${wallet}`);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch user data');
+
+console.log(json.data.tokenBalance);
+console.log(json.data.ethBalance);
+```
+
+## 获取用户在某个代币上的借款数据
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+const wallet = '0xYourWalletAddress';
+
+const tokenRes = await fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}`);
+const tokenJson = await tokenRes.json();
+const poolId = tokenJson.data.pool_id || tokenJson.data.poolId;
+
+const borrowRes = await fetch(
+  `https://lfg.rich/api/bsc/tokens/${tokenAddress}/borrow-data/${wallet}?poolId=${poolId}`
+);
+const borrowJson = await borrowRes.json();
+
+if (!borrowJson.success) throw new Error(borrowJson.error || 'Failed to fetch borrow data');
+
+console.log(borrowJson.data.borrowedETH);
+console.log(borrowJson.data.collateralBalance);
+console.log(borrowJson.data.borrowMoreEstimate);
+```
+
+## 获取某个钱包的代币角色
+
+```js
+const tokenAddress = '0x29Ede1E1254419Fe5a3c803fC2b015042075A49A';
+const wallet = '0xYourWalletAddress';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}/roles/${wallet}`);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch roles');
+
+console.log(json.data.isCreator);
+console.log(json.data.isFactoryOwner);
+console.log(json.data.factoryBalance);
+```
+
+## 获取 owner 数据
+
+```js
+const wallet = '0xOwnerWalletAddress';
+
+const res = await fetch(`https://lfg.rich/api/bsc/tokens/config/owner-data/${wallet}`);
+const json = await res.json();
+
+if (!json.success) throw new Error(json.error || 'Failed to fetch owner data');
+
+console.log(json.data.isOwner);
+console.log(json.data.factoryBalance);
+console.log(json.data.treasuryBalance);
+console.log(json.data.treasuryRecipient);
+```
+
+## API + 合约示例：使用 API 代币数据报价
+
+这个示例适合机器人和仪表盘：先用 API 发现代币，再用合约读取精确报价数据。
+
+```js
+import { ethers } from 'ethers';
+
+async function quoteTokenBuy(tokenAddress, bnbAmount, walletAddress) {
+  const [cfgJson, tokenJson] = await Promise.all([
+    fetch('https://lfg.rich/api/bsc/tokens/config/contracts').then(r => r.json()),
+    fetch(`https://lfg.rich/api/bsc/tokens/${tokenAddress}`).then(r => r.json())
+  ]);
+
+  const cfg = cfgJson.data;
+  const token = tokenJson.data;
+
+  const provider = new ethers.providers.JsonRpcProvider(cfg.rpcUrl);
+  const hook = new ethers.Contract(cfg.hookAddress, cfg.hookABI, provider);
+
+  const poolId = token.pool_id || token.poolId || await hook.tokenToPoolId(tokenAddress);
+  const ethWei = ethers.utils.parseEther(bnbAmount);
+
+  const quote = await hook.estimateBuy(
+    poolId,
+    ethWei,
+    walletAddress || ethers.constants.AddressZero
+  );
+
+  return {
+    poolId,
+    tokensOut: quote.tokensOut.toString(),
+    totalFee: quote.platformFee.add(quote.inviterFee || 0).toString()
+  };
+}
+```
+
+## 防御式 fetch 辅助函数
+
+```js
+async function lfgFetch(url, options) {
+  const res = await fetch(url, options);
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || !json || json.success === false) {
+    throw new Error(json?.error || `Request failed: ${res.status}`);
+  }
+
+  return json;
+}
 ```

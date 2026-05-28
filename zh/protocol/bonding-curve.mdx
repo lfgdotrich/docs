@@ -1,62 +1,81 @@
 ---
-title: Bonding Curve
-description: LFG.RICH 代币如何通过 bonding-curve 流程定价。
+title: 联合曲线
+description: LFG.RICH V5 代币如何通过 Hook 管理的联合曲线定价。
 ---
 
-官方 LFG.RICH 代币通过 bonding-curve 风格的流程交易，而不是传统的创作者管理流动性池。
+官方 LFG.RICH 代币通过 Hook 管理的联合曲线交易，而不是由创建者管理的传统流动性池。
 
-Bonding curve 决定进入或离开系统的 BNB 与买入或卖出代币数量之间的关系。
+联合曲线定义了 BNB 进入池时会铸造多少代币，以及用户卖出并销毁代币时会返回多少 BNB。在 V5 中，这套逻辑由 the Uniswap V4 Hook 强制执行，并通过 Uniswap V4 的 Pool Manager 路由。
 
-## 买入
+## 买入流程
 
-当用户买入官方 LFG.RICH 代币时：
+用户买入官方 V5 代币时：
 
-<Steps>
-  <Step title="BNB 进入交易">
-    用户在买入交易中发送 BNB。
-  </Step>
-  <Step title="Hook 估算输出">
-    Hook 在应用代币交易手续费后，计算用户可以收到多少代币。
-  </Step>
-  <Step title="手续费自动拆分">
-    固定平台手续费和 floor boost 部分会自动分离。
-  </Step>
-  <Step title="代币状态更新">
-    交易确认后，价格、储备、地板相关数值、成交量和交易历史都会更新。
-  </Step>
-</Steps>
+1. 用户向 the Swap Router `buy(key, minTokensOut)` function 发送 BNB。
+2. Router 进入 Uniswap V4 的 unlock/callback 流程。
+3. Pool Manager 调用 Hook。
+4. Hook 读取该代币的 `poolId` 状态。
+5. Hook 扣除 V5 交易手续费。
+6. 联合曲线计算净 BNB 可以铸造多少代币。
+7. Hook 将代币铸造给买家。
+8. 价格、储备、地板价、ATH、成交量和交易历史可由协议事件和状态索引。
 
-## 卖出
+## 卖出流程
 
-当用户卖出官方 LFG.RICH 代币时：
+用户卖出官方 V5 代币时：
 
-<Steps>
-  <Step title="代币进入卖出交易">
-    用户通过 LFG.RICH Swap Router 卖出指定数量的代币。
-  </Step>
-  <Step title="Hook 估算 BNB 输出">
-    Hook 根据 bonding curve 和协议状态计算可获得的 BNB 数量。
-  </Step>
-  <Step title="应用地板保护">
-    协议设计目标是让卖出不会把代币价格打到地板价以下。
-  </Step>
-  <Step title="用户收到 BNB">
-    用户在扣除适用手续费后收到卖出输出。
-  </Step>
-</Steps>
+1. 用户授权 Swap Router 花费该代币。
+2. 用户调用 the Swap Router `sell(key, tokenAmount, minEthOut)` function。
+3. Router 通过 Uniswap V4 路由交易。
+4. Hook 根据联合曲线计算卖出的 BNB 毛额。
+5. Hook 扣除 V5 交易手续费。
+6. 代币被销毁。
+7. 卖家收到扣除手续费后的 BNB。
+8. 卖出价格不能低于协议地板价。
 
-## 估算
+## V5 估算函数
 
-Hook 暴露了估算函数，集成方可以在发送交易前使用：
+V5 的估算函数包含钱包地址，因为推荐状态会影响手续费接收方的分配。
 
 ```solidity
-function estimateBuy(bytes32 poolId, uint256 ethIn)
-  view
-  returns (uint256 tokensOut, uint256 platformFee, uint256 floorBoostFee);
+function estimateBuy(
+    bytes32 poolId,
+    uint256 ethIn,
+    address buyer
+)
+    view
+    returns (uint256 tokensOut, uint256 platformFee, uint256 inviterFee);
 
-function estimateSell(bytes32 poolId, uint256 tokenAmount)
-  view
-  returns (uint256 ethOut, uint256 platformFee, uint256 floorBoostFee);
+function estimateSell(
+    bytes32 poolId,
+    uint256 tokenAmount,
+    address seller
+)
+    view
+    returns (uint256 ethOut, uint256 platformFee, uint256 inviterFee);
 ```
 
-发送真实交易前，请将这些估算与滑点检查一起使用。
+发送交易前应先估算并应用滑点保护：
+
+```txt
+minTokensOut = estimatedTokensOut * (10000 - slippageBps) / 10000
+minEthOut    = estimatedEthOut    * (10000 - slippageBps) / 10000
+```
+
+## 价格与地板价的关系
+
+有效卖出价格不允许低于代币的地板价。当前有效价格可通过以下函数读取：
+
+```solidity
+function getEffectivePrice(bytes32 poolId) view returns (uint256);
+```
+
+内部曲线参数可通过以下函数检查：
+
+```solidity
+function getTokenK(bytes32 poolId) view returns (uint256);
+```
+
+## 原生 BNB 命名
+
+一些合约字段和事件名称中使用 `ETH`，例如 `realETH`、`virtualETH` 或 `borrowedETH`。在 BNB Smart Chain 上，这些值代表原生 BNB。命名来自合约习惯，但经济资产是 BNB。

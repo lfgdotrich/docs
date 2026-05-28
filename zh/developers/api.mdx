@@ -1,87 +1,50 @@
 ---
-title: API 参考
-description: 用于代币、交易、K 线、投资组合和配置的 LFG.RICH 公共 API 端点。
+title: 公开 API
+description: 集成可使用的 LFG.RICH 公开 API。
 ---
 
-LFG.RICH API 在以下路径下提供只读端点：
+LFG.RICH App 提供 BSC 公开 API，用于代币列表、代币详情、交易、K 线、余额、投资组合、借款仓位、推荐和合约配置。
+
+基础路径：
 
 ```txt
-https://lfg.rich/api/bsc/tokens
+/api/bsc
 ```
 
-响应通常使用以下结构：
+## 代币接口
 
-```json
-{
-  "success": true,
-  "data": {}
-}
-```
-
-## 代币列表
-
-```http
-GET /api/bsc/tokens?sort=volume&page=1&limit=20
-```
-
-查询参数：
-
-| 参数 | 值 |
+| 接口 | 描述 |
 | --- | --- |
-| `sort` | `volume`, `active`, `latest`, `gainers` |
-| `page` | 页码 |
-| `limit` | 每页结果数量 |
-| `search` | 按名称、符号或地址搜索 |
-| `verified` | `1` 或 `true`，只返回已验证代币 |
+| `GET /api/bsc` | 代币列表。 |
+| `GET /api/bsc/:address` | 代币详情。 |
+| `GET /api/bsc/:address/trades` | 代币交易。 |
+| `GET /api/bsc/:address/candles` | 图表 K 线。 |
+| `GET /api/bsc/:address/balance/:wallet` | 某钱包的代币余额。 |
+| `GET /api/bsc/creator/:wallet` | 某钱包创建的代币。 |
 
-## 获取代币详情
+## 投资组合接口
 
-```http
-GET /api/bsc/tokens/:address
-```
+| 接口 | 描述 |
+| --- | --- |
+| `GET /api/bsc/portfolio/:wallet/summary` | 投资组合摘要。 |
+| `GET /api/bsc/portfolio/:wallet` | 持仓代币。 |
+| `GET /api/bsc/portfolio/:wallet/activity` | 钱包近期活动。 |
+| `GET /api/bsc/portfolio/:wallet/borrows` | 借款仓位。 |
 
-返回代币元数据和协议状态，包括：
+## 推荐接口
 
-- `name`
-- `symbol`
-- `logo_url`
-- `current_price`
-- `floor_price`
-- `real_eth`
-- `market_cap`
-- `volume_24h`
-- `trades_24h`
-- `holders`
-- `pool_id`
+| 接口 | 描述 |
+| --- | --- |
+| `GET /api/bsc/referrals/:wallet` | 推荐面板数据。 |
+| `GET /api/bsc/referrals/code/:code` | 解析推荐码。 |
 
-## 获取代币交易
+## 配置接口
 
-```http
-GET /api/bsc/tokens/:address/trades?page=1&limit=50
-```
+| 接口 | 描述 |
+| --- | --- |
+| `GET /api/bsc/config/native-price` | App 使用的 BNB/USD 价格。 |
+| `GET /api/bsc/config/contracts` | 合约地址和人类可读 ABI。 |
+| `GET /api/bsc/jsonconfig/contracts` | 合约地址和 JSON ABI。 |
+| `GET /api/bsc/config/owner-data/:wallet` | 连接钱包的管理员所有权数据。 |
 
-返回代币最近交易历史。
-
-交易类型包括：
-
-- `buy`
-- `sell`
-- `borrow`
-- `borrowmore`
-- `repay`
-
-## 获取图表 K 线
-
-```http
-GET /api/bsc/tokens/:address/candles?interval=1h&limit=200
-```
-
-返回用于图表的 K 线数据和地板数据。
-
-## 获取协议配置
-
-```http
-GET /api/bsc/tokens/config
-```
-
-返回协议配置、原生币价格、合约地址和链信息。
+API 响应可能随 App 演进而变化。集成应容忍额外字段，不应假设未记录字段会永久保持不变。

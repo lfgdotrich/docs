@@ -1,40 +1,200 @@
 ---
 title: Floor Price Protection
-description: How LFG.RICH floor price mechanics protect official token launches.
+description: How the V5 floor-price mechanism protects official LFG.RICH token launches.
 ---
 
-Every official LFG.RICH token has protocol-managed floor price logic.
+The floor price is one of the most important protections in LFG.RICH V5.
 
-The floor is the protocol's minimum pricing level for the token. It is designed to move upward as the token grows and to protect against the price falling below the token's floor.
+For official V5 tokens, the public rule is simple:
 
-## What the floor does
+> **The protocol floor is always based on 50% of the token's all-time high price.**
 
-The floor price acts as a baseline for token sells.
+When the token reaches a new all-time high, the Hook records that new ATH and raises the floor target to half of it. If the price later falls, the ATH does not reset and the floor does not go down.
 
-LFG.RICH uses this mechanic to make launches more resistant to traditional liquidity rug risks. Token creators do not manage or remove LP tokens; official launches use protocol-managed reserves and floor logic.
+This means the floor is not controlled by the creator, by a market maker, or by manual team action. It is protocol state enforced by the **Uniswap V4 Hook**.
 
-## How the floor can rise
+## Core idea
 
-The floor can be influenced by:
+The V5 Hook tracks two important prices for every official token pool:
 
-- The token's all-time high bonding-curve price.
-- The protocol's floor ratio logic.
-- The token's floor boost pool.
-- Reserve and solvency checks.
+| Value | Meaning |
+| --- | --- |
+| `allTimeHighPrice` | The highest effective price the token has reached. |
+| `floorPrice` | The minimum effective price enforced by the protocol. |
 
-The result is a floor system designed around protocol state instead of external promises.
+The default floor rule is:
 
-## Floor boost pool
+```txt
+floorPrice = 50% of allTimeHighPrice
+```
 
-Part of each token's trading fee can flow into the floor boost pool.
+In basis points, this is stored as:
 
-For example, if a token has a **5%** total trading fee:
+```txt
+autoFloorPctBps = 5000
+```
 
-- **0.3%** is the platform fee.
-- **4.7%** goes to the floor boost portion.
+Because 10,000 basis points = 100%, 5,000 basis points = 50%.
 
-The floor boost portion strengthens the token's floor mechanics over time.
+## Simple example
 
-## Important note
+| Event | Effective price | ATH | Floor |
+| --- | ---: | ---: | ---: |
+| Token starts | 0 | 0 | 0 |
+| First buys push price to 0.001 BNB | 0.001 BNB | 0.001 BNB | 0.0005 BNB |
+| More buys push price to 0.01 BNB | 0.01 BNB | 0.01 BNB | 0.005 BNB |
+| Sells push price down | 0.005 BNB | 0.01 BNB | 0.005 BNB |
+| The price tries to go lower | 0.005 BNB minimum | 0.01 BNB | 0.005 BNB |
+| New rally reaches 0.02 BNB | 0.02 BNB | 0.02 BNB | 0.01 BNB |
 
-The floor is a protocol mechanic, not a guarantee from a company, market maker, or token creator. Users should still understand smart contract risk, chain risk, wallet risk, routing risk, and market risk before trading.
+The most important point is that the floor follows the ATH upward, but it does not follow the price downward.
+
+## What happens when a new ATH is reached
+
+After trades, the Hook can update the token's ATH and floor state.
+
+The flow is:
+
+1. The Hook calculates the token's current effective price.
+2. If the effective price is higher than the previous `allTimeHighPrice`, the Hook stores a new ATH.
+3. The Hook calculates the new floor target using `autoFloorPctBps`.
+4. With the default V5 setting, the target is 50% of ATH.
+5. If the new calculated floor is higher than the current `floorPrice`, the floor is raised.
+6. The floor is never reduced later.
+
+The Hook emits events for these changes:
+
+```solidity
+event ATHUpdated(bytes32 indexed poolId, uint256 oldATH, uint256 newATH);
+event FloorRaised(bytes32 indexed poolId, uint256 oldFloor, uint256 newFloor);
+```
+
+These events are useful for explorers, indexers, charts, and frontend activity feeds.
+
+## Why the floor cannot simply be changed manually
+
+The floor is derived from on-chain pool state. It is not a setting that the token creator can lower after launch.
+
+A creator cannot withdraw liquidity and cannot lower the floor to create a rug-style collapse. Official V5 tokens are routed through the protocol contracts, where the **Uniswap V4 Hook** controls pricing, floor enforcement, reserves, fees, collateral, borrowing, and hook callbacks.
+
+## Effective price and floor price
+
+The Hook exposes the effective price:
+
+```solidity
+function getEffectivePrice(bytes32 poolId) view returns (uint256);
+```
+
+The effective price is the price users and integrations should use when displaying current protocol price. It respects the floor.
+
+A sell can move the bonding-curve price down, but the effective price should not be displayed below the current `floorPrice`.
+
+## V5 floor state
+
+The Hook exposes the full token state per `poolId`:
+
+```solidity
+function tokenStates(bytes32 poolId)
+    view
+    returns (
+        address token,
+        address creator,
+        uint256 floorPrice,
+        uint256 realETH,
+        uint256 virtualETH,
+        uint256 totalBorrowedETH,
+        uint256 collateralSupply,
+        uint256 allTimeHighPrice,
+        uint256 k,
+        uint256 autoFloorPctBps,
+        bool initialized
+    );
+```
+
+Important floor-related fields:
+
+| Field | Meaning |
+| --- | --- |
+| `floorPrice` | Current minimum protocol price. |
+| `allTimeHighPrice` | Highest effective price reached by the token. |
+| `autoFloorPctBps` | Floor percentage in basis points. In V5 this is normally `5000`, meaning 50% of ATH. |
+| `realETH` | Native BNB actually available in the pool accounting. The contract field keeps the ETH-style name. |
+| `virtualETH` | Virtual backing created by borrow accounting. |
+| `totalBorrowedETH` | Total native BNB borrowed against this pool. |
+| `collateralSupply` | Tokens locked as borrow collateral. |
+| `k` | Internal curve parameter used by the Hook pricing logic. |
+
+## Reading the current floor
+
+Integrations should always resolve the correct `poolId` first, then read Hook state for that pool.
+
+```ts
+const poolId = token.pool_id || token.poolId || await hook.tokenToPoolId(tokenAddress);
+
+const state = await hook.tokenStates(poolId);
+const effectivePrice = await hook.getEffectivePrice(poolId);
+const autoFloorPctBps = await hook.getAutoFloorPct(poolId);
+
+console.log({
+  floorPrice: state.floorPrice.toString(),
+  allTimeHighPrice: state.allTimeHighPrice.toString(),
+  autoFloorPctBps: autoFloorPctBps.toString(), // normally 5000 = 50%
+  effectivePrice: effectivePrice.toString()
+});
+```
+
+Do not assume that a token address is enough for V5 reads. V5 routing is pool-based. Always resolve and use the token's `poolId`.
+
+## Solvency protection
+
+The main public rule is 50% of ATH. The Hook also protects the system from impossible floor states by checking how much effective backing exists.
+
+The important backing idea is:
+
+```txt
+effective backing = realETH + virtualETH
+```
+
+The Hook exposes the maximum floor currently supportable by the pool:
+
+```solidity
+function maxFloorPrice(bytes32 poolId) view returns (uint256);
+```
+
+This safety check exists so the floor remains enforceable by the protocol accounting. It does not give creators manual control over the floor, and it does not allow the floor to be lowered after it has been raised.
+
+## Floor price and borrowing
+
+Borrowing is based on floor value, not on temporary price spikes.
+
+When a user borrows against their tokens, the Hook uses the token's floor-price value to calculate borrowing power. This is why the floor mechanism is directly connected to lending:
+
+- If the token reaches a new ATH, the floor can rise to 50% of that ATH.
+- A higher floor increases the floor-value of token collateral.
+- If a user already has locked collateral and the floor rises later, they may be able to use `borrowMore(poolId)` to borrow the additional available value.
+- If the market price falls after the ATH, the borrow base does not fall with it because the floor does not go down.
+
+This is also why user interfaces should clearly show both:
+
+| Display value | Why it matters |
+| --- | --- |
+| Current effective price | Shows the current protocol trading price. |
+| ATH | Shows the highest effective price reached. |
+| Floor price | Shows the minimum enforced price and the base used for borrow value. |
+| Floor percentage | Shows that the V5 rule is 50% of ATH. |
+
+## What this means for users
+
+The floor mechanism gives official V5 tokens a built-in downside boundary inside the protocol.
+
+It means:
+
+- The creator cannot remove the protocol-managed backing like a traditional LP rug.
+- The token's floor rises when the token makes a new ATH.
+- The standard V5 floor target is 50% of ATH.
+- Once the floor rises, it does not go back down.
+- Borrowing uses floor value, not a temporary market spike.
+
+## Important risk note
+
+The floor protects official protocol pricing inside the LFG.RICH V5 contracts. Users should still understand smart contract risk, chain risk, wallet risk, routing risk, indexing risk, and market risk before trading.
